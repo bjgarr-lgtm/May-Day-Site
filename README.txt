@@ -1,28 +1,16 @@
-MAY DAY PHASE 1 PATCH
+Build fix patch.
 
-Files included:
-- src/pages/MayDayWelcomeCenter.jsx
-- src/components/mayday/NoiseBackground.jsx
-- src/data/maydayContent.js
+Why the build failed:
+src/pages/LaborHistoryPage.jsx imports ../archive/laborArchiveData
+but that file does not exist in the repo.
 
-Assumptions:
-- Existing React + Vite app
-- Tailwind already wired in
-- lucide-react installed
+This zip adds:
+- src/archive/laborArchiveData.js
+- src/pages/LaborHistoryPage.jsx
 
-What this patch gives you:
-- Single page phase one welcome center
-- Pink and green poster based styling
-- Vintage noise background treatment
-- Schedule section with filters
-- Map placeholder zone section
-- Hunt landing section
-- Practical info section
-- Shop section that links out to external merch
+What to do:
+Drop these files into the repo, replacing the page file if needed, then redeploy.
 
-What you still need to wire:
-- A route that renders MayDayWelcomeCenter
-- Your real shop URL in src/data/maydayContent.js under siteMeta.shopHref
-- Real map image or interactive map implementation
-- Real scavenger hunt routes and QR targets
-- Final content as details lock
+Notes:
+This only fixes the actual build error shown in your log.
+It does not add page images. The archive page will still build even if the images are not there yet.
