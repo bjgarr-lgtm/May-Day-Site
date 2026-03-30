@@ -9,6 +9,16 @@ import { getRouteCompletionCount, getTotalCompletionCount } from '../lib/huntPro
 const iconMap = { CalendarDays, MapPinned, Search, Info, ShoppingBag }
 const infoIconMap = { 'who this is for': Users, 'health and safety': Shield, 'why may day': HeartHandshake }
 
+function scrollToSection(sectionId, closeMenu) {
+  const element = document.getElementById(sectionId)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  if (closeMenu) {
+    closeMenu(false)
+  }
+}
+
 function SectionTitle({ eyebrow, title, body }) {
   return (
     <div className="max-w-3xl space-y-3">
@@ -24,15 +34,24 @@ function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#f2c4cf]/15 bg-[#163a2d]/85 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <a href="#top" className="max-w-[15rem] text-sm font-black uppercase leading-tight tracking-[0.16em] text-[#f2c4cf]">
+        <button
+          type="button"
+          onClick={() => scrollToSection('top')}
+          className="max-w-[15rem] text-left text-sm font-black uppercase leading-tight tracking-[0.16em] text-[#f2c4cf]"
+        >
           may day on the harbor
           <span className="block text-[#f7f1e8]/70">2026 welcome center</span>
-        </a>
+        </button>
         <nav className="hidden items-center gap-2 md:flex">
           {quickLinks.map((item) => (
-            <a key={item.id} href={`#${item.id}`} className="rounded-full border border-[#f2c4cf]/20 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#f2c4cf]/45 hover:bg-[#f2c4cf]/10 hover:text-white">
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => scrollToSection(item.id)}
+              className="rounded-full border border-[#f2c4cf]/20 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#f2c4cf]/45 hover:bg-[#f2c4cf]/10 hover:text-white"
+            >
               {item.label}
-            </a>
+            </button>
           ))}
           <Link to="/hunt" className="rounded-full border border-[#f2c4cf]/20 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#f2c4cf]/45 hover:bg-[#f2c4cf]/10 hover:text-white">
             Hunt Routes
@@ -46,9 +65,14 @@ function NavBar() {
         <div className="border-t border-[#f2c4cf]/10 px-4 py-4 md:hidden">
           <div className="flex flex-col gap-2">
             {quickLinks.map((item) => (
-              <a key={item.id} href={`#${item.id}`} onClick={() => setOpen(false)} className="rounded-2xl border border-[#f2c4cf]/15 px-4 py-3 text-sm font-semibold text-[#f7f1e8]/88">
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.id, setOpen)}
+                className="rounded-2xl border border-[#f2c4cf]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
+              >
                 {item.label}
-              </a>
+              </button>
             ))}
             <Link to="/hunt" onClick={() => setOpen(false)} className="rounded-2xl border border-[#f2c4cf]/15 px-4 py-3 text-sm font-semibold text-[#f7f1e8]/88">
               Hunt Routes
@@ -88,12 +112,15 @@ function Hero() {
             {quickLinks.map((item) => {
               const Icon = iconMap[item.icon]
               return (
-                <a key={item.id} href={`#${item.id}`}>
-                  <button type="button" className="inline-flex h-12 items-center rounded-full bg-[#f2c4cf] px-5 text-sm font-black uppercase tracking-[0.15em] text-[#153227] transition hover:bg-[#ffd8e1]">
-                    <Icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </button>
-                </a>
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => scrollToSection(item.id)}
+                  className="inline-flex h-12 items-center rounded-full bg-[#f2c4cf] px-5 text-sm font-black uppercase tracking-[0.15em] text-[#153227] transition hover:bg-[#ffd8e1]"
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </button>
               )
             })}
             <Link to="/hunt">
