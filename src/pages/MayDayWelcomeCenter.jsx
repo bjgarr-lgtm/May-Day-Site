@@ -347,7 +347,7 @@ function LaborHistorySection() {
           <SectionTitle
             eyebrow="archive"
             title="labor history of the harbor"
-            body="Browse scanned newspapers, labor conflict records, strike material, and local working class history from Aberdeen, Grays Harbor, and the wider region. This is not a tiny side link anymore. It is one of the main reasons this site exists."
+            body="Browse scanned newspapers, labor conflict records, strike material, and local working class history from Aberdeen, Grays Harbor, and the wider region."
           />
           <div className="flex flex-wrap gap-3">
             <Link
