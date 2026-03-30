@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function ReaderOverlay({
   open,
@@ -8,6 +8,8 @@ export default function ReaderOverlay({
 }) {
   const pages = useMemo(() => collection?.pages || [], [collection]);
   const [pageIndex, setPageIndex] = useState(initialIndex);
+  const touchStartX = useRef(null);
+  const touchStartY = useRef(null);
 
   useEffect(() => {
     setPageIndex(initialIndex);
@@ -37,6 +39,34 @@ export default function ReaderOverlay({
   const end = Math.min(pages.length, pageIndex + 3);
   const visiblePages = pages.slice(start, end);
 
+  const goPrev = () => setPageIndex((value) => Math.max(0, value - 1));
+  const goNext = () => setPageIndex((value) => Math.min(pages.length - 1, value + 1));
+
+  const handleTouchStart = (event) => {
+    const touch = event.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (event) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - touchStartX.current;
+    const dy = touch.clientY - touchStartY.current;
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+
+    if (dx < 0) {
+      goNext();
+    } else {
+      goPrev();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[70] bg-black/95 text-white">
       <div className="flex h-full flex-col">
@@ -55,16 +85,14 @@ export default function ReaderOverlay({
 
           <div className="flex shrink-0 gap-2">
             <button
-              onClick={() => setPageIndex((value) => Math.max(0, value - 1))}
+              onClick={goPrev}
               disabled={pageIndex === 0}
               className="rounded-2xl border border-white/20 px-4 py-2 text-sm disabled:opacity-30"
             >
               Prev
             </button>
             <button
-              onClick={() =>
-                setPageIndex((value) => Math.min(pages.length - 1, value + 1))
-              }
+              onClick={goNext}
               disabled={pageIndex === pages.length - 1}
               className="rounded-2xl border border-white/20 px-4 py-2 text-sm disabled:opacity-30"
             >
@@ -79,20 +107,39 @@ export default function ReaderOverlay({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto bg-[#050505]">
-          <div className="flex min-h-full items-start justify-center p-2 md:p-3">
-          <img
-            src={page.src}
-            alt={page.title || `Page ${pageIndex + 1}`}
-            className="block h-auto w-full max-w-[1100px] bg-white shadow-2xl"
+        <div
+          className="relative min-h-0 flex-1 overflow-auto bg-[#050505]"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <button
+            type="button"
+            aria-label="Previous page"
+            onClick={goPrev}
+            disabled={pageIndex === 0}
+            className="absolute left-0 top-0 z-10 h-full w-1/4 bg-transparent md:hidden"
           />
+          <button
+            type="button"
+            aria-label="Next page"
+            onClick={goNext}
+            disabled={pageIndex === pages.length - 1}
+            className="absolute right-0 top-0 z-10 h-full w-1/4 bg-transparent md:hidden"
+          />
+
+          <div className="flex min-h-full items-start justify-center p-1 md:p-3">
+            <img
+              src={page.src}
+              alt={page.title || `Page ${pageIndex + 1}`}
+              className="block h-auto w-full max-w-[1400px] bg-white shadow-2xl"
+            />
           </div>
         </div>
 
         <div className="shrink-0 border-t border-white/10 bg-black/80 px-3 py-2 backdrop-blur">
           <div className="mx-auto flex max-w-3xl items-center justify-center gap-2">
             <button
-              onClick={() => setPageIndex((value) => Math.max(0, value - 1))}
+              onClick={goPrev}
               disabled={pageIndex === 0}
               className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 disabled:opacity-30"
             >
@@ -145,9 +192,7 @@ export default function ReaderOverlay({
             ) : null}
 
             <button
-              onClick={() =>
-                setPageIndex((value) => Math.min(pages.length - 1, value + 1))
-              }
+              onClick={goNext}
               disabled={pageIndex === pages.length - 1}
               className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 disabled:opacity-30"
             >
@@ -158,4 +203,4 @@ export default function ReaderOverlay({
       </div>
     </div>
   );
-}
+}\n
