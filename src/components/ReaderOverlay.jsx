@@ -35,10 +35,10 @@ export default function ReaderOverlay({
   const page = pages[pageIndex];
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/92 text-white">
+    <div className="fixed inset-0 z-[70] bg-black/95 text-white">
       <div className="flex h-full flex-col">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-black/55 px-4 py-3 backdrop-blur">
-          <div className="min-w-0">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-white/10 bg-black/60 px-4 py-3 backdrop-blur">
+          <div className="min-w-0 pr-2">
             <div className="text-[11px] uppercase tracking-[0.18em] text-stone-300">
               Full reader
             </div>
@@ -76,13 +76,13 @@ export default function ReaderOverlay({
           </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="min-h-0 overflow-auto bg-[#0b0b0b]">
             <div className="flex min-h-full items-start justify-center p-4 md:p-6">
               <img
                 src={page.src}
                 alt={page.title || `Page ${pageIndex + 1}`}
-                className="h-auto max-w-full rounded-xl bg-white shadow-2xl"
+                className="block h-auto max-h-[calc(100vh-120px)] w-auto max-w-full rounded-xl bg-white shadow-2xl"
               />
             </div>
           </div>
