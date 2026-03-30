@@ -17,6 +17,7 @@ export default function LaborArchiveViewer({ pages = [] }) {
         maxHeight={1200}
         showCover={true}
         mobileScrollSupport={true}
+        disableFlipByClick={true}
         className="shadow-2xl"
       >
         {pages.map((src, i) => (

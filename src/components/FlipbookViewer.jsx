@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
 
@@ -33,8 +34,9 @@ function LazyImage({ page, index, onOpenReader }) {
         <img
           src={page.src}
           alt={page.title || `Page ${index + 1}`}
-          className="h-full w-full object-contain"
+          className="h-full w-full object-contain cursor-zoom-in"
           loading="lazy"
+          draggable={false}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-stone-100 text-sm text-stone-400">
@@ -54,7 +56,7 @@ export default function FlipbookViewer({ collection, onOpenReader }) {
   const pages = collection?.pages || [];
 
   return (
-    <div className="flex min-h-[72vh] items-center justify-center">
+    <div className="flex min-h-[72vh] items-center justify-center px-8 py-6">
       <HTMLFlipBook
         key={collection?.id || "empty"}
         width={390}
@@ -70,6 +72,7 @@ export default function FlipbookViewer({ collection, onOpenReader }) {
         usePortrait={true}
         startPage={0}
         flippingTime={700}
+        disableFlipByClick={true}
         className="shadow-2xl"
       >
         {pages.map((page, index) => (
