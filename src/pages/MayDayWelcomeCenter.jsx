@@ -229,6 +229,17 @@ function Hero() {
               <BookOpen className="mr-2 h-4 w-4 shrink-0" />
               labor history
             </button>
+            {siteMeta.mapHref ? (
+              <a
+                href={siteMeta.mapHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]"
+              >
+                <MapPinned className="mr-2 h-4 w-4 shrink-0" />
+                open live map
+              </a>
+            ) : null}
             <Link to="/hunt">
               <button
                 type="button"
@@ -346,6 +357,17 @@ function LaborHistorySection() {
               <BookOpen className="mr-2 h-4 w-4 shrink-0" />
               open archive
             </Link>
+            {siteMeta.mapHref ? (
+              <a
+                href={siteMeta.mapHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+              >
+                <MapPinned className="mr-2 h-4 w-4 shrink-0" />
+                open live map
+              </a>
+            ) : null}
           </div>
         </div>
 
@@ -375,6 +397,16 @@ function LaborHistorySection() {
               >
                 explore labor history
               </Link>
+              {siteMeta.mapHref ? (
+                <a
+                  href={siteMeta.mapHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                >
+                  view map
+                </a>
+              ) : null}
             </div>
           </div>
         </div>
@@ -431,10 +463,29 @@ function MapSection() {
   return (
     <section id="map" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <div className="space-y-8">
-        <SectionTitle eyebrow="map" title="find your way around" />
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <SectionTitle eyebrow="map" title="find your way around" body={siteMeta.mapHref ? "Use the live public map for the current layout, navigation, and event flow." : undefined} />
+          {siteMeta.mapHref ? (
+            <a
+              href={siteMeta.mapHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
+            >
+              <MapPinned className="mr-2 h-4 w-4 shrink-0" />
+              open live map
+            </a>
+          ) : null}
+        </div>
         <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
           <div className="overflow-hidden rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
-            <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover" />
+            {siteMeta.mapHref ? (
+              <a href={siteMeta.mapHref} target="_blank" rel="noreferrer" className="block">
+                <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover transition hover:opacity-95" />
+              </a>
+            ) : (
+              <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover" />
+            )}
           </div>
           <div className="space-y-4">
             {huntRoutes.map((route) => {

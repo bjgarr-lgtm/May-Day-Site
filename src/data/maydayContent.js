@@ -83,6 +83,7 @@ export const siteMeta = {
   donateHref: 'https://hcb.hackclub.com/donations/start/may-day-organizing-committee',
   linktreeHref: 'https://linktr.ee/maydayontheharbor',
   vendorHref: 'https://docs.google.com/document/d/1f6iByYjMyahEI1MbO-Hw7xUSwTcmBcqJUxEZoSzJQDY/edit?usp=sharing',
+  mapHref: 'https://canva.link/tz2eq2avtaqloby',
   contactEmail: 'maydayontheharbor@proton.me',
   venueName: 'Historical Seaport',
   venueAddress: '500 N. Custer St., Aberdeen, WA 98520',
