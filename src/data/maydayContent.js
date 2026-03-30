@@ -88,5 +88,5 @@ export const siteMeta = {
   venueAddress: '500 N. Custer St., Aberdeen, WA 98520',
   facebookHref: 'https://www.facebook.com/profile.php?id=61574621251510',
   instagramHref: 'https://www.instagram.com/maydayontheharbor/',
-  laborHistoryHref: '/laborhistory',
+  laborHistoryHref: '/labor-history',
 }
