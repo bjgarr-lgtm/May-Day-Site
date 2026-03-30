@@ -192,13 +192,67 @@ function Hero() {
         </div>
 
         <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/25 p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6">
-          <div className="overflow-hidden rounded-[1.5rem] border border-[#f2c4cf]/15 bg-black/20">
+          <div className="relative overflow-hidden rounded-[1.5rem] border border-[#f2c4cf]/15 bg-black/20 aspect-[4/5] max-h-[36rem]">
             <img
-              src="/poster-2026-pink-green.png"
+              src="/shop/poster-2026-pink-green.png"
               alt="May Day on the Harbor 2026 poster art"
-              className="w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover object-top"
             />
+
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.18)_55%,rgba(0,0,0,.55))]" />
+
+            <div className="absolute left-4 top-4">
+              <span className="rounded-full border border-[#f2c4cf]/30 bg-black/35 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#f7f1e8] sm:text-xs">
+                2026 poster art
+              </span>
+            </div>
+
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+              <div className="rounded-[1.25rem] border border-[#f2c4cf]/20 bg-black/35 p-4 backdrop-blur-sm">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-[#f2c4cf]/85 sm:text-xs">
+                  this year’s look
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[#f7f1e8]/88 sm:text-base">
+                  annual May Day branding in this year’s pink and green poster palette.
+                </p>
+              </div>
+            </div>
           </div>
+
+          <div className="mt-4 grid gap-4 sm:mt-6 sm:grid-cols-2">
+            <div className="rounded-3xl border border-[#f2c4cf]/15 bg-[#f2c4cf]/8 p-4">
+              <div className="mb-2 flex items-center gap-2 text-[#f2c4cf]">
+                <Clock3 className="h-4 w-4" />
+                <span className="text-xs uppercase tracking-[0.22em]">hours</span>
+              </div>
+              <p className="text-base font-bold uppercase text-[#f7f1e8] sm:text-lg">noon to midnight</p>
+              <p className="mt-2 text-sm text-[#f7f1e8]/72">Vendors through 7 pm, evening film and music later indoors.</p>
+            </div>
+
+            <div className="rounded-3xl border border-[#f2c4cf]/15 bg-[#f2c4cf]/8 p-4">
+              <div className="mb-2 flex items-center gap-2 text-[#f2c4cf]">
+                <Accessibility className="h-4 w-4" />
+                <span className="text-xs uppercase tracking-[0.22em]">community care</span>
+              </div>
+              <p className="text-base font-bold uppercase text-[#f7f1e8] sm:text-lg">masks required</p>
+              <p className="mt-2 text-sm text-[#f7f1e8]/72">Masks are provided to help keep the event more accessible and safer.</p>
+            </div>
+          </div>
+
+          <div className="mt-4 sm:mt-6">
+            <p className="mb-3 text-xs uppercase tracking-[0.22em] text-[#f2c4cf]/80">at a glance</p>
+            <div className="flex flex-wrap gap-2">
+              {highlights.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-[#f7f1e8]/10 bg-[#0c1914]/80 px-3 py-2 text-xs text-[#f7f1e8]/82 sm:text-sm"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+      
 
           <div className="mt-4 grid gap-4 sm:mt-6 sm:grid-cols-2">
             <div className="rounded-3xl border border-[#f2c4cf]/15 bg-[#f2c4cf]/8 p-4">
