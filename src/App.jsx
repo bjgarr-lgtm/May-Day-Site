@@ -3,7 +3,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import MayDayWelcomeCenter from './pages/MayDayWelcomeCenter'
 import HuntHome from './pages/HuntHome'
 import HuntStopPage from './pages/HuntStopPage'
-import { Routes, Route } from "react-router-dom";
 import LaborHistoryPage from "./pages/LaborHistoryPage";
 
 export default function App() {
