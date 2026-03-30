@@ -226,12 +226,6 @@ function Hero() {
                 2026 poster art
               </span>
             </div>
-            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-              <div className="rounded-[1.25rem] border border-[#e3a7a5]/20 bg-black/35 p-4 backdrop-blur-sm">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-[#e3a7a5]/85 sm:text-xs">this year’s look</p>
-                <p className="mt-2 text-sm leading-6 text-[#f7f1e8]/88 sm:text-base">annual May Day branding in this year’s poster palette.</p>
-              </div>
-            </div>
           </div>
 
           <div className="mt-4 grid gap-4 sm:mt-6 sm:grid-cols-2">
