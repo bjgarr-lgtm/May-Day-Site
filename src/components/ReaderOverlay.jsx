@@ -203,4 +203,4 @@ export default function ReaderOverlay({
       </div>
     </div>
   );
-}\n
+}
