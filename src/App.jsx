@@ -13,7 +13,6 @@ export default function App() {
       <Route path="/hunt" element={<HuntHome />} />
       <Route path="/hunt/:category/:stopId" element={<HuntStopPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
-      <Route path="/" element={<MayDayWelcomeCenter />} />
       <Route path="/labor-history" element={<LaborHistoryPage />} />
     </Routes>
   )
