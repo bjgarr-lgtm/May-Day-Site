@@ -356,7 +356,7 @@ function LaborHistorySection() {
           <SectionTitle
             eyebrow="archive"
             title="labor history of the harbor"
-            body="Browse scanned newspapers, labor conflict records, strike material, and local working class history from Aberdeen, Grays Harbor, and the wider region. This is not a tiny side link anymore. It is one of the main reasons this site exists."
+            body="Browse scanned newspapers, labor conflict records, strike material, and local working class history from Aberdeen, Grays Harbor, and the wider region."
           />
           <div className="flex flex-wrap gap-3">
             <Link
@@ -366,14 +366,6 @@ function LaborHistorySection() {
               <BookOpen className="mr-2 h-4 w-4 shrink-0" />
               open archive
             </Link>
-            <button
-              type="button"
-              onClick={() => scrollToSection('map')}
-              className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-            >
-              <MapPinned className="mr-2 h-4 w-4 shrink-0" />
-              view maps
-            </button>
           </div>
         </div>
 
@@ -403,13 +395,6 @@ function LaborHistorySection() {
               >
                 explore labor history
               </Link>
-              <button
-                type="button"
-                onClick={() => scrollToSection('map')}
-                className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-              >
-                view maps
-              </button>
             </div>
           </div>
         </div>
