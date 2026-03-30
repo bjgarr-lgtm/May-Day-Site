@@ -54,6 +54,29 @@ const infoIconMap = {
   'why may day': HeartHandshake,
 }
 
+const archiveCollections = [
+  {
+    title: 'Aberdeen Free Speech Fights',
+    detail: 'IWW organizing, arrests, speaking bans, and the fight over who gets to speak in public at all.',
+  },
+  {
+    title: 'Murder of William McKay',
+    detail: 'Bay City Mill violence, strike conflict, and one of the Harbor’s most brutal labor killings.',
+  },
+  {
+    title: 'Murder of Laura Law',
+    detail: 'Anti labor terror, civil rights violations, and the deadly machinery protecting local power.',
+  },
+  {
+    title: 'Everett, Centralia, Seattle',
+    detail: 'Regional flashpoints, massacres, and labor conflict far beyond a single town line.',
+  },
+  {
+    title: 'Miscellaneous Labor History',
+    detail: 'Scans, clippings, and supporting material tied to Harbor labor history across the wider region.',
+  },
+]
+
 function scrollToSection(id, closeMenu) {
   const el = document.getElementById(id)
   if (el) el.scrollIntoView({ behavior: 'smooth' })
@@ -96,6 +119,13 @@ function NavBar() {
               {item.label}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => scrollToSection('labor-history')}
+            className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
+          >
+            Labor History
+          </button>
           <Link
             to="/hunt"
             className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
@@ -127,6 +157,13 @@ function NavBar() {
                 {item.label}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => scrollToSection('labor-history', setOpen)}
+              className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
+            >
+              Labor History
+            </button>
             <Link
               to="/hunt"
               onClick={() => setOpen(false)}
@@ -184,6 +221,14 @@ function Hero() {
                 </button>
               )
             })}
+            <button
+              type="button"
+              onClick={() => scrollToSection('labor-history')}
+              className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]"
+            >
+              <BookOpen className="mr-2 h-4 w-4 shrink-0" />
+              labor history
+            </button>
             <Link to="/hunt">
               <button
                 type="button"
@@ -278,6 +323,61 @@ function HomeSection() {
             </div>
           )
         })}
+      </div>
+    </section>
+  )
+}
+
+function LaborHistorySection() {
+  return (
+    <section id="labor-history" className="border-y border-[#e3a7a5]/10 bg-black/15">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <SectionTitle
+            eyebrow="archive"
+            title="labor history of the harbor"
+            body="Browse scanned newspapers, labor conflict records, strike material, and local working class history from Aberdeen, Grays Harbor, and the wider region. This is not a tiny side link anymore. It is one of the main reasons this site exists."
+          />
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to={siteMeta.laborHistoryHref}
+              className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
+            >
+              <BookOpen className="mr-2 h-4 w-4 shrink-0" />
+              open archive
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {archiveCollections.map((item) => (
+            <div key={item.title} className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-5">
+              <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">collection</p>
+              <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-2xl">{item.title}</h3>
+              <p className="mt-3 leading-7 text-[#f7f1e8]/78">{item.detail}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6">
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">why it matters</p>
+              <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">history should not be hidden behind one tiny button</h3>
+              <p className="mt-3 max-w-3xl leading-7 text-[#f7f1e8]/78">
+                This archive gives people a way to move from event language into real local history. Not abstract labor history. Not generic slogans. The Harbor. The fights. The violence. The organizing. The dead. The records that still remain.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3 lg:justify-end">
+              <Link
+                to={siteMeta.laborHistoryHref}
+                className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+              >
+                explore labor history
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -539,6 +639,7 @@ export default function MayDayWelcomeCenter() {
         <NavBar />
         <Hero />
         <HomeSection />
+        <LaborHistorySection />
         <ScheduleSection />
         <MapSection />
         <HuntSection />
