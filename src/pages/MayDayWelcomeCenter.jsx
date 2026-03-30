@@ -328,7 +328,7 @@ function MapSection() {
   return (
     <section id="map" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <div className="space-y-8">
-        <SectionTitle eyebrow="map" title="find your way around" body="This is using the temporary uploaded scavenger hunt map as a stand in. The real world visitor map with parking, entrances, and on site navigation can replace it next week without changing the page structure." />
+        <SectionTitle eyebrow="map" title="find your way around" />
         <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
           <div className="overflow-hidden rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
             <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover" />
@@ -374,7 +374,7 @@ function HuntSection() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr]">
           <div className="space-y-6">
-            <SectionTitle eyebrow="scavenger hunt" title="make the hunt part of the site" body="These routes now use your real section text as a first pass. Some stops stay intentionally vague online because the real code or clue is only revealed in the physical world after the challenge is solved." />
+            <SectionTitle eyebrow="scavenger hunt" title="make the hunt part of the site" />
             <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-6">
               <h3 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">how it works now</h3>
               <ul className="mt-4 space-y-3 text-[#f7f1e8]/84">
