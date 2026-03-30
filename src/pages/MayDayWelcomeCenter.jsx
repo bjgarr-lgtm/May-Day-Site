@@ -480,8 +480,25 @@ function MapSection() {
         <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
           <div className="overflow-hidden rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
             {siteMeta.mapHref ? (
-              <a href={siteMeta.mapHref} target="_blank" rel="noreferrer" className="block">
-                <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover transition hover:opacity-95" />
+              <a
+                href={siteMeta.mapHref}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-h-[28rem] flex-col items-center justify-center rounded-[1.5rem] border border-[#f7f1e8]/10 bg-[linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.35))] px-6 py-8 text-center transition hover:bg-[linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.3))]"
+              >
+                <div className="mb-4 inline-flex rounded-full border border-[#e3a7a5]/20 bg-[#e3a7a5]/10 p-4 text-[#e3a7a5]">
+                  <MapPinned className="h-8 w-8" />
+                </div>
+                <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">live public map</p>
+                <h3 className="mt-3 text-2xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-3xl">
+                  open the current event map
+                </h3>
+                <p className="mt-3 max-w-xl leading-7 text-[#f7f1e8]/78">
+                  The old static hunt graphic has been replaced here with the live public map link so people stop landing on outdated layout art.
+                </p>
+                <span className="mt-6 inline-flex items-center rounded-full bg-[#e3a7a5] px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636]">
+                  open live map <ExternalLink className="ml-2 h-4 w-4" />
+                </span>
               </a>
             ) : (
               <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover" />
