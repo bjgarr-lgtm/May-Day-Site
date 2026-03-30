@@ -33,6 +33,9 @@ export default function ReaderOverlay({
   if (!open || !collection || !pages.length) return null;
 
   const page = pages[pageIndex];
+  const start = Math.max(0, pageIndex - 2);
+  const end = Math.min(pages.length, pageIndex + 3);
+  const visiblePages = pages.slice(start, end);
 
   return (
     <div className="fixed inset-0 z-[70] bg-black/95 text-white">
@@ -76,34 +79,80 @@ export default function ReaderOverlay({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto bg-[#0b0b0b]">
-          <div className="flex min-h-full items-start justify-center p-4 md:p-6">
+        <div className="min-h-0 flex-1 overflow-auto bg-[#050505]">
+          <div className="flex min-h-full items-start justify-center p-2 md:p-3">
             <img
               src={page.src}
               alt={page.title || `Page ${pageIndex + 1}`}
-              className="block h-auto max-h-[calc(100vh-120px)] w-auto max-w-full rounded-xl bg-white shadow-2xl"
+              className="block h-auto max-h-[calc(100vh-88px)] w-auto max-w-full bg-white shadow-2xl"
             />
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-white/10 bg-black/70 px-3 py-2 backdrop-blur">
-          <div className="mx-auto flex max-w-3xl items-center justify-center gap-2 overflow-x-auto">
-            {pages.map((item, index) => (
+        <div className="shrink-0 border-t border-white/10 bg-black/80 px-3 py-2 backdrop-blur">
+          <div className="mx-auto flex max-w-3xl items-center justify-center gap-2">
+            <button
+              onClick={() => setPageIndex((value) => Math.max(0, value - 1))}
+              disabled={pageIndex === 0}
+              className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 disabled:opacity-30"
+            >
+              Prev
+            </button>
+
+            {start > 0 ? (
               <button
-                key={`${item.src}-${index}`}
-                onClick={() => setPageIndex(index)}
-                className={[
-                  "shrink-0 rounded-xl border px-3 py-2 text-xs transition",
-                  index === pageIndex
-                    ? "border-white/40 bg-white text-stone-900"
-                    : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10",
-                ].join(" ")}
-                aria-label={`Go to page ${index + 1}`}
-                title={`Page ${index + 1}`}
+                onClick={() => setPageIndex(0)}
+                className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 hover:bg-white/10"
+                title="Page 1"
               >
-                {index + 1}
+                1
               </button>
-            ))}
+            ) : null}
+
+            {start > 1 ? <span className="px-1 text-xs text-white/40">…</span> : null}
+
+            {visiblePages.map((item, offset) => {
+              const index = start + offset;
+              const active = index === pageIndex;
+              return (
+                <button
+                  key={`${item.src}-${index}`}
+                  onClick={() => setPageIndex(index)}
+                  className={[
+                    "min-w-10 rounded-xl border px-3 py-2 text-xs transition",
+                    active
+                      ? "border-white/40 bg-white text-stone-900"
+                      : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10",
+                  ].join(" ")}
+                  aria-label={`Go to page ${index + 1}`}
+                  title={`Page ${index + 1}`}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
+
+            {end < pages.length - 1 ? <span className="px-1 text-xs text-white/40">…</span> : null}
+
+            {end < pages.length ? (
+              <button
+                onClick={() => setPageIndex(pages.length - 1)}
+                className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 hover:bg-white/10"
+                title={`Page ${pages.length}`}
+              >
+                {pages.length}
+              </button>
+            ) : null}
+
+            <button
+              onClick={() =>
+                setPageIndex((value) => Math.min(pages.length - 1, value + 1))
+              }
+              disabled={pageIndex === pages.length - 1}
+              className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white/80 disabled:opacity-30"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>

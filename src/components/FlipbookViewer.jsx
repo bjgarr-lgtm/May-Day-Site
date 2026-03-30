@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import HTMLFlipBook from "react-pageflip";
 
@@ -73,6 +72,7 @@ export default function FlipbookViewer({ collection, onOpenReader }) {
         startPage={0}
         flippingTime={700}
         disableFlipByClick={true}
+        showPageCorners={false}
         className="shadow-2xl"
       >
         {pages.map((page, index) => (
