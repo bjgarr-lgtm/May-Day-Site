@@ -288,7 +288,7 @@ function ScheduleSection() {
   return (
     <section id="schedule" className="border-y border-[#e3a7a5]/10 bg-black/15">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <SectionTitle eyebrow="schedule" title="day of programming" body="The final schedule can be updated as details lock. This phase one version gives people a clean structure instead of forcing them to decode a poster like it is a sacred prophecy." />
+        <SectionTitle eyebrow="schedule" title="day of programming" />
         <div className="mt-8 flex flex-wrap gap-2">
           {filters.map((item) => (
             <button key={item} type="button" onClick={() => setFilter(item)} className={`rounded-full border px-4 py-2 text-sm font-bold uppercase tracking-[0.14em] transition ${filter === item ? 'border-[#e3a7a5] bg-[#e3a7a5] text-[#264636]' : 'border-[#e3a7a5]/18 bg-[#e3a7a5]/5 text-[#f7f1e8]/82 hover:bg-[#e3a7a5]/10'}`}>
@@ -412,7 +412,7 @@ function InfoSection() {
     <section id="info" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
         <div className="space-y-6">
-          <SectionTitle eyebrow="event info" title="practical details" body="This is the grounded logistics section. It should answer the obvious questions before anyone decides that emailing you was faster than reading." />
+          <SectionTitle eyebrow="event info" title="practical details" />
           <div className="grid gap-4">
             {practicalInfo.map((item) => (
               <div key={item.title} className="rounded-3xl border border-[#e3a7a5]/15 bg-black/15 p-5">
@@ -488,7 +488,7 @@ function ShopSection() {
     <section id="shop" className="border-t border-[#e3a7a5]/10 bg-black/15">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <SectionTitle eyebrow="shop" title="support the event" body="The store is wired to the real Square site. To add actual photos here later, put image files in /public and set each merchItems imageSrc value in src/data/maydayContent.js to something like /shop/poster.jpg." />
+          <SectionTitle eyebrow="shop" title="support the event" body="Shop using our Square Site" />
           <a href={siteMeta.shopHref} target="_blank" rel="noreferrer">
             <button type="button" className="inline-flex h-auto min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]">
               open shop <ExternalLink className="ml-2 h-4 w-4" />
