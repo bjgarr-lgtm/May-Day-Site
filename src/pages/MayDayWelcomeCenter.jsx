@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Accessibility, CalendarDays, ChevronRight, Clock3, ExternalLink, HeartHandshake, Info, MapPinned, Menu, Search, Shield, ShoppingBag, Users, X } from 'lucide-react'
+import { Accessibility, CalendarDays, ChevronRight, Clock3, ExternalLink, HeartHandshake, Info, MapPinned, Menu, Search, Shield, ShoppingBag, Users, X, HandCoins, Link2, ClipboardPenLine } from 'lucide-react'
 import NoiseBackground from '../components/mayday/NoiseBackground'
 import { highlights, huntCategories, infoCards, mapZones, merchItems, practicalInfo, quickLinks, scheduleItems, siteMeta, timeline } from '../data/maydayContent'
 import { huntRoutes } from '../data/huntData'
@@ -14,9 +14,7 @@ function scrollToSection(sectionId, closeMenu) {
   if (element) {
     element.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
-  if (closeMenu) {
-    closeMenu(false)
-  }
+  if (closeMenu) closeMenu(false)
 }
 
 function SectionTitle({ eyebrow, title, body }) {
@@ -34,22 +32,13 @@ function NavBar() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#f2c4cf]/15 bg-[#163a2d]/85 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <button
-          type="button"
-          onClick={() => scrollToSection('top')}
-          className="max-w-[15rem] text-left text-sm font-black uppercase leading-tight tracking-[0.16em] text-[#f2c4cf]"
-        >
+        <button type="button" onClick={() => scrollToSection('top')} className="max-w-[15rem] text-left text-sm font-black uppercase leading-tight tracking-[0.16em] text-[#f2c4cf]">
           may day on the harbor
           <span className="block text-[#f7f1e8]/70">2026 welcome center</span>
         </button>
         <nav className="hidden items-center gap-2 md:flex">
           {quickLinks.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => scrollToSection(item.id)}
-              className="rounded-full border border-[#f2c4cf]/20 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#f2c4cf]/45 hover:bg-[#f2c4cf]/10 hover:text-white"
-            >
+            <button key={item.id} type="button" onClick={() => scrollToSection(item.id)} className="rounded-full border border-[#f2c4cf]/20 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#f2c4cf]/45 hover:bg-[#f2c4cf]/10 hover:text-white">
               {item.label}
             </button>
           ))}
@@ -65,12 +54,7 @@ function NavBar() {
         <div className="border-t border-[#f2c4cf]/10 px-4 py-4 md:hidden">
           <div className="flex flex-col gap-2">
             {quickLinks.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => scrollToSection(item.id, setOpen)}
-                className="rounded-2xl border border-[#f2c4cf]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
-              >
+              <button key={item.id} type="button" onClick={() => scrollToSection(item.id, setOpen)} className="rounded-2xl border border-[#f2c4cf]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88">
                 {item.label}
               </button>
             ))}
@@ -100,6 +84,7 @@ function Hero() {
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-[#f7f1e8]/88 sm:text-xl">{siteMeta.description}</p>
           </div>
+
           <div className="flex flex-wrap gap-3 text-sm font-semibold uppercase tracking-[0.16em]">
             {[siteMeta.dateLabel, siteMeta.hoursLabel, siteMeta.freeLabel].map((item) => (
               <span key={item} className="rounded-full border border-[#f2c4cf]/25 bg-[#f2c4cf]/10 px-4 py-2 text-[#f7f1e8]">{item}</span>
@@ -108,16 +93,12 @@ function Hero() {
               hunt progress {totalComplete}/{totalStops}
             </span>
           </div>
+
           <div className="flex flex-wrap gap-3">
             {quickLinks.map((item) => {
               const Icon = iconMap[item.icon]
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => scrollToSection(item.id)}
-                  className="inline-flex h-12 items-center rounded-full bg-[#f2c4cf] px-5 text-sm font-black uppercase tracking-[0.15em] text-[#153227] transition hover:bg-[#ffd8e1]"
-                >
+                <button key={item.id} type="button" onClick={() => scrollToSection(item.id)} className="inline-flex h-12 items-center rounded-full bg-[#f2c4cf] px-5 text-sm font-black uppercase tracking-[0.15em] text-[#153227] transition hover:bg-[#ffd8e1]">
                   <Icon className="mr-2 h-4 w-4" />
                   {item.label}
                 </button>
@@ -130,7 +111,29 @@ function Hero() {
               </button>
             </Link>
           </div>
+
+          <div className="flex flex-wrap gap-3">
+            {siteMeta.donateHref ? (
+              <a href={siteMeta.donateHref} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center rounded-full border border-[#f2c4cf]/25 bg-black/20 px-5 text-sm font-black uppercase tracking-[0.15em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10">
+                <HandCoins className="mr-2 h-4 w-4" />
+                donate
+              </a>
+            ) : null}
+            {siteMeta.vendorHref ? (
+              <a href={siteMeta.vendorHref} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center rounded-full border border-[#f2c4cf]/25 bg-black/20 px-5 text-sm font-black uppercase tracking-[0.15em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10">
+                <ClipboardPenLine className="mr-2 h-4 w-4" />
+                vendor and sponsor info
+              </a>
+            ) : null}
+            {siteMeta.linktreeHref ? (
+              <a href={siteMeta.linktreeHref} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center rounded-full border border-[#f2c4cf]/25 bg-black/20 px-5 text-sm font-black uppercase tracking-[0.15em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10">
+                <Link2 className="mr-2 h-4 w-4" />
+                links
+              </a>
+            ) : null}
+          </div>
         </div>
+
         <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/25 p-6 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-8">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-3xl border border-[#f2c4cf]/15 bg-[#f2c4cf]/8 p-4">
@@ -224,26 +227,18 @@ function MapSection() {
   return (
     <section id="map" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="space-y-8">
-        <SectionTitle eyebrow="map" title="find your way around" body="Phase three swaps the placeholder block map for your real uploaded scavenger hunt map and ties the hunt routes directly into the map section instead of making people mentally glue things together themselves." />
+        <SectionTitle eyebrow="map" title="find your way around" body="This is using the temporary uploaded scavenger hunt map as a stand in. The real world visitor map with parking, entrances, and on site navigation can replace it next week without changing the page structure." />
 
         <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
           <div className="overflow-hidden rounded-[2rem] border border-[#f2c4cf]/20 bg-black/20 p-4 sm:p-6">
-            <img
-              src="/scavenger-hunt-map.png"
-              alt="Scavenger hunt map for May Day on the Harbor"
-              className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover"
-            />
+            <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover" />
           </div>
 
           <div className="space-y-4">
             {huntRoutes.map((route) => {
               const complete = getRouteCompletionCount(route.slug)
               return (
-                <Link
-                  key={route.slug}
-                  to={`/hunt/${route.slug}/${route.stops[0].id}`}
-                  className="block rounded-[2rem] border border-[#f2c4cf]/20 bg-[#11261e] p-5 transition hover:border-[#f2c4cf]/40 hover:bg-[#163126]"
-                >
+                <Link key={route.slug} to={`/hunt/${route.slug}/${route.stops[0].id}`} className="block rounded-[2rem] border border-[#f2c4cf]/20 bg-[#11261e] p-5 transition hover:border-[#f2c4cf]/40 hover:bg-[#163126]">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs uppercase tracking-[0.24em] text-[#f2c4cf]/80">{route.stops.length} stops</p>
@@ -283,22 +278,22 @@ function HuntSection() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr]">
           <div className="space-y-6">
-            <SectionTitle eyebrow="scavenger hunt" title="make the hunt part of the site" body="This should live here instead of being stranded across random platforms. Keep the QR code flow, but let the website handle rules, progress, route info, and finish guidance. Much cleaner. Less cursed." />
+            <SectionTitle eyebrow="scavenger hunt" title="make the hunt part of the site" body="These routes now use your real section text as a first pass. Some stops stay intentionally vague online because the real code or clue is only revealed in the physical world after the challenge is solved." />
             <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-[#163126]/65 p-6">
-              <h3 className="text-xl font-black uppercase tracking-tight text-[#f2c4cf]">how it should work</h3>
+              <h3 className="text-xl font-black uppercase tracking-tight text-[#f2c4cf]">how it works now</h3>
               <ul className="mt-4 space-y-3 text-[#f7f1e8]/84">
                 <li>start at the welcome center and scan the intro code</li>
                 <li>pick a route or roam between categories</li>
-                <li>each qr lands on a clean page on this site</li>
+                <li>some clues can be read online, but certain qr codes are intentionally only available in the real world</li>
                 <li>progress saves in the browser on your phone</li>
-                <li>finish at the welcome center or prize station</li>
+                <li>details tied to the final building layout can be revised once the real map is done</li>
               </ul>
               <Link to="/hunt" className="mt-5 inline-flex rounded-full border border-[#f2c4cf]/20 bg-[#f2c4cf]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/15">
                 open hunt routes
               </Link>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
             {huntCategories.map((item) => (
               <div key={item.title} className="rounded-[2rem] border border-[#f2c4cf]/20 bg-[#11261e] p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-[#f2c4cf]/80">{item.stops} stops</p>
@@ -321,7 +316,7 @@ function InfoSection() {
     <section id="info" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
         <div className="space-y-6">
-          <SectionTitle eyebrow="event info" title="practical details" body="This is where the useful adult information goes, because somebody always needs to know where to park, whether their kid can come, and whether there is a bathroom before they commit to leaving the house." />
+          <SectionTitle eyebrow="event info" title="practical details" body="This is the grounded logistics section. It should answer the obvious questions before anyone decides that emailing you was faster than reading." />
           <div className="grid gap-4">
             {practicalInfo.map((item) => (
               <div key={item.title} className="rounded-3xl border border-[#f2c4cf]/15 bg-black/15 p-5">
@@ -331,12 +326,45 @@ function InfoSection() {
             ))}
           </div>
         </div>
-        <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/20 p-6 sm:p-8">
-          <h3 className="text-2xl font-black uppercase tracking-tight text-[#f2c4cf]">stay in the loop</h3>
-          <p className="mt-3 max-w-xl leading-7 text-[#f7f1e8]/82">Use this area for final logistics, contact info, last minute updates, and ways to connect people to your mailing list or organizer contact without making them hunt through six different platforms like it is an initiation ritual.</p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <input type="email" placeholder="email address" className="h-12 flex-1 rounded-full border border-[#f2c4cf]/20 bg-[#0f1c17] px-5 text-[#f7f1e8] placeholder:text-[#f7f1e8]/40 focus:outline-none focus:ring-2 focus:ring-[#f2c4cf]/35" />
-            <button type="button" className="h-12 rounded-full bg-[#f2c4cf] px-6 text-sm font-black uppercase tracking-[0.14em] text-[#153227] transition hover:bg-[#ffd8e1]">get updates</button>
+
+        <div className="space-y-4">
+          {(siteMeta.venueName || siteMeta.venueAddress || siteMeta.contactEmail) ? (
+            <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/20 p-6 sm:p-8">
+              <h3 className="text-2xl font-black uppercase tracking-tight text-[#f2c4cf]">venue</h3>
+              {siteMeta.venueName ? <p className="mt-3 leading-7 text-[#f7f1e8]/82">{siteMeta.venueName}</p> : null}
+              {siteMeta.venueAddress ? <p className="leading-7 text-[#f7f1e8]/82">{siteMeta.venueAddress}</p> : null}
+              {siteMeta.contactEmail ? <p className="mt-4 leading-7 text-[#f7f1e8]/82">Contact: {siteMeta.contactEmail}</p> : null}
+            </div>
+          ) : null}
+
+          <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/20 p-6 sm:p-8">
+            <h3 className="text-2xl font-black uppercase tracking-tight text-[#f2c4cf]">support and connect</h3>
+            <div className="mt-5 flex flex-col gap-3">
+              {siteMeta.donateHref ? (
+                <a href={siteMeta.donateHref} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-full bg-[#f2c4cf] px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#153227] transition hover:bg-[#ffd8e1]">
+                  <HandCoins className="mr-2 h-4 w-4" />
+                  donate
+                </a>
+              ) : null}
+              {siteMeta.shopHref ? (
+                <a href={siteMeta.shopHref} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-full border border-[#f2c4cf]/20 bg-black/15 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10">
+                  <ShoppingBag className="mr-2 h-4 w-4" />
+                  shop merch
+                </a>
+              ) : null}
+              {siteMeta.vendorHref ? (
+                <a href={siteMeta.vendorHref} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-full border border-[#f2c4cf]/20 bg-black/15 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10">
+                  <ClipboardPenLine className="mr-2 h-4 w-4" />
+                  vendor and sponsor info
+                </a>
+              ) : null}
+              {siteMeta.linktreeHref ? (
+                <a href={siteMeta.linktreeHref} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-full border border-[#f2c4cf]/20 bg-black/15 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10">
+                  <Link2 className="mr-2 h-4 w-4" />
+                  linktree
+                </a>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
@@ -349,7 +377,7 @@ function ShopSection() {
     <section id="shop" className="border-t border-[#f2c4cf]/10 bg-black/15">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <SectionTitle eyebrow="shop" title="support the event" body="Phase one should link cleanly to your existing merch or fundraiser shop instead of rebuilding ecommerce from the bones up one month out. Preview items here, send checkout elsewhere, keep your sanity barely intact." />
+          <SectionTitle eyebrow="shop" title="support the event" body="The store is now wired to the real Square site. This stays lightweight on purpose because building a whole storefront one month out would be a terrible hobby." />
           <a href={siteMeta.shopHref} target="_blank" rel="noreferrer">
             <button type="button" className="inline-flex h-12 items-center rounded-full bg-[#f2c4cf] px-6 text-sm font-black uppercase tracking-[0.14em] text-[#153227] transition hover:bg-[#ffd8e1]">open shop <ExternalLink className="ml-2 h-4 w-4" /></button>
           </a>
@@ -374,7 +402,8 @@ function Footer() {
     <footer className="border-t border-[#f2c4cf]/10">
       <div className="mx-auto max-w-7xl px-4 py-10 text-sm text-[#f7f1e8]/64 sm:px-6 lg:px-8">
         <p className="font-semibold uppercase tracking-[0.16em] text-[#f2c4cf]">may day on the harbor 2026</p>
-        <p className="mt-3 max-w-3xl leading-7">Built as a deployable starter repo with room for final copy, real maps, shop links, and the complete scavenger hunt system.</p>
+        {siteMeta.venueName || siteMeta.venueAddress ? <p className="mt-2 max-w-3xl leading-7">{siteMeta.venueName}{siteMeta.venueName && siteMeta.venueAddress ? ' · ' : ''}{siteMeta.venueAddress}</p> : null}
+        {siteMeta.contactEmail ? <p className="max-w-3xl leading-7">{siteMeta.contactEmail}</p> : null}
       </div>
     </footer>
   )
