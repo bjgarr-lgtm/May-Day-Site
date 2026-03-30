@@ -267,10 +267,13 @@ function HomeSection() {
               <h3 className="mb-3 text-xl font-black uppercase tracking-tight text-[#e3a7a5]">{card.title}</h3>
               <p className="leading-7 text-[#f7f1e8]/84">{card.body}</p>
               {card.title === 'why may day' && siteMeta.laborHistoryHref ? (
-                <a href={siteMeta.laborHistoryHref} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15">
+                <Link
+                  to={siteMeta.laborHistoryHref}
+                  className="mt-5 inline-flex items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                >
                   <BookOpen className="mr-2 h-4 w-4" />
                   labor history of the harbor
-                </a>
+                </Link>
               ) : null}
             </div>
           )
