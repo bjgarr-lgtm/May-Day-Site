@@ -60,8 +60,8 @@ export const practicalInfo = [
 ]
 
 export const merchItems = [
-  { title: 'event poster', desc: 'Yearly poster art and printed keepsakes.', cta: 'view merch', imageSrc: '/shop/poster.webp' },
-  { title: 'shirts and patches', desc: 'Wearable fundraiser items and event support gear.', cta: 'shop apparel', imageSrc: '/shop/shirt.webp' },
+  { title: 'yearly event posters', desc: 'Yearly poster art and printed keepsakes.', cta: 'view merch', imageSrc: '/shop/poster.webp' },
+  { title: 'shirts and hoodies', desc: 'Wearable fundraiser items and event support gear.', cta: 'shop apparel', imageSrc: '/shop/shirt.webp' },
   { title: 'support the event', desc: 'Merch and fundraiser sales help pay for this year and the next one.', cta: 'support may day', imageSrc: '/shop/support.png' },
 ]
 
