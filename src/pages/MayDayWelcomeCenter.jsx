@@ -1,13 +1,14 @@
-
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Accessibility,
+  CalendarDays,
   ChevronRight,
   Clock3,
   ExternalLink,
   HeartHandshake,
   Info,
+  MapPinned,
   Menu,
   Search,
   Shield,
@@ -40,7 +41,10 @@ import { huntRoutes } from '../data/huntData'
 import { getRouteCompletionCount, getTotalCompletionCount } from '../lib/huntProgress'
 
 const iconMap = {
+  CalendarDays,
+  MapPinned,
   Search,
+  Info,
   ShoppingBag,
 }
 
@@ -175,7 +179,7 @@ function Hero() {
                   onClick={() => scrollToSection(item.id)}
                   className="inline-flex h-auto min-h-11 items-center rounded-full bg-[#e3a7a5] px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9] sm:px-5 sm:text-sm sm:tracking-[0.15em]"
                 >
-                  <Icon className="mr-2 h-4 w-4 shrink-0" />
+                  {Icon ? <Icon className="mr-2 h-4 w-4 shrink-0" /> : null}
                   {item.label}
                 </button>
               )
@@ -291,7 +295,6 @@ function ScheduleSection() {
     <section id="schedule" className="border-y border-[#e3a7a5]/10 bg-black/15">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <SectionTitle eyebrow="schedule" title="day of programming" body="The final schedule can be updated as details lock. This phase one version gives people a clean structure instead of forcing them to decode a poster like it is a sacred prophecy." />
-
         <div className="mt-8 flex flex-wrap gap-2">
           {filters.map((item) => (
             <button key={item} type="button" onClick={() => setFilter(item)} className={`rounded-full border px-4 py-2 text-sm font-bold uppercase tracking-[0.14em] transition ${filter === item ? 'border-[#e3a7a5] bg-[#e3a7a5] text-[#264636]' : 'border-[#e3a7a5]/18 bg-[#e3a7a5]/5 text-[#f7f1e8]/82 hover:bg-[#e3a7a5]/10'}`}>
@@ -299,7 +302,6 @@ function ScheduleSection() {
             </button>
           ))}
         </div>
-
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
           {visibleItems.map((item) => (
             <div key={`${item.time}-${item.title}`} className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-6">
@@ -314,7 +316,6 @@ function ScheduleSection() {
             </div>
           ))}
         </div>
-
         <div className="mt-8 grid gap-4 lg:grid-cols-4">
           {timeline.map((item) => (
             <div key={`${item.time}-${item.title}`} className="rounded-3xl border border-[#e3a7a5]/15 bg-[#e3a7a5]/5 p-5">
@@ -334,12 +335,10 @@ function MapSection() {
     <section id="map" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <div className="space-y-8">
         <SectionTitle eyebrow="map" title="find your way around" body="This is using the temporary uploaded scavenger hunt map as a stand in. The real world visitor map with parking, entrances, and on site navigation can replace it next week without changing the page structure." />
-
         <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
           <div className="overflow-hidden rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
             <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover" />
           </div>
-
           <div className="space-y-4">
             {huntRoutes.map((route) => {
               const complete = getRouteCompletionCount(route.slug)
@@ -361,7 +360,6 @@ function MapSection() {
             })}
           </div>
         </div>
-
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {mapZones.map((zone) => (
             <div key={zone.title} className="rounded-3xl border border-[#e3a7a5]/15 bg-black/15 p-4">
@@ -397,7 +395,6 @@ function HuntSection() {
               </Link>
             </div>
           </div>
-
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
             {huntCategories.map((item) => (
               <div key={item.title} className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-5">
@@ -431,7 +428,6 @@ function InfoSection() {
             ))}
           </div>
         </div>
-
         <div className="space-y-4">
           {(siteMeta.venueName || siteMeta.venueAddress || siteMeta.contactEmail) ? (
             <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
@@ -441,7 +437,6 @@ function InfoSection() {
               {siteMeta.contactEmail ? <p className="mt-4 break-all leading-7 text-[#f7f1e8]/82">Contact: {siteMeta.contactEmail}</p> : null}
             </div>
           ) : null}
-
           <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
             <h3 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5]">support and connect</h3>
             <div className="mt-5 flex flex-col gap-3">
@@ -471,7 +466,6 @@ function InfoSection() {
               ) : null}
             </div>
           </div>
-
           {(siteMeta.facebookHref || siteMeta.instagramHref) ? (
             <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
               <h3 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5]">social</h3>
@@ -507,7 +501,6 @@ function ShopSection() {
             </button>
           </a>
         </div>
-
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {merchItems.map((item) => (
             <div key={item.title} className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-5">
