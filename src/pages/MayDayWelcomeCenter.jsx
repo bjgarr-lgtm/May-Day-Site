@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Accessibility, CalendarDays, ChevronRight, Clock3, ExternalLink, HeartHandshake, Info, MapPinned, Menu, Search, Shield, ShoppingBag, Users, X, HandCoins, Link2, ClipboardPenLine } from 'lucide-react'
+import { Accessibility, CalendarDays, ChevronRight, Clock3, ExternalLink, HeartHandshake, Info, MapPinned, Menu, Search, Shield, ShoppingBag, Users, X, HandCoins, Link2, ClipboardPenLine, Facebook, Instagram, BookOpen } from 'lucide-react'
 import NoiseBackground from '../components/mayday/NoiseBackground'
 import { highlights, huntCategories, infoCards, mapZones, merchItems, practicalInfo, quickLinks, scheduleItems, siteMeta, timeline } from '../data/maydayContent'
 import { huntRoutes } from '../data/huntData'
@@ -172,6 +172,12 @@ function HomeSection() {
               <div className="mb-4 inline-flex rounded-2xl border border-[#f2c4cf]/20 bg-[#f2c4cf]/10 p-3 text-[#f2c4cf]"><Icon className="h-5 w-5" /></div>
               <h3 className="mb-3 text-xl font-black uppercase tracking-tight text-[#f2c4cf]">{card.title}</h3>
               <p className="leading-7 text-[#f7f1e8]/84">{card.body}</p>
+              {card.title === 'why may day' && siteMeta.laborHistoryHref ? (
+                <a href={siteMeta.laborHistoryHref} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center rounded-full border border-[#f2c4cf]/20 bg-[#f2c4cf]/10 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/15">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  labor history of the harbor
+                </a>
+              ) : null}
             </div>
           )
         })}
@@ -366,6 +372,24 @@ function InfoSection() {
               ) : null}
             </div>
           </div>
+
+          {(siteMeta.facebookHref || siteMeta.instagramHref) ? (
+            <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/20 p-6 sm:p-8">
+              <h3 className="text-2xl font-black uppercase tracking-tight text-[#f2c4cf]">social</h3>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {siteMeta.facebookHref ? (
+                  <a href={siteMeta.facebookHref} target="_blank" rel="noreferrer" className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#f2c4cf]/20 bg-black/15 text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10" aria-label="Facebook">
+                    <Facebook className="h-5 w-5" />
+                  </a>
+                ) : null}
+                {siteMeta.instagramHref ? (
+                  <a href={siteMeta.instagramHref} target="_blank" rel="noreferrer" className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#f2c4cf]/20 bg-black/15 text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10" aria-label="Instagram">
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
@@ -377,7 +401,7 @@ function ShopSection() {
     <section id="shop" className="border-t border-[#f2c4cf]/10 bg-black/15">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <SectionTitle eyebrow="shop" title="support the event" body="The store is now wired to the real Square site. This stays lightweight on purpose because building a whole storefront one month out would be a terrible hobby." />
+          <SectionTitle eyebrow="shop" title="support the event" body="The store is now wired to the real Square site. To add actual photos here later, put image files in /public and set each merchItems imageSrc value in src/data/maydayContent.js to something like /shop/poster.jpg." />
           <a href={siteMeta.shopHref} target="_blank" rel="noreferrer">
             <button type="button" className="inline-flex h-12 items-center rounded-full bg-[#f2c4cf] px-6 text-sm font-black uppercase tracking-[0.14em] text-[#153227] transition hover:bg-[#ffd8e1]">open shop <ExternalLink className="ml-2 h-4 w-4" /></button>
           </a>
@@ -385,7 +409,15 @@ function ShopSection() {
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {merchItems.map((item) => (
             <div key={item.title} className="rounded-[2rem] border border-[#f2c4cf]/20 bg-[#11261e] p-5">
-              <div className="mb-4 aspect-[4/3] rounded-[1.5rem] border border-[#f2c4cf]/15 bg-[linear-gradient(135deg,rgba(242,196,207,.28),rgba(0,0,0,.12))]" />
+              {item.imageSrc ? (
+                <img
+                  src={item.imageSrc}
+                  alt={item.title}
+                  className="mb-4 aspect-[4/3] w-full rounded-[1.5rem] border border-[#f2c4cf]/15 object-cover"
+                />
+              ) : (
+                <div className="mb-4 aspect-[4/3] rounded-[1.5rem] border border-[#f2c4cf]/15 bg-[linear-gradient(135deg,rgba(242,196,207,.28),rgba(0,0,0,.12))]" />
+              )}
               <h3 className="text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">{item.title}</h3>
               <p className="mt-3 leading-7 text-[#f7f1e8]/78">{item.desc}</p>
               <button type="button" className="mt-5 inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em] text-[#f2c4cf]">{item.cta} <ChevronRight className="h-4 w-4" /></button>

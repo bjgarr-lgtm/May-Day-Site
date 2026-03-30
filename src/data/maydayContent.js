@@ -60,9 +60,9 @@ export const practicalInfo = [
 ]
 
 export const merchItems = [
-  { title: 'event poster', desc: 'Yearly poster art and printed keepsakes.', cta: 'view merch' },
-  { title: 'shirts and patches', desc: 'Wearable fundraiser items and event support gear.', cta: 'shop apparel' },
-  { title: 'support the event', desc: 'Merch and fundraiser sales help pay for this year and the next one.', cta: 'support may day' },
+  { title: 'event poster', desc: 'Yearly poster art and printed keepsakes.', cta: 'view merch', imageSrc: null },
+  { title: 'shirts and patches', desc: 'Wearable fundraiser items and event support gear.', cta: 'shop apparel', imageSrc: null },
+  { title: 'support the event', desc: 'Merch and fundraiser sales help pay for this year and the next one.', cta: 'support may day', imageSrc: null },
 ]
 
 export const huntCategories = [
@@ -86,4 +86,7 @@ export const siteMeta = {
   contactEmail: 'maydayontheharbor@proton.me',
   venueName: 'Historical Seaport',
   venueAddress: '500 N. Custer St., Aberdeen, WA 98520',
+  facebookHref: 'https://www.facebook.com/profile.php?id=61574621251510',
+  instagramHref: 'https://www.instagram.com/maydayontheharbor/',
+  laborHistoryHref: 'https://maydayontheharbor.noblogs.org/labor-history-of-the-harbor/',
 }
