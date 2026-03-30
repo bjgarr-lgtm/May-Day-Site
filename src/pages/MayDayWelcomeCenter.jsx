@@ -31,7 +31,7 @@ function NavBar() {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#e3a7a5]/15 bg-[#163a2d]/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-[#e3a7a5]/15 bg-[#264636]/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <button
           type="button"
@@ -199,7 +199,7 @@ function Hero() {
               className="absolute inset-0 h-full w-full object-cover object-top"
             />
 
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.18)_55%,rgba(0,0,0,.55))]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,#2f5a47,#264636_60%,#1f3a2c)]" />
 
             <div className="absolute left-4 top-4">
               <span className="rounded-full border border-[#e3a7a5]/30 bg-black/35 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#f7f1e8] sm:text-xs">
