@@ -308,7 +308,7 @@ function Footer() {
     <footer className="border-t border-[#f2c4cf]/10">
       <div className="mx-auto max-w-7xl px-4 py-10 text-sm text-[#f7f1e8]/64 sm:px-6 lg:px-8">
         <p className="font-semibold uppercase tracking-[0.16em] text-[#f2c4cf]">may day on the harbor 2026</p>
-        <p className="mt-3 max-w-3xl leading-7">Built as a phase one event site scaffold with room for final copy, real maps, shop links, and the complete scavenger hunt system.</p>
+        <p className="mt-3 max-w-3xl leading-7">Built as a deployable starter repo with room for final copy, real maps, shop links, and the complete scavenger hunt system.</p>
       </div>
     </footer>
   )
