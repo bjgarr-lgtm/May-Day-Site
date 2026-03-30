@@ -77,6 +77,18 @@ const archiveCollections = [
   },
 ]
 
+const arrivalMapHref =
+  'https://www.canva.com/design/DAHFduoDYkw/rN3wULGKMsnB9NBCxMtbkA/view?utm_content=DAHFduoDYkw&utm_campaign=designshare&utm_medium=embeds&utm_source=link'
+
+const arrivalMapEmbed =
+  'https://www.canva.com/design/DAHFduoDYkw/rN3wULGKMsnB9NBCxMtbkA/view?embed'
+
+const buildingMapHref =
+  'https://www.canva.com/design/DAGiCuDHo70/kE429pS-5JdBHRcyJB4JqQ/view?utm_content=DAGiCuDHo70&utm_campaign=designshare&utm_medium=embeds&utm_source=link'
+
+const buildingMapEmbed =
+  'https://www.canva.com/design/DAGiCuDHo70/kE429pS-5JdBHRcyJB4JqQ/view?embed'
+
 function scrollToSection(id, closeMenu) {
   const el = document.getElementById(id)
   if (el) el.scrollIntoView({ behavior: 'smooth' })
@@ -229,17 +241,14 @@ function Hero() {
               <BookOpen className="mr-2 h-4 w-4 shrink-0" />
               labor history
             </button>
-            {siteMeta.mapHref ? (
-              <a
-                href={siteMeta.mapHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]"
-              >
-                <MapPinned className="mr-2 h-4 w-4 shrink-0" />
-                open live map
-              </a>
-            ) : null}
+            <button
+              type="button"
+              onClick={() => scrollToSection('map')}
+              className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]"
+            >
+              <MapPinned className="mr-2 h-4 w-4 shrink-0" />
+              view maps
+            </button>
             <Link to="/hunt">
               <button
                 type="button"
@@ -347,7 +356,7 @@ function LaborHistorySection() {
           <SectionTitle
             eyebrow="archive"
             title="labor history of the harbor"
-            body="Browse scanned newspapers, labor conflict records, strike material, and local working class history from Aberdeen, Grays Harbor, and the wider region."
+            body="Browse scanned newspapers, labor conflict records, strike material, and local working class history from Aberdeen, Grays Harbor, and the wider region. This is not a tiny side link anymore. It is one of the main reasons this site exists."
           />
           <div className="flex flex-wrap gap-3">
             <Link
@@ -357,17 +366,14 @@ function LaborHistorySection() {
               <BookOpen className="mr-2 h-4 w-4 shrink-0" />
               open archive
             </Link>
-            {siteMeta.mapHref ? (
-              <a
-                href={siteMeta.mapHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-              >
-                <MapPinned className="mr-2 h-4 w-4 shrink-0" />
-                open live map
-              </a>
-            ) : null}
+            <button
+              type="button"
+              onClick={() => scrollToSection('map')}
+              className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+            >
+              <MapPinned className="mr-2 h-4 w-4 shrink-0" />
+              view maps
+            </button>
           </div>
         </div>
 
@@ -397,16 +403,13 @@ function LaborHistorySection() {
               >
                 explore labor history
               </Link>
-              {siteMeta.mapHref ? (
-                <a
-                  href={siteMeta.mapHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-                >
-                  view map
-                </a>
-              ) : null}
+              <button
+                type="button"
+                onClick={() => scrollToSection('map')}
+                className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+              >
+                view maps
+              </button>
             </div>
           </div>
         </div>
@@ -463,60 +466,76 @@ function MapSection() {
   return (
     <section id="map" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <div className="space-y-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <SectionTitle eyebrow="map" title="find your way around" body={siteMeta.mapHref ? "Use the live public map for the current layout, navigation, and event flow." : undefined} />
-          {siteMeta.mapHref ? (
-            <a
-              href={siteMeta.mapHref}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
-            >
-              <MapPinned className="mr-2 h-4 w-4 shrink-0" />
-              open live map
-            </a>
-          ) : null}
-        </div>
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
-          <div className="overflow-hidden rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
-            {siteMeta.mapHref ? (
-              <div className="overflow-hidden rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
-                <div className="relative w-full overflow-hidden" style={{ paddingTop: '100%' }}>
-                  <iframe
-                    loading="lazy"
-                    src="https://www.canva.com/design/DAGiCuDHo70/kE429pS-5JdBHRcyJB4JqQ/view?embed"
-                    className="absolute inset-0 h-full w-full border-0"
-                    allowFullScreen
-                    allow="fullscreen"
-                    title="Interactive Map"
-                  />
-                </div>
+        <SectionTitle eyebrow="map" title="find your way around" body="Use the arrival map for the long road in and parking approach, then the building map for the interior layout and room level navigation." />
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">arrival map</p>
+                <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">road, entrance, and parking</h3>
+                <p className="mt-3 max-w-2xl leading-7 text-[#f7f1e8]/78">
+                  Use this for the long approach from the venue entrance to the building and parking area.
+                </p>
               </div>
-            ) : (
-              <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover" />
-            )}
+              <a
+                href={arrivalMapHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-12 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+              >
+                open full
+              </a>
+            </div>
+
+            <div className="overflow-hidden rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
+              <div className="relative w-full overflow-hidden" style={{ paddingTop: '100%' }}>
+                <iframe
+                  loading="lazy"
+                  src={arrivalMapEmbed}
+                  className="absolute inset-0 h-full w-full border-0"
+                  allowFullScreen
+                  allow="fullscreen"
+                  title="Arrival Map"
+                />
+              </div>
+            </div>
           </div>
-          <div className="space-y-4">
-            {huntRoutes.map((route) => {
-              const complete = getRouteCompletionCount(route.slug)
-              return (
-                <Link key={route.slug} to={`/hunt/${route.slug}/${route.stops[0].id}`} className="block rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-5 transition hover:border-[#e3a7a5]/40 hover:bg-[#1d3a2c]">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">{route.stops.length} stops</p>
-                      <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-2xl">{route.title}</h3>
-                    </div>
-                    <span className="rounded-full border border-[#e3a7a5]/22 bg-[#e3a7a5]/12 px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#f7f1e8]">{complete} done</span>
-                  </div>
-                  <p className="mt-3 leading-7 text-[#f7f1e8]/78">{route.intro}</p>
-                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em] text-[#e3a7a5]">
-                    enter route <ChevronRight className="h-4 w-4" />
-                  </div>
-                </Link>
-              )
-            })}
+
+          <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">building map</p>
+                <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">interior layout and rooms</h3>
+                <p className="mt-3 max-w-2xl leading-7 text-[#f7f1e8]/78">
+                  Use this for the building interior, room layout, and detailed navigation once people are on site.
+                </p>
+              </div>
+              <a
+                href={buildingMapHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-12 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+              >
+                open full
+              </a>
+            </div>
+
+            <div className="overflow-hidden rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
+              <div className="relative w-full overflow-hidden" style={{ paddingTop: '100%' }}>
+                <iframe
+                  loading="lazy"
+                  src={buildingMapEmbed}
+                  className="absolute inset-0 h-full w-full border-0"
+                  allowFullScreen
+                  allow="fullscreen"
+                  title="Building Map"
+                />
+              </div>
+            </div>
           </div>
         </div>
+
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {mapZones.map((zone) => (
             <div key={zone.title} className="rounded-3xl border border-[#e3a7a5]/15 bg-black/15 p-4">
