@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Accessibility, CalendarDays, ChevronRight, Clock3, ExternalLink, HeartHandshake, Info, MapPinned, Menu, Search, Shield, ShoppingBag, Users, X } from 'lucide-react'
 import NoiseBackground from '../components/mayday/NoiseBackground'
 import { highlights, huntCategories, infoCards, mapZones, merchItems, practicalInfo, quickLinks, scheduleItems, siteMeta, timeline } from '../data/maydayContent'
@@ -31,6 +32,9 @@ function NavBar() {
               {item.label}
             </a>
           ))}
+          <Link to="/hunt" className="rounded-full border border-[#f2c4cf]/20 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#f2c4cf]/45 hover:bg-[#f2c4cf]/10 hover:text-white">
+            Hunt Routes
+          </Link>
         </nav>
         <button type="button" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#f2c4cf]/20 text-[#f7f1e8] md:hidden" onClick={() => setOpen((value) => !value)} aria-label="Toggle navigation">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -44,6 +48,9 @@ function NavBar() {
                 {item.label}
               </a>
             ))}
+            <Link to="/hunt" onClick={() => setOpen(false)} className="rounded-2xl border border-[#f2c4cf]/15 px-4 py-3 text-sm font-semibold text-[#f7f1e8]/88">
+              Hunt Routes
+            </Link>
           </div>
         </div>
       ) : null}
@@ -81,6 +88,12 @@ function Hero() {
                 </a>
               )
             })}
+            <Link to="/hunt">
+              <button type="button" className="inline-flex h-12 items-center rounded-full border border-[#f2c4cf]/25 bg-black/20 px-5 text-sm font-black uppercase tracking-[0.15em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10">
+                <Search className="mr-2 h-4 w-4" />
+                start hunt
+              </button>
+            </Link>
           </div>
         </div>
         <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/25 p-6 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-8">
@@ -232,6 +245,9 @@ function HuntSection() {
                 <li>progress saves in the browser on your phone</li>
                 <li>finish at the welcome center or prize station</li>
               </ul>
+              <Link to="/hunt" className="mt-5 inline-flex rounded-full border border-[#f2c4cf]/20 bg-[#f2c4cf]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/15">
+                open hunt routes
+              </Link>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -240,7 +256,9 @@ function HuntSection() {
                 <p className="text-xs uppercase tracking-[0.24em] text-[#f2c4cf]/80">{item.stops} stops</p>
                 <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">{item.title}</h3>
                 <p className="mt-3 leading-7 text-[#f7f1e8]/78">{item.detail}</p>
-                <button type="button" className="mt-5 inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em] text-[#f2c4cf]">view route <ChevronRight className="h-4 w-4" /></button>
+                <Link to="/hunt" className="mt-5 inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em] text-[#f2c4cf]">
+                  view route <ChevronRight className="h-4 w-4" />
+                </Link>
               </div>
             ))}
           </div>
