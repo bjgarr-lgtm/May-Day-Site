@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import MayDayWelcomeCenter from './pages/MayDayWelcomeCenter'
 import HuntHome from './pages/HuntHome'
 import HuntStopPage from './pages/HuntStopPage'
+import { Routes, Route } from "react-router-dom";
+import LaborHistoryPage from "./pages/LaborHistoryPage";
 
 export default function App() {
   return (
@@ -11,6 +13,8 @@ export default function App() {
       <Route path="/hunt" element={<HuntHome />} />
       <Route path="/hunt/:category/:stopId" element={<HuntStopPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/" element={<MayDayWelcomeCenter />} />
+      <Route path="/labor-history" element={<LaborHistoryPage />} />
     </Routes>
   )
 }
