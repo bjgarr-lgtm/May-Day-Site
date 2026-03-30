@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { Accessibility, CalendarDays, ChevronRight, Clock3, ExternalLink, HeartHandshake, Info, MapPinned, Menu, Search, Shield, ShoppingBag, Users, X } from 'lucide-react'
 import NoiseBackground from '../components/mayday/NoiseBackground'
 import { highlights, huntCategories, infoCards, mapZones, merchItems, practicalInfo, quickLinks, scheduleItems, siteMeta, timeline } from '../data/maydayContent'
+import { huntRoutes } from '../data/huntData'
+import { getRouteCompletionCount, getTotalCompletionCount } from '../lib/huntProgress'
 
 const iconMap = { CalendarDays, MapPinned, Search, Info, ShoppingBag }
 const infoIconMap = { 'who this is for': Users, 'health and safety': Shield, 'why may day': HeartHandshake }
@@ -59,6 +61,9 @@ function NavBar() {
 }
 
 function Hero() {
+  const totalComplete = getTotalCompletionCount()
+  const totalStops = huntRoutes.reduce((sum, route) => sum + route.stops.length, 0)
+
   return (
     <section id="top" className="relative overflow-hidden border-b border-[#f2c4cf]/10">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.2fr_.8fr] lg:px-8 lg:py-24">
@@ -75,6 +80,9 @@ function Hero() {
             {[siteMeta.dateLabel, siteMeta.hoursLabel, siteMeta.freeLabel].map((item) => (
               <span key={item} className="rounded-full border border-[#f2c4cf]/25 bg-[#f2c4cf]/10 px-4 py-2 text-[#f7f1e8]">{item}</span>
             ))}
+            <span className="rounded-full border border-[#9be1b1]/25 bg-[#9be1b1]/12 px-4 py-2 text-[#d8ffe3]">
+              hunt progress {totalComplete}/{totalStops}
+            </span>
           </div>
           <div className="flex flex-wrap gap-3">
             {quickLinks.map((item) => {
@@ -188,41 +196,54 @@ function ScheduleSection() {
 function MapSection() {
   return (
     <section id="map" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
-        <div className="space-y-6">
-          <SectionTitle eyebrow="map" title="find your way around" body="Phase one uses a stylized zone map placeholder. Next pass can swap in the final event map image, clickable areas, zoom, and hunt overlays." />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {mapZones.map((zone) => (
-              <div key={zone.title} className="rounded-3xl border border-[#f2c4cf]/15 bg-black/15 p-4">
-                <div className={`mb-3 h-3 w-20 rounded-full ${zone.swatchClassName}`} />
-                <h3 className="text-xl font-black uppercase tracking-tight text-[#f2c4cf]">{zone.title}</h3>
-                <p className="mt-2 leading-7 text-[#f7f1e8]/82">{zone.blurb}</p>
-              </div>
-            ))}
+      <div className="space-y-8">
+        <SectionTitle eyebrow="map" title="find your way around" body="Phase three swaps the placeholder block map for your real uploaded scavenger hunt map and ties the hunt routes directly into the map section instead of making people mentally glue things together themselves." />
+
+        <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
+          <div className="overflow-hidden rounded-[2rem] border border-[#f2c4cf]/20 bg-black/20 p-4 sm:p-6">
+            <img
+              src="/scavenger-hunt-map.png"
+              alt="Scavenger hunt map for May Day on the Harbor"
+              className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover"
+            />
+          </div>
+
+          <div className="space-y-4">
+            {huntRoutes.map((route) => {
+              const complete = getRouteCompletionCount(route.slug)
+              return (
+                <Link
+                  key={route.slug}
+                  to={`/hunt/${route.slug}/${route.stops[0].id}`}
+                  className="block rounded-[2rem] border border-[#f2c4cf]/20 bg-[#11261e] p-5 transition hover:border-[#f2c4cf]/40 hover:bg-[#163126]"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-[#f2c4cf]/80">{route.stops.length} stops</p>
+                      <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">{route.title}</h3>
+                    </div>
+                    <span className="rounded-full border border-[#9be1b1]/25 bg-[#9be1b1]/12 px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#d8ffe3]">
+                      {complete} done
+                    </span>
+                  </div>
+                  <p className="mt-3 leading-7 text-[#f7f1e8]/78">{route.intro}</p>
+                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em] text-[#f2c4cf]">
+                    enter route <ChevronRight className="h-4 w-4" />
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
-        <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/20 p-4 sm:p-6">
-          <div className="rounded-[2rem] border border-[#f7f1e8]/10 bg-[#d9d9d9] p-6 text-[#111] shadow-inner">
-            <div className="mx-auto max-w-xl">
-              <div className="mx-auto mb-5 w-fit rounded-md border border-black/20 bg-yellow-300 px-4 py-2 text-center text-sm font-bold">welcome center</div>
-              <div className="grid grid-cols-5 gap-4">
-                <div className="rounded-md bg-lime-300 p-4 text-center text-sm font-bold">activities</div>
-                <div className="rounded-md bg-fuchsia-300 p-4 text-center text-sm font-bold">art center</div>
-                <div className="rounded-md bg-rose-400 p-4 text-center text-sm font-bold">vendors</div>
-                <div className="rounded-md bg-yellow-200 p-4 text-center text-sm font-bold">indoors</div>
-                <div className="rounded-md bg-cyan-300 p-4 text-center text-sm font-bold">outdoors</div>
-              </div>
-              <div className="mt-6 rounded-3xl border-2 border-black/15 bg-white/50 p-6">
-                <div className="grid gap-4 sm:grid-cols-5">
-                  <div className="min-h-44 rounded-xl bg-lime-300/75 p-3 text-xs font-semibold">activity route</div>
-                  <div className="min-h-44 rounded-xl bg-fuchsia-300/75 p-3 text-xs font-semibold">art route</div>
-                  <div className="min-h-44 rounded-xl bg-rose-400/75 p-3 text-xs font-semibold">vendor route</div>
-                  <div className="min-h-44 rounded-xl bg-yellow-200 p-3 text-xs font-semibold">indoor route</div>
-                  <div className="min-h-44 rounded-xl bg-cyan-300/75 p-3 text-xs font-semibold">outdoor route</div>
-                </div>
-              </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {mapZones.map((zone) => (
+            <div key={zone.title} className="rounded-3xl border border-[#f2c4cf]/15 bg-black/15 p-4">
+              <div className={`mb-3 h-3 w-20 rounded-full ${zone.swatchClassName}`} />
+              <h3 className="text-xl font-black uppercase tracking-tight text-[#f2c4cf]">{zone.title}</h3>
+              <p className="mt-2 leading-7 text-[#f7f1e8]/82">{zone.blurb}</p>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
