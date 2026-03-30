@@ -1,0 +1,7 @@
+Example route wiring idea:
+
+import MayDayWelcomeCenter from './pages/MayDayWelcomeCenter'
+
+<Route path="/mayday" element={<MayDayWelcomeCenter />} />
+
+Or temporarily replace your landing page component import with MayDayWelcomeCenter.

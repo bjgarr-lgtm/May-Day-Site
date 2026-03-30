@@ -1,0 +1,82 @@
+export const quickLinks = [
+  { id: 'schedule', label: 'Schedule', icon: 'CalendarDays' },
+  { id: 'map', label: 'Map', icon: 'MapPinned' },
+  { id: 'hunt', label: 'Scavenger Hunt', icon: 'Search' },
+  { id: 'info', label: 'Event Info', icon: 'Info' },
+  { id: 'shop', label: 'Shop', icon: 'ShoppingBag' },
+]
+
+export const highlights = [
+  'free entry',
+  'family friendly',
+  'masks required and provided',
+  'vendors until 7 pm',
+  'live music at night',
+  'film screening',
+  'art center',
+  'potluck',
+  'raffle',
+  'zine distro',
+]
+
+export const timeline = [
+  { time: '12:00 pm', title: 'welcome center opens', detail: 'maps, orientation, hunt start, info, family activities' },
+  { time: '12:00 pm to 4:00 pm', title: 'may day festivities and potluck', detail: 'community programming, art, food, history, and tabling' },
+  { time: '7:00 pm', title: 'screening of labor wars of the northwest', detail: 'indoor evening program' },
+  { time: '8:00 pm to 12:00 am', title: 'live music', detail: 'night programming indoors' },
+]
+
+export const scheduleItems = [
+  { time: '12:00 pm', category: 'all', title: 'welcome center opens', area: 'main entry', blurb: 'Start here for maps, scavenger hunt info, schedule, and accessibility information.' },
+  { time: '12:00 pm to 4:00 pm', category: 'family', title: 'may day festivities and potluck', area: 'site wide', blurb: 'Community activities, food, art, and working class history throughout the venue.' },
+  { time: 'all day', category: 'family', title: 'art center', area: 'art center', blurb: 'Face painting, diy art, scavenger hunt activities, community projects, and youth friendly making.' },
+  { time: 'all day', category: 'vendors', title: 'vendors and info booths', area: 'outdoors', blurb: 'Local vendors, mutual aid tables, community organizations, labor and grassroots groups.' },
+  { time: '7:00 pm', category: 'film', title: 'labor wars of the northwest', area: 'indoors', blurb: 'Film screening as part of the evening program.' },
+  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music', area: 'indoors', blurb: 'Nighttime music programming.' },
+]
+
+export const mapZones = [
+  { title: 'welcome center', swatchClassName: 'bg-yellow-300/80', blurb: 'Your starting point for event info, player guide, map help, and scavenger hunt orientation.' },
+  { title: 'activities', swatchClassName: 'bg-lime-400/70', blurb: 'Games, family friendly tasks, activity based hunt stops, and casual roaming fun.' },
+  { title: 'art center', swatchClassName: 'bg-fuchsia-400/70', blurb: 'Face painting, diy art, collaborative projects, and the hands on bits that make events worth attending.' },
+  { title: 'vendors', swatchClassName: 'bg-rose-400/70', blurb: 'Local sellers, organizations, tablers, and practical ways to support the event and community work.' },
+  { title: 'indoors', swatchClassName: 'bg-amber-300/80', blurb: 'History displays, evening film screening, music, and weather backup space.' },
+  { title: 'outdoors', swatchClassName: 'bg-cyan-300/80', blurb: 'Wharf activity, open air movement between zones, vendors, and daytime programming.' },
+]
+
+export const huntCategories = [
+  { title: 'activities', stops: 10, detail: 'Easy to mixed difficulty prompts built around movement, noticing, and play.' },
+  { title: 'art center', stops: 10, detail: 'Creative tasks, drawing, building, and hands on clues.' },
+  { title: 'vendors', stops: 10, detail: 'Find people, tables, objects, or answers spread through the event.' },
+  { title: 'indoors', stops: 10, detail: 'History and location based discovery inside the venue.' },
+  { title: 'outdoors', stops: 10, detail: 'Route based exploration through exterior event spaces.' },
+]
+
+export const infoCards = [
+  { title: 'who this is for', body: 'The whole family, the whole community, and especially working class people who want a free day of history, art, music, food, and connection.' },
+  { title: 'health and safety', body: 'Masks are required and provided. Keep the event accessible, community minded, and safer for everyone present.' },
+  { title: 'why may day', body: 'To honor working class history, labor struggle, local memory, and the projects still trying to build something better now.' },
+]
+
+export const practicalInfo = [
+  { title: 'family friendly', body: 'Daytime programming is built for the whole community, with art activities, games, vendors, food, and casual learning.' },
+  { title: 'location', body: 'Historical Seaport in Aberdeen. Final address, parking, and arrival notes can be dropped in here once confirmed.' },
+  { title: 'masks', body: 'Required and provided.' },
+  { title: 'accessibility', body: 'Add mobility notes, seating, restrooms, quiet space, and any terrain or entry information here.' },
+]
+
+export const merchItems = [
+  { title: 'event poster', desc: 'Yearly poster art and printed keepsakes.', cta: 'view merch' },
+  { title: 'shirts and patches', desc: 'Wearable fundraiser items and event support gear.', cta: 'shop apparel' },
+  { title: 'support the event', desc: 'Merch and fundraiser sales help pay for this year and the next one.', cta: 'support may day' },
+]
+
+export const siteMeta = {
+  title: 'May Day on the Harbor 2026',
+  subtitle: '6th annual • Aberdeen, Washington',
+  description: 'A free, family friendly, working class community event with history, art, music, food, vendors, film, and ways to plug into real local projects.',
+  dateLabel: 'May 2 2026',
+  hoursLabel: '12 pm to 12 am',
+  freeLabel: 'free entry',
+  shopHref: '#',
+}
