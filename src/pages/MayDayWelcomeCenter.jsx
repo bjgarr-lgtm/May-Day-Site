@@ -449,17 +449,17 @@ function ScheduleSection() {
 
 function MapSection() {
   return (
-    <section id="map" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-      <div className="space-y-8">
+    <section id="map" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div className="space-y-6">
         <SectionTitle eyebrow="map" title="find your way around" body="Use the arrival map for the long road in and parking approach, then the building map for the interior layout and room level navigation." />
 
-        <div className="grid gap-6 xl:grid-cols-2">
-          <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
-            <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="grid gap-4 xl:grid-cols-2">
+          <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-3 sm:p-4">
+            <div className="mb-3 flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">arrival map</p>
-                <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">road, entrance, and parking</h3>
-                <p className="mt-3 max-w-2xl leading-7 text-[#f7f1e8]/78">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#e3a7a5]/80">arrival map</p>
+                <h3 className="mt-1 text-lg font-black uppercase tracking-tight text-[#f7f1e8] sm:text-xl">road, entrance, and parking</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#f7f1e8]/78">
                   Use this for the long approach from the venue entrance to the building and parking area.
                 </p>
               </div>
@@ -467,14 +467,14 @@ function MapSection() {
                 href={arrivalMapHref}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-12 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                className="inline-flex min-h-10 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
               >
                 open full
               </a>
             </div>
 
-            <div className="overflow-hidden rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
-              <div className="relative w-full overflow-hidden" style={{ paddingTop: '100%' }}>
+            <div className="overflow-hidden rounded-[1.25rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
+              <div className="relative w-full overflow-hidden" style={{ paddingTop: '62%' }}>
                 <iframe
                   loading="lazy"
                   src={arrivalMapEmbed}
@@ -487,12 +487,12 @@ function MapSection() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
-            <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-3 sm:p-4">
+            <div className="mb-3 flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">building map</p>
-                <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">interior layout and rooms</h3>
-                <p className="mt-3 max-w-2xl leading-7 text-[#f7f1e8]/78">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#e3a7a5]/80">building map</p>
+                <h3 className="mt-1 text-lg font-black uppercase tracking-tight text-[#f7f1e8] sm:text-xl">interior layout and rooms</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#f7f1e8]/78">
                   Use this for the building interior, room layout, and detailed navigation once people are on site.
                 </p>
               </div>
@@ -500,14 +500,14 @@ function MapSection() {
                 href={buildingMapHref}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-12 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                className="inline-flex min-h-10 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
               >
                 open full
               </a>
             </div>
 
-            <div className="overflow-hidden rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
-              <div className="relative w-full overflow-hidden" style={{ paddingTop: '100%' }}>
+            <div className="overflow-hidden rounded-[1.25rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
+              <div className="relative w-full overflow-hidden" style={{ paddingTop: '62%' }}>
                 <iframe
                   loading="lazy"
                   src={buildingMapEmbed}
