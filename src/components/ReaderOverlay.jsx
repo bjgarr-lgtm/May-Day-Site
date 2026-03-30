@@ -81,11 +81,11 @@ export default function ReaderOverlay({
 
         <div className="min-h-0 flex-1 overflow-auto bg-[#050505]">
           <div className="flex min-h-full items-start justify-center p-2 md:p-3">
-            <img
-              src={page.src}
-              alt={page.title || `Page ${pageIndex + 1}`}
-              className="block h-auto max-h-[calc(100vh-88px)] w-auto max-w-full bg-white shadow-2xl"
-            />
+          <img
+            src={page.src}
+            alt={page.title || `Page ${pageIndex + 1}`}
+            className="block h-auto w-full max-w-[1100px] bg-white shadow-2xl"
+          />
           </div>
         </div>
 
