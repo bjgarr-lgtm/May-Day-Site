@@ -217,20 +217,35 @@ function Hero() {
           </div>
         </div>
 
-
-
-        <div className="mt-4 grid gap-4 sm:mt-6 sm:grid-cols-2">
-          <div className="rounded-3xl border border-[#e3a7a5]/15 bg-[#e3a7a5]/8 p-4">
-            <div className="mb-2 flex items-center gap-2 text-[#e3a7a5]"><Clock3 className="h-4 w-4" /><span className="text-xs uppercase tracking-[0.22em]">hours</span></div>
-            <p className="text-base font-bold uppercase text-[#f7f1e8] sm:text-lg">noon to midnight</p>
-            <p className="mt-2 text-sm text-[#f7f1e8]/72">Vendors through 7 pm, evening film and music later indoors.</p>
+        <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/25 p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6">
+          <div className="relative aspect-[4/5] max-h-[36rem] overflow-hidden rounded-[1.5rem] border border-[#e3a7a5]/15 bg-black/20">
+            <img src="/shop/poster-2026-pink-green.png" alt="May Day on the Harbor 2026 poster art" className="absolute inset-0 h-full w-full object-cover object-top" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.18)_55%,rgba(0,0,0,.55))]" />
+            <div className="absolute left-4 top-4">
+              <span className="rounded-full border border-[#e3a7a5]/30 bg-black/35 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#f7f1e8] sm:text-xs">
+                2026 poster art
+              </span>
+            </div>
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+              <div className="rounded-[1.25rem] border border-[#e3a7a5]/20 bg-black/35 p-4 backdrop-blur-sm">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-[#e3a7a5]/85 sm:text-xs">this year’s look</p>
+                <p className="mt-2 text-sm leading-6 text-[#f7f1e8]/88 sm:text-base">annual May Day branding in this year’s poster palette.</p>
+              </div>
+            </div>
           </div>
-          <div className="rounded-3xl border border-[#e3a7a5]/15 bg-[#e3a7a5]/8 p-4">
-            <div className="mb-2 flex items-center gap-2 text-[#e3a7a5]"><Accessibility className="h-4 w-4" /><span className="text-xs uppercase tracking-[0.22em]">community care</span></div>
-            <p className="text-base font-bold uppercase text-[#f7f1e8] sm:text-lg">masks required</p>
-            <p className="mt-2 text-sm text-[#f7f1e8]/72">Masks are provided to help keep the event more accessible and safer.</p>
+
+          <div className="mt-4 grid gap-4 sm:mt-6 sm:grid-cols-2">
+            <div className="rounded-3xl border border-[#e3a7a5]/15 bg-[#e3a7a5]/8 p-4">
+              <div className="mb-2 flex items-center gap-2 text-[#e3a7a5]"><Clock3 className="h-4 w-4" /><span className="text-xs uppercase tracking-[0.22em]">hours</span></div>
+              <p className="text-base font-bold uppercase text-[#f7f1e8] sm:text-lg">noon to midnight</p>
+              <p className="mt-2 text-sm text-[#f7f1e8]/72">Vendors through 7 pm, evening film and music later indoors.</p>
+            </div>
+            <div className="rounded-3xl border border-[#e3a7a5]/15 bg-[#e3a7a5]/8 p-4">
+              <div className="mb-2 flex items-center gap-2 text-[#e3a7a5]"><Accessibility className="h-4 w-4" /><span className="text-xs uppercase tracking-[0.22em]">community care</span></div>
+              <p className="text-base font-bold uppercase text-[#f7f1e8] sm:text-lg">masks required</p>
+              <p className="mt-2 text-sm text-[#f7f1e8]/72">Masks are provided to help keep the event more accessible and safer.</p>
+            </div>
           </div>
-        </div>
 
           <div className="mt-4 sm:mt-6">
             <p className="mb-3 text-xs uppercase tracking-[0.22em] text-[#e3a7a5]/80">at a glance</p>
@@ -240,24 +255,7 @@ function Hero() {
               ))}
             </div>
           </div>
-
-          <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/25 p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6">
-            <div className="relative aspect-[4/5] max-h-[36rem] overflow-hidden rounded-[1.5rem] border border-[#e3a7a5]/15 bg-black/20">
-              <img src="/shop/poster-2026-pink-green.png" alt="May Day on the Harbor 2026 poster art" className="absolute inset-0 h-full w-full object-cover object-top" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.18)_55%,rgba(0,0,0,.55))]" />
-              <div className="absolute left-4 top-4">
-                <span className="rounded-full border border-[#e3a7a5]/30 bg-black/35 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#f7f1e8] sm:text-xs">
-                  2026 poster art
-                </span>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                <div className="rounded-[1.25rem] border border-[#e3a7a5]/20 bg-black/35 p-4 backdrop-blur-sm">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-[#e3a7a5]/85 sm:text-xs">this year’s look</p>
-                  <p className="mt-2 text-sm leading-6 text-[#f7f1e8]/88 sm:text-base">annual May Day branding in this year’s poster palette.</p>
-                </div>
-              </div>
-            </div>
-          </div>
+        </div>
       </div>
     </section>
   )
