@@ -44,14 +44,6 @@ export const mapZones = [
   { title: 'outdoors', swatchClassName: 'bg-cyan-300/80', blurb: 'Wharf activity, open air movement between zones, vendors, and daytime programming.' },
 ]
 
-export const huntCategories = [
-  { title: 'activities', stops: 10, detail: 'Easy to mixed difficulty prompts built around movement, noticing, and play.' },
-  { title: 'art center', stops: 10, detail: 'Creative tasks, drawing, building, and hands on clues.' },
-  { title: 'vendors', stops: 10, detail: 'Find people, tables, objects, or answers spread through the event.' },
-  { title: 'indoors', stops: 10, detail: 'History and location based discovery inside the venue.' },
-  { title: 'outdoors', stops: 10, detail: 'Route based exploration through exterior event spaces.' },
-]
-
 export const infoCards = [
   { title: 'who this is for', body: 'The whole family, the whole community, and especially working class people who want a free day of history, art, music, food, and connection.' },
   { title: 'health and safety', body: 'Masks are required and provided. Keep the event accessible, community minded, and safer for everyone present.' },
@@ -59,16 +51,25 @@ export const infoCards = [
 ]
 
 export const practicalInfo = [
+  { title: 'venue', body: 'Historical Seaport, 500 N. Custer St., Aberdeen, WA 98520.' },
   { title: 'family friendly', body: 'Daytime programming is built for the whole community, with art activities, games, vendors, food, and casual learning.' },
-  { title: 'location', body: 'Historical Seaport in Aberdeen. Final address, parking, and arrival notes can be dropped in here once confirmed.' },
   { title: 'masks', body: 'Required and provided.' },
-  { title: 'accessibility', body: 'Add mobility notes, seating, restrooms, quiet space, and any terrain or entry information here.' },
+  { title: 'parking', body: 'Plenty of parking is available. A final public facing venue map with parking details will be added once the real world map is finished.' },
+  { title: 'accessibility', body: 'Add mobility notes, seating, restrooms, quiet space, and any terrain or entry information here once the venue map is finalized.' },
+  { title: 'contact', body: 'maydayontheharbor@proton.me' },
 ]
 
 export const merchItems = [
   { title: 'event poster', desc: 'Yearly poster art and printed keepsakes.', cta: 'view merch' },
   { title: 'shirts and patches', desc: 'Wearable fundraiser items and event support gear.', cta: 'shop apparel' },
   { title: 'support the event', desc: 'Merch and fundraiser sales help pay for this year and the next one.', cta: 'support may day' },
+]
+
+export const huntCategories = [
+  { title: 'activities', stops: 10, detail: 'Photo tasks, physical challenges, riddles, hidden codes, and letter writing.' },
+  { title: 'vendors', stops: 10, detail: 'Social posts, zines, mutual aid clues, trades, and a strange classified detour.' },
+  { title: 'indoors', stops: 10, detail: 'History displays, IWW lore, red thread puzzles, poetry, and building based discovery.' },
+  { title: 'outdoors', stops: 10, detail: 'Resistance reenactments, maypole clues, cassette riddles, radio fragments, and open mic noise.' },
 ]
 
 export const siteMeta = {
@@ -78,5 +79,11 @@ export const siteMeta = {
   dateLabel: 'May 2 2026',
   hoursLabel: '12 pm to 12 am',
   freeLabel: 'free entry',
-  shopHref: '#',
+  shopHref: 'https://maydayontheharbor.square.site/',
+  donateHref: 'https://hcb.hackclub.com/donations/start/may-day-organizing-committee',
+  linktreeHref: 'https://linktr.ee/maydayontheharbor',
+  vendorHref: 'https://docs.google.com/document/d/1f6iByYjMyahEI1MbO-Hw7xUSwTcmBcqJUxEZoSzJQDY/edit?usp=sharing',
+  contactEmail: 'maydayontheharbor@proton.me',
+  venueName: 'Historical Seaport',
+  venueAddress: '500 N. Custer St., Aberdeen, WA 98520',
 }
