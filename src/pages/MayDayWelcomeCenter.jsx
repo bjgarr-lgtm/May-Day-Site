@@ -125,16 +125,18 @@ function NavBar() {
         </button>
 
         <nav className="hidden items-center gap-2 md:flex">
-          {quickLinks.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => scrollToSection(item.id)}
-              className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
-            >
-              {item.label}
-            </button>
-          ))}
+          {quickLinks
+            .filter((item) => item.label !== 'Hunt Routes' && item.id !== 'hunt-routes')
+            .map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.id)}
+                className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
+              >
+                {item.label}
+              </button>
+            ))}
           <button
             type="button"
             onClick={() => scrollToSection('labor-history')}
@@ -163,16 +165,18 @@ function NavBar() {
       {open ? (
         <div className="border-t border-[#e3a7a5]/10 px-4 py-4 md:hidden">
           <div className="flex flex-col gap-2">
-            {quickLinks.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => scrollToSection(item.id, setOpen)}
-                className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
-              >
-                {item.label}
-              </button>
-            ))}
+            {quickLinks
+              .filter((item) => item.label !== 'Hunt Routes' && item.id !== 'hunt-routes')
+              .map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => scrollToSection(item.id, setOpen)}
+                  className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
+                >
+                  {item.label}
+                </button>
+              ))}
             <button
               type="button"
               onClick={() => scrollToSection('labor-history', setOpen)}
