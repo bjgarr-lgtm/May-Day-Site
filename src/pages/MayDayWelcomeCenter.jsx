@@ -21,10 +21,10 @@ import {
   Facebook,
   Instagram,
   BookOpen,
-  Mail,
 } from 'lucide-react'
 
 import NoiseBackground from '../components/mayday/NoiseBackground'
+import AnnouncementBanner from '../components/AnnouncementBanner'
 import {
   highlights,
   huntCategories,
@@ -39,9 +39,7 @@ import {
 } from '../data/maydayContent'
 
 import { huntRoutes } from '../data/huntData'
-import { getTotalCompletionCount } from '../lib/huntProgress'
-import SponsorsSection from '../components/SponsorsSection'
-import AnnouncementBanner from '../components/AnnouncementBanner'
+import { getRouteCompletionCount, getTotalCompletionCount } from '../lib/huntProgress'
 
 const iconMap = {
   CalendarDays,
@@ -56,43 +54,6 @@ const infoIconMap = {
   'health and safety': Shield,
   'why may day': HeartHandshake,
 }
-
-const archiveCollections = [
-  {
-    title: 'Aberdeen Free Speech Fights',
-    detail: 'IWW organizing, arrests, speaking bans, and the fight over who gets to speak in public at all.',
-  },
-  {
-    title: 'Murder of William McKay',
-    detail: 'Bay City Mill violence, strike conflict, and one of the Harbor’s most brutal labor killings.',
-  },
-  {
-    title: 'Murder of Laura Law',
-    detail: 'Anti labor terror, civil rights violations, and the deadly machinery protecting local power.',
-  },
-  {
-    title: 'Everett, Centralia, Seattle',
-    detail: 'Regional flashpoints, massacres, and labor conflict far beyond a single town line.',
-  },
-  {
-    title: 'Miscellaneous Labor History',
-    detail: 'Scans, clippings, and supporting material tied to Harbor labor history across the wider region.',
-  },
-]
-
-const arrivalMapHref =
-  'https://www.canva.com/design/DAHFduoDYkw/rN3wULGKMsnB9NBCxMtbkA/view?utm_content=DAHFduoDYkw&utm_campaign=designshare&utm_medium=embeds&utm_source=link'
-
-const arrivalMapEmbed =
-  'https://www.canva.com/design/DAHFduoDYkw/rN3wULGKMsnB9NBCxMtbkA/view?embed'
-
-const buildingMapHref =
-  'https://www.canva.com/design/DAGiCuDHo70/kE429pS-5JdBHRcyJB4JqQ/view?utm_content=DAGiCuDHo70&utm_campaign=designshare&utm_medium=embeds&utm_source=link'
-
-const buildingMapEmbed =
-  'https://www.canva.com/design/DAGiCuDHo70/kE429pS-5JdBHRcyJB4JqQ/view?embed'
-
-const HOME_SECTION_TARGET_KEY = 'maydayHomeSectionTarget'
 
 function scrollToSection(id, closeMenu) {
   const el = document.getElementById(id)
@@ -126,25 +87,22 @@ function NavBar() {
         </button>
 
         <nav className="hidden items-center gap-2 md:flex">
-          {quickLinks
-            .map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => scrollToSection(item.id)}
-                className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
-              >
-                {item.label}
-              </button>
-            ))}
-          <button
-            type="button"
-            onClick={() => scrollToSection('labor-history')}
+          {quickLinks.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => scrollToSection(item.id)}
+              className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
+            >
+              {item.label}
+            </button>
+          ))}
+          <Link
+            to="/hunt"
             className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
           >
-            Labor History
-          </button>
-        
+            Hunt Routes
+          </Link>
         </nav>
 
         <button
@@ -160,25 +118,23 @@ function NavBar() {
       {open ? (
         <div className="border-t border-[#e3a7a5]/10 px-4 py-4 md:hidden">
           <div className="flex flex-col gap-2">
-            {quickLinks
-              .map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => scrollToSection(item.id, setOpen)}
-                  className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
-                >
-                  {item.label}
-                </button>
-              ))}
-            <button
-              type="button"
-              onClick={() => scrollToSection('labor-history', setOpen)}
-              className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
+            {quickLinks.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.id, setOpen)}
+                className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
+              >
+                {item.label}
+              </button>
+            ))}
+            <Link
+              to="/hunt"
+              onClick={() => setOpen(false)}
+              className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-sm font-semibold text-[#f7f1e8]/88"
             >
-              Labor History
-            </button>
-
+              Hunt Routes
+            </Link>
           </div>
         </div>
       ) : null}
@@ -186,9 +142,11 @@ function NavBar() {
   )
 }
 
-function Hero() {
+function Hero({ isLiveMode, runtimeState }) {
   const totalComplete = getTotalCompletionCount()
   const totalStops = huntRoutes.reduce((sum, route) => sum + route.stops.length, 0)
+  const liveNowText = runtimeState?.happeningNow?.trim() || 'may day is live across the venue'
+  const upNextText = runtimeState?.upNext?.trim() || 'check the schedule, map, and hunt to keep moving'
 
   return (
     <section id="top" className="relative overflow-hidden border-b border-[#e3a7a5]/10">
@@ -212,7 +170,28 @@ function Hero() {
             <span className="rounded-full border border-[#e3a7a5]/25 bg-[#e3a7a5]/12 px-3 py-2 text-[#f7f1e8] sm:px-4">
               hunt progress {totalComplete}/{totalStops}
             </span>
+            {isLiveMode ? (
+              <span className="rounded-full border border-[#e3a7a5] bg-[#e3a7a5] px-3 py-2 text-[#264636] sm:px-4">
+                live now
+              </span>
+            ) : null}
           </div>
+
+          {isLiveMode ? (
+            <div className="rounded-[1.75rem] border border-[#e3a7a5]/22 bg-[#e3a7a5]/10 p-5 sm:p-6">
+              <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]">day of mode</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/80">happening now</p>
+                  <p className="mt-2 text-base font-bold uppercase tracking-[0.04em] text-[#f7f1e8]">{liveNowText}</p>
+                </div>
+                <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/80">up next</p>
+                  <p className="mt-2 text-base font-bold uppercase tracking-[0.04em] text-[#f7f1e8]">{upNextText}</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className="flex flex-wrap gap-2 sm:gap-3">
             {[
@@ -241,61 +220,6 @@ function Hero() {
               <BookOpen className="mr-2 h-4 w-4 shrink-0" />
               labor history
             </button>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-start">
-              <div className="max-w-xl">
-                <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">get involved</p>
-                <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-3xl">
-                  join, apply, or support
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-[#f7f1e8]/78 sm:text-base">
-                  Apply as a vendor or performer, support the event, or reach out directly if you want to help make the day happen.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Link
-                  to={siteMeta.vendorHref}
-                  className="inline-flex min-h-14 items-center justify-center rounded-[1.25rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-                >
-                  <span className="flex flex-col items-center gap-2 leading-tight">
-                    <ClipboardPenLine className="h-4 w-4 shrink-0" />
-                    <span>vendor application</span>
-                  </span>
-                </Link>
-                <Link
-                  to={siteMeta.performerHref}
-                  className="inline-flex min-h-14 items-center justify-center rounded-[1.25rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-                >
-                  <span className="flex flex-col items-center gap-2 leading-tight">
-                    <ClipboardPenLine className="h-4 w-4 shrink-0" />
-                    <span>performer application</span>
-                  </span>
-                </Link>
-                <a
-                  href={siteMeta.donateHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex min-h-14 items-center justify-center rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
-                >
-                  <span className="flex flex-col items-center gap-2 leading-tight">
-                    <HandCoins className="h-4 w-4 shrink-0" />
-                    <span>donate</span>
-                  </span>
-                </a>
-                <a
-                  href={siteMeta.volunteerEmail}
-                  className="inline-flex min-h-14 items-center justify-center rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
-                >
-                  <span className="flex flex-col items-center gap-2 leading-tight">
-                    <Mail className="h-4 w-4 shrink-0" />
-                    <span>email to help</span>
-                  </span>
-                </a>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -349,13 +273,10 @@ function HomeSection() {
               <h3 className="mb-3 text-xl font-black uppercase tracking-tight text-[#e3a7a5]">{card.title}</h3>
               <p className="leading-7 text-[#f7f1e8]/84">{card.body}</p>
               {card.title === 'why may day' && siteMeta.laborHistoryHref ? (
-                <Link
-                  to={siteMeta.laborHistoryHref}
-                  className="mt-5 inline-flex items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-                >
+                <a href="/laborhistory" target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15">
                   <BookOpen className="mr-2 h-4 w-4" />
                   labor history of the harbor
-                </Link>
+                </a>
               ) : null}
             </div>
           )
@@ -365,62 +286,7 @@ function HomeSection() {
   )
 }
 
-function LaborHistorySection() {
-  return (
-    <section id="labor-history" className="border-y border-[#e3a7a5]/10 bg-black/15">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <SectionTitle
-            eyebrow="archive"
-            title="labor history of the harbor"
-            body="Browse scanned newspapers, labor conflict records, strike material, and local working class history from Aberdeen, Grays Harbor, and the wider region."
-          />
-          <div className="flex flex-wrap gap-3">
-            <Link
-              to={siteMeta.laborHistoryHref}
-              className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
-            >
-              <BookOpen className="mr-2 h-4 w-4 shrink-0" />
-              open archive
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {archiveCollections.map((item) => (
-            <div key={item.title} className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-5">
-              <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">collection</p>
-              <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-2xl">{item.title}</h3>
-              <p className="mt-3 leading-7 text-[#f7f1e8]/78">{item.detail}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-8 rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6">
-          <div className="grid gap-4 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
-            <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">why it matters</p>
-              <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">history should not be hidden behind one tiny button</h3>
-              <p className="mt-3 max-w-3xl leading-7 text-[#f7f1e8]/78">
-                This archive gives people a way to move from event language into real local history. Not abstract labor history. Not generic slogans. The Harbor. The fights. The violence. The organizing. The dead. The records that still remain.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 lg:justify-end">
-              <Link
-                to={siteMeta.laborHistoryHref}
-                className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-              >
-                explore labor history
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function ScheduleSection() {
+function ScheduleSection({ isLiveMode }) {
   const [filter, setFilter] = useState('all')
   const filters = useMemo(() => ['all', 'family', 'vendors', 'film', 'music'], [])
   const visibleItems = scheduleItems.filter((item) => filter === 'all' || item.category === filter)
@@ -437,18 +303,37 @@ function ScheduleSection() {
           ))}
         </div>
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
-          {visibleItems.map((item) => (
-            <div key={`${item.time}-${item.title}`} className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-6">
-              <div className="mb-3 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">{item.time}</p>
-                  <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-2xl">{item.title}</h3>
+          {visibleItems.map((item) => {
+            const status = isLiveMode ? getScheduleItemStatus(item) : null
+            const statusClasses =
+              status === 'live now'
+                ? 'border-[#e3a7a5] bg-[#e3a7a5] text-[#264636]'
+                : status === 'starting soon'
+                ? 'border-[#e3a7a5]/30 bg-[#e3a7a5]/10 text-[#f7f1e8]'
+                : status === 'ended'
+                ? 'border-[#f7f1e8]/10 bg-black/15 text-[#f7f1e8]/60'
+                : 'border-[#e3a7a5]/18 bg-black/20 text-[#f7f1e8]'
+
+            return (
+              <div key={`${item.time}-${item.title}`} className={`rounded-[2rem] border p-6 ${status === 'live now' ? 'border-[#e3a7a5]/35 bg-[#e3a7a5]/8' : 'border-[#e3a7a5]/18 bg-[#183126]/75'}`}>
+                <div className="mb-3 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">{item.time}</p>
+                    <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-2xl">{item.title}</h3>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="rounded-full bg-[#0d1713] px-3 py-2 text-xs uppercase tracking-[0.16em] text-[#e3a7a5]">{item.area}</span>
+                    {status ? (
+                      <span className={`rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${statusClasses}`}>
+                        {status}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
-                <span className="rounded-full bg-[#0d1713] px-3 py-2 text-xs uppercase tracking-[0.16em] text-[#e3a7a5]">{item.area}</span>
+                <p className="leading-7 text-[#f7f1e8]/82">{item.blurb}</p>
               </div>
-              <p className="leading-7 text-[#f7f1e8]/82">{item.blurb}</p>
-            </div>
-          ))}
+            )
+          })}
         </div>
         <div className="mt-8 grid gap-4 lg:grid-cols-4">
           {timeline.map((item) => (
@@ -466,72 +351,34 @@ function ScheduleSection() {
 
 function MapSection() {
   return (
-    <section id="map" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <div className="space-y-4">
-        <SectionTitle eyebrow="map" title="find your way around" body="Use the arrival map for the long road in and parking approach, then the building map for the interior layout and room level navigation." />
-
-        <div className="grid gap-3 lg:grid-cols-2">
-          <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-3">
-            <div className="mb-2 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[#e3a7a5]/80">arrival map</p>
-                <h3 className="mt-1 text-base font-black uppercase tracking-tight text-[#f7f1e8] sm:text-lg">road, entrance, and parking</h3>
-              </div>
-              <a
-                href={arrivalMapHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex min-h-9 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-3 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-              >
-                open full
-              </a>
-            </div>
-
-            <div className="overflow-hidden rounded-[1rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
-              <div className="relative w-full overflow-hidden" style={{ paddingTop: '42%' }}>
-                <iframe
-                  loading="lazy"
-                  src={arrivalMapEmbed}
-                  className="absolute inset-0 h-full w-full border-0"
-                  allowFullScreen
-                  allow="fullscreen"
-                  title="Arrival Map"
-                />
-              </div>
-            </div>
+    <section id="map" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <div className="space-y-8">
+        <SectionTitle eyebrow="map" title="find your way around" />
+        <div className="grid gap-8 lg:grid-cols-[1.05fr_.95fr]">
+          <div className="overflow-hidden rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-6">
+            <img src="/scavenger-hunt-map.png" alt="Temporary scavenger hunt map for May Day on the Harbor" className="w-full rounded-[1.5rem] border border-[#f7f1e8]/10 bg-white/10 object-cover" />
           </div>
-
-          <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-3">
-            <div className="mb-2 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[#e3a7a5]/80">building map</p>
-                <h3 className="mt-1 text-base font-black uppercase tracking-tight text-[#f7f1e8] sm:text-lg">interior layout and rooms</h3>
-              </div>
-              <a
-                href={buildingMapHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex min-h-9 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-3 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-              >
-                open full
-              </a>
-            </div>
-
-            <div className="overflow-hidden rounded-[1rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
-              <div className="relative w-full overflow-hidden" style={{ paddingTop: '42%' }}>
-                <iframe
-                  loading="lazy"
-                  src={buildingMapEmbed}
-                  className="absolute inset-0 h-full w-full border-0"
-                  allowFullScreen
-                  allow="fullscreen"
-                  title="Building Map"
-                />
-              </div>
-            </div>
+          <div className="space-y-4">
+            {huntRoutes.map((route) => {
+              const complete = getRouteCompletionCount(route.slug)
+              return (
+                <Link key={route.slug} to={`/hunt/${route.slug}/${route.stops[0].id}`} className="block rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-5 transition hover:border-[#e3a7a5]/40 hover:bg-[#1d3a2c]">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">{route.stops.length} stops</p>
+                      <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-2xl">{route.title}</h3>
+                    </div>
+                    <span className="rounded-full border border-[#e3a7a5]/22 bg-[#e3a7a5]/12 px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#f7f1e8]">{complete} done</span>
+                  </div>
+                  <p className="mt-3 leading-7 text-[#f7f1e8]/78">{route.intro}</p>
+                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em] text-[#e3a7a5]">
+                    enter route <ChevronRight className="h-4 w-4" />
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
-
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {mapZones.map((zone) => (
             <div key={zone.title} className="rounded-3xl border border-[#e3a7a5]/15 bg-black/15 p-4">
@@ -552,14 +399,15 @@ function HuntSection() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr]">
           <div className="space-y-6">
-            <SectionTitle eyebrow="scavenger hunt" title="Scavenger Hunt Portal" />
+            <SectionTitle eyebrow="scavenger hunt" title="make the hunt part of the site" />
             <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-6">
-              <h3 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">how it works</h3>
+              <h3 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">how it works now</h3>
               <ul className="mt-4 space-y-3 text-[#f7f1e8]/84">
                 <li>start at the welcome center and scan the intro code</li>
                 <li>pick a route or roam between categories</li>
                 <li>some clues can be read online, but certain qr codes are intentionally only available in the real world</li>
                 <li>progress saves in the browser on your phone</li>
+                <li>details tied to the final building layout can be revised once the real map is done</li>
               </ul>
               <Link to="/hunt" className="mt-5 inline-flex rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15">
                 open hunt routes
@@ -624,21 +472,9 @@ function InfoSection() {
                 </a>
               ) : null}
               {siteMeta.vendorHref ? (
-                <Link to={siteMeta.vendorHref} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                <a href={siteMeta.vendorHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
                   <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
-                  vendor application
-                </Link>
-              ) : null}
-              {siteMeta.performerHref ? (
-                <Link to={siteMeta.performerHref} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
-                  <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
-                  performer application
-                </Link>
-              ) : null}
-              {siteMeta.volunteerEmail ? (
-                <a href={siteMeta.volunteerEmail} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
-                  <Mail className="mr-2 h-4 w-4 shrink-0" />
-                  email to help
+                  vendor and sponsor info
                 </a>
               ) : null}
               {siteMeta.linktreeHref ? (
@@ -718,37 +554,46 @@ function Footer() {
 }
 
 export default function MayDayWelcomeCenter() {
+  const [runtimeState, setRuntimeState] = useState({
+    liveMode: false,
+    announcement: { enabled: false, text: '', level: 'info' },
+    happeningNow: '',
+    upNext: '',
+  })
+
   useEffect(() => {
-    try {
-      const pendingSection = sessionStorage.getItem(HOME_SECTION_TARGET_KEY)
-      if (!pendingSection) return
-
-      sessionStorage.removeItem(HOME_SECTION_TARGET_KEY)
-
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          const el = document.getElementById(pendingSection)
-          if (el) el.scrollIntoView({ behavior: 'smooth' })
-        }, 50)
+    fetch('/api/runtime/public', { headers: { Accept: 'application/json' } })
+      .then((response) => response.json().catch(() => ({})))
+      .then((data) => {
+        if (data && data.state) {
+          setRuntimeState({
+            liveMode: !!data.state.liveMode,
+            announcement: data.state.announcement || { enabled: false, text: '', level: 'info' },
+            happeningNow: data.state.happeningNow || '',
+            upNext: data.state.upNext || '',
+          })
+        }
       })
-    } catch {}
+      .catch(() => {})
   }, [])
+
+  const isLiveMode = runtimeState.liveMode || getEventDateLiveFlag() || getQueryForcedLiveFlag()
 
   return (
     <div className="min-h-screen bg-[#264636] text-white">
       <NoiseBackground />
       <div className="relative">
         <NavBar />
-        <AnnouncementBanner text="test announcement" />
-        <Hero />
+        {runtimeState.announcement?.enabled && runtimeState.announcement?.text ? (
+          <AnnouncementBanner text={runtimeState.announcement.text} level={runtimeState.announcement.level} />
+        ) : null}
+        <Hero isLiveMode={isLiveMode} runtimeState={runtimeState} />
         <HomeSection />
-        <LaborHistorySection />
-        <ScheduleSection />
+        <ScheduleSection isLiveMode={isLiveMode} />
         <MapSection />
         <HuntSection />
-        <ShopSection />
         <InfoSection />
-        <SponsorsSection />
+        <ShopSection />
         <Footer />
       </div>
     </div>
