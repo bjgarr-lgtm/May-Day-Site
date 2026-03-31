@@ -1,8 +1,13 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Compass, MapPinned, QrCode, Trophy } from 'lucide-react'
+import { ArrowLeft, Compass, Lock, MapPinned, QrCode, Trophy } from 'lucide-react'
 import { huntRoutes } from '../data/huntData'
-import { getRouteCompletionCount, getTotalCompletionCount } from '../lib/huntProgress'
+import {
+  getFirstAvailableStop,
+  getRouteCompletionCount,
+  getTotalCompletionCount,
+  getUnlockedStopCount,
+} from '../lib/huntGate'
 
 const HOME_SECTION_TARGET_KEY = 'maydayHomeSectionTarget'
 
@@ -26,8 +31,11 @@ function ProgressBar({ value, max }) {
 }
 
 function RouteCard({ route }) {
-  const complete = getRouteCompletionCount(route.slug)
+  const complete = getRouteCompletionCount(route)
   const total = route.stops.length
+  const unlockedCount = getUnlockedStopCount(route)
+  const lockedCount = Math.max(0, total - unlockedCount)
+  const nextStop = getFirstAvailableStop(route)
 
   return (
     <div className="rounded-[1.75rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
@@ -52,15 +60,27 @@ function RouteCard({ route }) {
         />
       </div>
 
+      <div className="mt-4 flex flex-wrap gap-2">
+        <span className="inline-flex min-h-10 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8]">
+          {unlockedCount} visible
+        </span>
+        {lockedCount > 0 ? (
+          <span className="inline-flex min-h-10 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8]">
+            <Lock className="mr-2 h-3.5 w-3.5" />
+            {lockedCount} locked
+          </span>
+        ) : null}
+      </div>
+
       <div className="mt-5 flex flex-wrap gap-3">
         <Link
-          to={`/hunt/${route.slug}/${route.stops[0]?.id || ''}`}
+          to={nextStop ? `/hunt/${route.slug}/${nextStop.id}` : '/hunt'}
           className="inline-flex min-h-11 items-center rounded-full bg-[#e3a7a5] px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
         >
-          enter route
+          {complete > 0 ? 'continue route' : 'enter route'}
         </Link>
         <span className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8]">
-          {total} stops
+          first 3 open
         </span>
       </div>
     </div>
@@ -70,7 +90,7 @@ function RouteCard({ route }) {
 export default function HuntHome() {
   const navigate = useNavigate()
   const totalStops = huntRoutes.reduce((sum, route) => sum + route.stops.length, 0)
-  const totalComplete = getTotalCompletionCount()
+  const totalComplete = getTotalCompletionCount(huntRoutes)
 
   function goToHomeSection(sectionId) {
     try {
@@ -100,26 +120,26 @@ export default function HuntHome() {
                 start at the welcome center
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-[#f7f1e8]/84">
-                Scan the intro code at the welcome center if you are on site. Or start exploring routes manually here if you are browsing first and getting your bearings.
+                Routes now gate forward. Stops 1 through 3 are visible up front. The rest unlock one at a time after you complete the previous stop.
               </p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-4">
                   <Compass className="h-5 w-5 text-[#e3a7a5]" />
                   <p className="mt-3 text-sm font-black uppercase tracking-[0.12em] text-[#f7f1e8]">
-                    choose a route
+                    first three open
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[#f7f1e8]/72">
-                    Pick activities, vendors, or indoors.
+                    Each route starts with three visible stops.
                   </p>
                 </div>
                 <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-4">
                   <QrCode className="h-5 w-5 text-[#e3a7a5]" />
                   <p className="mt-3 text-sm font-black uppercase tracking-[0.12em] text-[#f7f1e8]">
-                    find clues in the world
+                    prove and unlock
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[#f7f1e8]/72">
-                    Some stops only fully work on site.
+                    Complete a stop to reveal the next one in sequence.
                   </p>
                 </div>
                 <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-4">

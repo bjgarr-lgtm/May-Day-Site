@@ -6,31 +6,21 @@ import {
   CheckCircle2,
   Compass,
   Home,
+  Lock,
   MapPinned,
   Route,
   Sparkles,
 } from 'lucide-react'
 import { getRouteBySlug, getStop } from '../data/huntData'
+import {
+  getFirstAvailableStop,
+  isStopComplete,
+  isStopUnlocked,
+  markStopComplete,
+  verifyStopAnswer,
+} from '../lib/huntGate'
 
 const HOME_SECTION_TARGET_KEY = 'maydayHomeSectionTarget'
-
-function getStorageKey(category, stopId) {
-  return `mayday-hunt-stop:${category}:${stopId}`
-}
-
-function isCompleted(category, stopId) {
-  try {
-    return localStorage.getItem(getStorageKey(category, stopId)) === 'done'
-  } catch {
-    return false
-  }
-}
-
-function markCompleted(category, stopId) {
-  try {
-    localStorage.setItem(getStorageKey(category, stopId), 'done')
-  } catch {}
-}
 
 function ProgressPill({ complete, total }) {
   return (
@@ -57,12 +47,14 @@ export default function HuntStopPage() {
   const stop = useMemo(() => getStop(category, stopId), [category, stopId])
 
   const [complete, setComplete] = useState(() =>
-    category && stopId ? isCompleted(category, stopId) : false
+    category && stopId ? isStopComplete(category, stopId) : false
   )
+  const [proofValue, setProofValue] = useState('')
+  const [proofError, setProofError] = useState('')
 
   useEffect(() => {
     if (category && stopId) {
-      setComplete(isCompleted(category, stopId))
+      setComplete(isStopComplete(category, stopId))
     }
   }, [category, stopId])
 
@@ -101,11 +93,65 @@ export default function HuntStopPage() {
   const currentIndex = route.stops.findIndex((item) => item.id === stop.id)
   const previousStop = currentIndex > 0 ? route.stops[currentIndex - 1] : null
   const nextStop = currentIndex < route.stops.length - 1 ? route.stops[currentIndex + 1] : null
+  const unlocked = isStopUnlocked(route, stop.id)
 
   function onMarkComplete() {
-    markCompleted(category, stop.id)
+    const result = verifyStopAnswer(stop, proofValue)
+    if (!result.ok) {
+      setProofError('That proof does not match yet.')
+      return
+    }
+
+    markStopComplete(category, stop.id)
     setComplete(true)
+    setProofError('')
   }
+
+  if (!unlocked) {
+    const availableStop = getFirstAvailableStop(route)
+
+    return (
+      <div className="min-h-screen bg-[#264636] px-4 py-8 text-white sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
+          <div className="flex items-center gap-3 text-[#e3a7a5]">
+            <Lock className="h-5 w-5" />
+            <p className="text-xs uppercase tracking-[0.24em]">locked stop</p>
+          </div>
+          <h1 className="mt-3 text-3xl font-black uppercase tracking-tight text-[#e3a7a5] sm:text-5xl">
+            complete the previous stop first
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-[#f7f1e8]/84">
+            This route opens one stop at a time after the first three. Go finish the currently available stop and this one will unlock.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            {availableStop ? (
+              <Link
+                to={`/hunt/${route.slug}/${availableStop.id}`}
+                className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
+              >
+                go to current stop
+              </Link>
+            ) : null}
+            <Link
+              to="/hunt"
+              className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+            >
+              all routes
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const proofExpected =
+    stop?.proofAnswer ??
+    stop?.proof_answer ??
+    stop?.answer ??
+    stop?.verificationCode ??
+    stop?.verification_code ??
+    ''
 
   return (
     <div className="min-h-screen bg-[#264636] px-4 py-8 text-white sm:px-6 lg:px-8">
@@ -181,11 +227,33 @@ export default function HuntStopPage() {
               <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
                 <div className="flex items-center gap-3 text-[#e3a7a5]">
                   <Route className="h-5 w-5" />
-                  <h2 className="text-lg font-black uppercase tracking-tight">next move</h2>
+                  <h2 className="text-lg font-black uppercase tracking-tight">prove completion</h2>
                 </div>
                 <p className="mt-4 text-sm leading-7 text-[#f7f1e8]/78">
-                  Mark this stop complete when you have done the thing, solved the clue, or checked in with the human being guarding the next piece of chaos.
+                  {proofExpected
+                    ? 'Enter the proof phrase, answer, or code for this stop to unlock the next one.'
+                    : 'This stop is currently using manual completion. We can wire exact answers into the route data next.'}
                 </p>
+
+                {proofExpected ? (
+                  <label className="mt-4 block">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">
+                      proof
+                    </span>
+                    <input
+                      value={proofValue}
+                      onChange={(event) => setProofValue(event.target.value)}
+                      className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8] placeholder:text-[#f7f1e8]/40 focus:border-[#e3a7a5]/50 focus:outline-none"
+                      placeholder="enter answer or code"
+                    />
+                  </label>
+                ) : null}
+
+                {proofError ? (
+                  <div className="mt-4 rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                    {proofError}
+                  </div>
+                ) : null}
 
                 <div className="mt-5 flex flex-wrap gap-3">
                   <button
@@ -198,10 +266,10 @@ export default function HuntStopPage() {
                     }`}
                   >
                     <CheckCircle2 className="mr-2 h-4 w-4" />
-                    {complete ? 'completed' : 'mark complete'}
+                    {complete ? 'completed' : proofExpected ? 'verify and unlock' : 'mark complete'}
                   </button>
 
-                  {nextStop ? (
+                  {nextStop && isStopComplete(category, stop.id) ? (
                     <Link
                       to={`/hunt/${category}/${nextStop.id}`}
                       className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
@@ -209,15 +277,7 @@ export default function HuntStopPage() {
                       next stop
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
-                  ) : (
-                    <Link
-                      to="/hunt"
-                      className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
-                    >
-                      route complete
-                      <CheckCircle2 className="ml-2 h-4 w-4" />
-                    </Link>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
