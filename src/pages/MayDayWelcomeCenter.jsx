@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import MobileActionBar from '../components/MobileActionBar'
 import {
   Accessibility,
   CalendarDays,
@@ -82,6 +83,54 @@ function getScheduleItemStatus(item) {
   if (label.includes('8:00 pm') || label.includes('midnight')) return 'later today'
   return 'later today'
 }
+
+
+function getContinueState() {
+  for (const route of huntRoutes) {
+    const complete = getRouteCompletionCount(route.slug)
+    if (complete < route.stops.length) {
+      const nextStop = route.stops[complete]
+      return {
+        label: complete > 0 ? 'continue your hunt' : 'start the hunt',
+        href: nextStop ? `/hunt/${route.slug}/${nextStop.id}` : '/hunt',
+        detail:
+          complete > 0
+            ? `Pick back up in ${route.title}. You have completed ${complete} of ${route.stops.length} stops.`
+            : `Begin with ${route.title} and start moving through the route.`,
+      }
+    }
+  }
+
+  return {
+    label: 'revisit the hunt',
+    href: '/hunt',
+    detail: 'You cleared every currently visible stop. Go admire your own persistence.',
+  }
+}
+
+function getNowSuggestion(isLiveMode) {
+  const continueState = getContinueState()
+  if (isLiveMode) {
+    return {
+      title: 'what should i do right now',
+      body: 'Check the live schedule, then use the map and hunt together so you are not wandering like a haunted Roomba.',
+      primaryLabel: 'view schedule',
+      primaryTarget: 'schedule',
+      secondaryLabel: continueState.label,
+      secondaryHref: continueState.href,
+    }
+  }
+
+  return {
+    title: 'best next step',
+    body: continueState.detail,
+    primaryLabel: 'check the map',
+    primaryTarget: 'map',
+    secondaryLabel: continueState.label,
+    secondaryHref: continueState.href,
+  }
+}
+
 
 function scrollToSection(id, closeMenu) {
   const el = document.getElementById(id)
@@ -170,11 +219,12 @@ function NavBar() {
   )
 }
 
-function Hero({ isLiveMode, runtimeState }) {
+function Hero({ isLiveMode, runtimeState, onJumpToSection }) {
   const totalComplete = getTotalCompletionCount()
   const totalStops = huntRoutes.reduce((sum, route) => sum + route.stops.length, 0)
   const liveNowText = runtimeState?.happeningNow?.trim() || 'may day is live across the venue'
   const upNextText = runtimeState?.upNext?.trim() || 'check the schedule, map, and hunt to keep moving'
+  const suggestion = getNowSuggestion(isLiveMode)
 
   return (
     <section id="top" className="relative overflow-hidden border-b border-[#e3a7a5]/10">
@@ -220,6 +270,26 @@ function Hero({ isLiveMode, runtimeState }) {
               </div>
             </div>
           ) : null}
+
+          <div className="rounded-[1.75rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/8 p-5 sm:p-6">
+            <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">{suggestion.title}</p>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[#f7f1e8]/84 sm:text-base">{suggestion.body}</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => onJumpToSection(suggestion.primaryTarget)}
+                className="inline-flex min-h-11 items-center rounded-full bg-[#e3a7a5] px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
+              >
+                {suggestion.primaryLabel}
+              </button>
+              <Link
+                to={suggestion.secondaryHref}
+                className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+              >
+                {suggestion.secondaryLabel}
+              </Link>
+            </div>
+          </div>
 
           <div className="flex flex-wrap gap-2 sm:gap-3">
             {[
@@ -607,15 +677,19 @@ export default function MayDayWelcomeCenter() {
 
   const isLiveMode = runtimeState.liveMode || getEventDateLiveFlag() || getQueryForcedLiveFlag()
 
+  function handleJumpToSection(sectionId) {
+    scrollToSection(sectionId)
+  }
+
   return (
-    <div className="min-h-screen bg-[#264636] text-white">
+    <div className="min-h-screen bg-[#264636] pb-24 text-white md:pb-0">
       <NoiseBackground />
       <div className="relative">
         <NavBar />
         {runtimeState.announcement?.enabled && runtimeState.announcement?.text ? (
           <AnnouncementBanner text={runtimeState.announcement.text} level={runtimeState.announcement.level} />
         ) : null}
-        <Hero isLiveMode={isLiveMode} runtimeState={runtimeState} />
+        <Hero isLiveMode={isLiveMode} runtimeState={runtimeState} onJumpToSection={handleJumpToSection} />
         <HomeSection />
         <ScheduleSection isLiveMode={isLiveMode} />
         <MapSection />
