@@ -81,6 +81,7 @@ export const siteMeta = {
   donateHref: 'https://hcb.hackclub.com/donations/start/may-day-organizing-committee',
   linktreeHref: 'https://linktr.ee/maydayontheharbor',
   vendorHref: 'https://docs.google.com/document/d/1f6iByYjMyahEI1MbO-Hw7xUSwTcmBcqJUxEZoSzJQDY/edit?usp=sharing',
+  performerHref: 'https://docs.google.com/forms/d/e/1FAIpQLSfDRIpZy9h-ky6UmxkFVF-V4Qmn86LNaU6zEMYtQFJNC5X9IA/viewform',
   mapHref: 'https://canva.link/tz2eq2avtaqloby',
   contactEmail: 'maydayontheharbor@proton.me',
   venueName: 'Historical Seaport',
@@ -88,5 +89,4 @@ export const siteMeta = {
   facebookHref: 'https://www.facebook.com/profile.php?id=61574621251510',
   instagramHref: 'https://www.instagram.com/maydayontheharbor/',
   laborHistoryHref: '/labor-history',
-  performerHref: 'https://docs.google.com/forms/d/e/1FAIpQLSfDRIpZy9h-ky6UmxkFVF-V4Qmn86LNaU6zEMYtQFJNC5X9IA/viewform',
 }
