@@ -40,6 +40,7 @@ import {
 
 import { huntRoutes } from '../data/huntData'
 import { getTotalCompletionCount } from '../lib/huntProgress'
+import SponsorsSection from '../components/SponsorsSection'
 
 const iconMap = {
   CalendarDays,
@@ -737,6 +738,7 @@ export default function MayDayWelcomeCenter() {
         <HuntSection />
         <InfoSection />
         <ShopSection />
+        <SponsorsSection />
         <Footer />
       </div>
     </div>
