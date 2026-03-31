@@ -124,34 +124,6 @@ function NavBar() {
           <span className="block text-[#f7f1e8]/70">2026 welcome center</span>
         </button>
 
-        <nav className="hidden items-center gap-2 md:flex">
-          {quickLinks
-            .filter((item) => item.label !== 'Hunt Routes' && item.id !== 'hunt-routes')
-            .map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => scrollToSection(item.id)}
-                className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
-              >
-                {item.label}
-              </button>
-            ))}
-          <button
-            type="button"
-            onClick={() => scrollToSection('labor-history')}
-            className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
-          >
-            Labor History
-          </button>
-          <Link
-            to="/hunt"
-            className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
-          >
-            Hunt Routes
-          </Link>
-        </nav>
-
         <button
           type="button"
           className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#e3a7a5]/18 text-[#f7f1e8] md:hidden"
