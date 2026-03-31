@@ -21,6 +21,7 @@ import {
   Facebook,
   Instagram,
   BookOpen,
+  Mail,
 } from 'lucide-react'
 
 import NoiseBackground from '../components/mayday/NoiseBackground'
@@ -196,7 +197,7 @@ function Hero() {
 
   return (
     <section id="top" className="relative overflow-hidden border-b border-[#e3a7a5]/10">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-16 lg:grid-cols-[1.1fr_.9fr] lg:px-8 lg:py-20">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:py-20">
         <div className="space-y-6">
           <div className="space-y-4">
             <p className="text-xs uppercase tracking-[0.24em] text-[#f7f1e8]/70 sm:text-sm sm:tracking-[0.3em]">{siteMeta.subtitle}</p>
@@ -219,8 +220,12 @@ function Hero() {
           </div>
 
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            {quickLinks.map((item) => {
-              const Icon = iconMap[item.icon]
+            {[
+              { id: 'schedule', label: 'Schedule', icon: CalendarDays },
+              { id: 'map', label: 'Map', icon: MapPinned },
+              { id: 'hunt', label: 'Scavenger Hunt', icon: Search },
+            ].map((item) => {
+              const Icon = item.icon
               return (
                 <button
                   key={item.id}
@@ -228,7 +233,7 @@ function Hero() {
                   onClick={() => scrollToSection(item.id)}
                   className="inline-flex h-auto min-h-11 items-center rounded-full bg-[#e3a7a5] px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9] sm:px-5 sm:text-sm sm:tracking-[0.15em]"
                 >
-                  {Icon ? <Icon className="mr-2 h-4 w-4 shrink-0" /> : null}
+                  <Icon className="mr-2 h-4 w-4 shrink-0" />
                   {item.label}
                 </button>
               )
@@ -241,50 +246,53 @@ function Hero() {
               <BookOpen className="mr-2 h-4 w-4 shrink-0" />
               labor history
             </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('map')}
-              className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]"
-            >
-              <MapPinned className="mr-2 h-4 w-4 shrink-0" />
-              view maps
-            </button>
-            <Link to="/hunt">
-              <button
-                type="button"
-                className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]"
-              >
-                <Search className="mr-2 h-4 w-4 shrink-0" />
-                start hunt
-              </button>
-            </Link>
           </div>
 
-          <div className="flex flex-wrap gap-2 sm:gap-3">
-            {siteMeta.donateHref ? (
-              <a href={siteMeta.donateHref} target="_blank" rel="noreferrer" className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]">
-                <HandCoins className="mr-2 h-4 w-4 shrink-0" />
-                donate
-              </a>
-            ) : null}
-            {siteMeta.vendorHref ? (
-              <a href={siteMeta.vendorHref} target="_blank" rel="noreferrer" className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]">
-                <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
-                vendor and sponsor info
-              </a>
-            ) : null}
-            {siteMeta.performerHref ? (
-              <a href={siteMeta.performerHref} target="_blank" rel="noreferrer" className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]">
-                <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
-                performer application
-              </a>
-            ) : null}
-            {siteMeta.linktreeHref ? (
-              <a href={siteMeta.linktreeHref} target="_blank" rel="noreferrer" className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]">
-                <Link2 className="mr-2 h-4 w-4 shrink-0" />
-                links
-              </a>
-            ) : null}
+          <div className="rounded-[1.75rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
+            <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+              <div className="max-w-xl">
+                <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">get involved</p>
+                <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">
+                  join, apply, or support
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-[#f7f1e8]/78 sm:text-base">
+                  Apply as a vendor or performer, support the event, or reach out directly if you want to help make the day happen.
+                </p>
+              </div>
+
+              <div className="grid w-full gap-3 sm:grid-cols-2 md:max-w-[28rem]">
+                <Link
+                  to={siteMeta.vendorHref}
+                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                >
+                  <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
+                  vendor application
+                </Link>
+                <Link
+                  to={siteMeta.performerHref}
+                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                >
+                  <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
+                  performer application
+                </Link>
+                <a
+                  href={siteMeta.donateHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+                >
+                  <HandCoins className="mr-2 h-4 w-4 shrink-0" />
+                  donate
+                </a>
+                <a
+                  href={siteMeta.volunteerEmail}
+                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+                >
+                  <Mail className="mr-2 h-4 w-4 shrink-0" />
+                  email to help
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -614,15 +622,21 @@ function InfoSection() {
                 </a>
               ) : null}
               {siteMeta.vendorHref ? (
-                <a href={siteMeta.vendorHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                <Link to={siteMeta.vendorHref} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
                   <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
-                  vendor and sponsor info
-                </a>
+                  vendor application
+                </Link>
               ) : null}
               {siteMeta.performerHref ? (
-                <a href={siteMeta.performerHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                <Link to={siteMeta.performerHref} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
                   <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
                   performer application
+                </Link>
+              ) : null}
+              {siteMeta.volunteerEmail ? (
+                <a href={siteMeta.volunteerEmail} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                  <Mail className="mr-2 h-4 w-4 shrink-0" />
+                  email to help
                 </a>
               ) : null}
               {siteMeta.linktreeHref ? (
