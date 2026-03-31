@@ -6,6 +6,7 @@ import HuntStopPage from './pages/HuntStopPage'
 import LaborHistoryPage from './pages/LaborHistoryPage'
 import VendorApplicationPage from './pages/VendorApplicationPage'
 import PerformerApplicationPage from './pages/PerformerApplicationPage'
+import ApplicationsDashboardPage from './pages/ApplicationsDashboardPage'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/labor-history" element={<LaborHistoryPage />} />
       <Route path="/vendor-application" element={<VendorApplicationPage />} />
       <Route path="/performer-application" element={<PerformerApplicationPage />} />
+      <Route path="/applications" element={<ApplicationsDashboardPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
