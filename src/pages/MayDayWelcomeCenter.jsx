@@ -558,7 +558,7 @@ function HuntSection() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr]">
           <div className="space-y-6">
-            <SectionTitle eyebrow="scavenger hunt" title="make the hunt part of the site" />
+            <SectionTitle eyebrow="scavenger hunt" title="Scavenger Hunt Portal" />
             <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-6">
               <h3 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">how it works now</h3>
               <ul className="mt-4 space-y-3 text-[#f7f1e8]/84">
@@ -566,7 +566,6 @@ function HuntSection() {
                 <li>pick a route or roam between categories</li>
                 <li>some clues can be read online, but certain qr codes are intentionally only available in the real world</li>
                 <li>progress saves in the browser on your phone</li>
-                <li>details tied to the final building layout can be revised once the real map is done</li>
               </ul>
               <Link to="/hunt" className="mt-5 inline-flex rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15">
                 open hunt routes
