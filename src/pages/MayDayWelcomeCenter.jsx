@@ -55,6 +55,34 @@ const infoIconMap = {
   'why may day': HeartHandshake,
 }
 
+
+const EVENT_DATE_KEY = '2026-05-02'
+
+function getEventDateLiveFlag() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = `${now.getMonth() + 1}`.padStart(2, '0')
+  const day = `${now.getDate()}`.padStart(2, '0')
+  return `${year}-${month}-${day}` === EVENT_DATE_KEY
+}
+
+function getQueryForcedLiveFlag() {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('live') === '1'
+  } catch {
+    return false
+  }
+}
+
+function getScheduleItemStatus(item) {
+  const label = `${item.time || ''} ${item.title || ''} ${item.detail || item.blurb || ''}`.toLowerCase()
+  if (label.includes('12:00 pm') || label.includes('all day')) return 'live now'
+  if (label.includes('7:00 pm')) return 'starting soon'
+  if (label.includes('8:00 pm') || label.includes('midnight')) return 'later today'
+  return 'later today'
+}
+
 function scrollToSection(id, closeMenu) {
   const el = document.getElementById(id)
   if (el) el.scrollIntoView({ behavior: 'smooth' })
