@@ -17,7 +17,8 @@ export default function App() {
       <Route path="/labor-history" element={<LaborHistoryPage />} />
       <Route path="/vendor-application" element={<VendorApplicationPage />} />
       <Route path="/performer-application" element={<PerformerApplicationPage />} />
-      <Route path="/applications" element={<ApplicationsDashboardPage />} />
+      <Route path="/admin" element={<ApplicationsDashboardPage />} />
+      <Route path="/applications" element={<Navigate to="/admin" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

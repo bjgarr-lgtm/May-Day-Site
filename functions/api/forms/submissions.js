@@ -8,6 +8,14 @@ function json(data, status = 200) {
   })
 }
 
+function unauthorized(message = 'Unauthorized.') {
+  return json({ error: message }, 401)
+}
+
+function forbidden(message = 'Forbidden.') {
+  return json({ error: message }, 403)
+}
+
 export async function onRequestGet(context) {
   try {
     const db = context.env.MAYDAY_DB
@@ -19,6 +27,26 @@ export async function onRequestGet(context) {
         },
         500
       )
+    }
+
+    const expectedPassword = context.env.APPLICATIONS_DASHBOARD_PASSWORD
+    if (!expectedPassword) {
+      return json(
+        {
+          error:
+            'APPLICATIONS_DASHBOARD_PASSWORD is missing. Set that worker secret before using the submissions dashboard.',
+        },
+        500
+      )
+    }
+
+    const providedPassword = context.request.headers.get('x-applications-password') || ''
+    if (!providedPassword) {
+      return unauthorized('Applications password required.')
+    }
+
+    if (providedPassword !== expectedPassword) {
+      return forbidden('Incorrect applications password.')
     }
 
     const url = new URL(context.request.url)

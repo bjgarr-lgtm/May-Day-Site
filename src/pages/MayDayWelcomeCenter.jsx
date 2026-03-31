@@ -39,7 +39,7 @@ import {
 } from '../data/maydayContent'
 
 import { huntRoutes } from '../data/huntData'
-import { getRouteCompletionCount, getTotalCompletionCount } from '../lib/huntProgress'
+import { getTotalCompletionCount } from '../lib/huntProgress'
 
 const iconMap = {
   CalendarDays,
@@ -249,10 +249,10 @@ function Hero() {
           </div>
 
           <div className="rounded-[1.75rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
-            <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+            <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-start">
               <div className="max-w-xl">
                 <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">get involved</p>
-                <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">
+                <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-3xl">
                   join, apply, or support
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-[#f7f1e8]/78 sm:text-base">
@@ -260,36 +260,44 @@ function Hero() {
                 </p>
               </div>
 
-              <div className="grid w-full gap-3 sm:grid-cols-2 md:max-w-[28rem]">
+              <div className="grid grid-cols-2 gap-3">
                 <Link
                   to={siteMeta.vendorHref}
-                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                  className="inline-flex min-h-14 items-center justify-center rounded-[1.25rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
                 >
-                  <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
-                  vendor application
+                  <span className="flex flex-col items-center gap-2 leading-tight">
+                    <ClipboardPenLine className="h-4 w-4 shrink-0" />
+                    <span>vendor application</span>
+                  </span>
                 </Link>
                 <Link
                   to={siteMeta.performerHref}
-                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                  className="inline-flex min-h-14 items-center justify-center rounded-[1.25rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
                 >
-                  <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
-                  performer application
+                  <span className="flex flex-col items-center gap-2 leading-tight">
+                    <ClipboardPenLine className="h-4 w-4 shrink-0" />
+                    <span>performer application</span>
+                  </span>
                 </Link>
                 <a
                   href={siteMeta.donateHref}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+                  className="inline-flex min-h-14 items-center justify-center rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
                 >
-                  <HandCoins className="mr-2 h-4 w-4 shrink-0" />
-                  donate
+                  <span className="flex flex-col items-center gap-2 leading-tight">
+                    <HandCoins className="h-4 w-4 shrink-0" />
+                    <span>donate</span>
+                  </span>
                 </a>
                 <a
                   href={siteMeta.volunteerEmail}
-                  className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+                  className="inline-flex min-h-14 items-center justify-center rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
                 >
-                  <Mail className="mr-2 h-4 w-4 shrink-0" />
-                  email to help
+                  <span className="flex flex-col items-center gap-2 leading-tight">
+                    <Mail className="h-4 w-4 shrink-0" />
+                    <span>email to help</span>
+                  </span>
                 </a>
               </div>
             </div>
