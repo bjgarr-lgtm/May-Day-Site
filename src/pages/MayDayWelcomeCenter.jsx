@@ -736,8 +736,8 @@ export default function MayDayWelcomeCenter() {
         <ScheduleSection />
         <MapSection />
         <HuntSection />
-        <InfoSection />
         <ShopSection />
+        <InfoSection />
         <SponsorsSection />
         <Footer />
       </div>
