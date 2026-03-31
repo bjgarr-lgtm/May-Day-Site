@@ -21,18 +21,18 @@ export const highlights = [
 
 export const timeline = [
   { time: '12:00 pm', title: 'welcome center opens', detail: 'maps, orientation, hunt start, info, family activities' },
-  { time: '12:00 pm to 4:00 pm', title: 'may day festivities and potluck', detail: 'community programming, art, food, history, and tabling' },
+  { time: '12:00 pm to 7:00 pm', title: 'may day festivities and potluck', detail: 'community programming, art, food, history, and tabling' },
   { time: '7:00 pm', title: 'screening of labor wars of the northwest', detail: 'indoor evening program' },
   { time: '8:00 pm to 12:00 am', title: 'live music', detail: 'night programming indoors' },
 ]
 
 export const scheduleItems = [
   { time: '12:00 pm', category: 'all', title: 'welcome center opens', area: 'main entry', blurb: 'Start here for maps, scavenger hunt info, schedule, and accessibility information.' },
-  { time: '12:00 pm to 4:00 pm', category: 'family', title: 'may day festivities and potluck', area: 'site wide', blurb: 'Community activities, food, art, and working class history throughout the venue.' },
-  { time: 'all day', category: 'family', title: 'art center', area: 'art center', blurb: 'Face painting, diy art, scavenger hunt activities, community projects, and youth friendly making.' },
-  { time: 'all day', category: 'vendors', title: 'vendors and info booths', area: 'indoors', blurb: 'Local vendors, mutual aid tables, community organizations, labor and grassroots groups.' },
-  { time: '7:00 pm', category: 'film', title: 'labor wars of the northwest', area: 'indoors', blurb: 'Film screening as part of the evening program.' },
-  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music', area: 'indoors', blurb: 'Nighttime music programming.' },
+  { time: '12:00 pm to 7:00 pm', category: 'family', title: 'may day festivities and potluck', area: 'site wide', blurb: 'Community activities, food, art, and working class history throughout the venue.' },
+  { time: 'all day', category: 'family', title: 'diy and guided art', area: 'art center', blurb: 'Face painting, diy art, guided art, scavenger hunt activities, and community projects.' },
+  { time: '12:00 pm to 7:00 pm', category: 'vendors', title: 'vendors and info booths', area: 'indoors', blurb: 'Local vendors, mutual aid tables, community organizations, labor and grassroots groups.' },
+  { time: '7:00 pm', category: 'film', title: 'labor wars of the northwest', area: 'stage', blurb: 'Film screening as part of the evening program.' },
+  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music', area: 'stage', blurb: 'Nighttime music programming.' },
 ]
 
 export const mapZones = [
