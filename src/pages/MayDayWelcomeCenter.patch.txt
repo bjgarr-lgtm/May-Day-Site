@@ -1,5 +1,0 @@
-// Add this import near the other imports in src/pages/MayDayWelcomeCenter.jsx
-import SponsorsSection from '../components/SponsorsSection'
-
-// Then render it right before <Footer />
-<SponsorsSection />\n

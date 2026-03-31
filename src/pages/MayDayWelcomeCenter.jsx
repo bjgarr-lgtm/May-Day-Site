@@ -124,6 +124,28 @@ function NavBar() {
           <span className="block text-[#f7f1e8]/70">2026 welcome center</span>
         </button>
 
+        <nav className="hidden items-center gap-2 md:flex">
+          {quickLinks
+            .map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.id)}
+                className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
+              >
+                {item.label}
+              </button>
+            ))}
+          <button
+            type="button"
+            onClick={() => scrollToSection('labor-history')}
+            className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
+          >
+            Labor History
+          </button>
+        
+        </nav>
+
         <button
           type="button"
           className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#e3a7a5]/18 text-[#f7f1e8] md:hidden"
@@ -138,7 +160,6 @@ function NavBar() {
         <div className="border-t border-[#e3a7a5]/10 px-4 py-4 md:hidden">
           <div className="flex flex-col gap-2">
             {quickLinks
-              .filter((item) => item.label !== 'Hunt Routes' && item.id !== 'hunt-routes')
               .map((item) => (
                 <button
                   key={item.id}
@@ -156,13 +177,7 @@ function NavBar() {
             >
               Labor History
             </button>
-            <Link
-              to="/hunt"
-              onClick={() => setOpen(false)}
-              className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-sm font-semibold text-[#f7f1e8]/88"
-            >
-              Hunt Routes
-            </Link>
+
           </div>
         </div>
       ) : null}
