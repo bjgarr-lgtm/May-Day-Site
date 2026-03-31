@@ -7,12 +7,14 @@ const sponsors2026 = [
     href: 'https://historicalseaport.org/',
     logoSrc: '/sponsors/historical-seaport.png',
     logoAlt: 'Historical Seaport logo',
+    logoClassName: 'max-h-24 max-w-full object-contain',
   },
   {
     name: 'Blackflower Collective',
     href: 'http://blackflowercollective.noblogs.org/',
     logoSrc: '/sponsors/blackflower-collective.png',
     logoAlt: 'Blackflower Collective logo',
+    logoClassName: 'max-h-32 max-w-full object-contain',
   },
 ]
 
@@ -57,13 +59,13 @@ export default function SponsorsSection() {
                 href={sponsor.href}
                 target="_blank"
                 rel="noreferrer"
-                className="group flex min-h-[12rem] flex-col items-center justify-center rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 px-6 py-6 text-center transition hover:bg-[#e3a7a5]/10"
+                className="group flex min-h-[13rem] flex-col items-center justify-center rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 px-6 py-6 text-center transition hover:bg-[#e3a7a5]/10"
               >
-                <div className="flex h-24 items-center justify-center">
+                <div className="flex h-28 items-center justify-center">
                   <img
                     src={sponsor.logoSrc}
                     alt={sponsor.logoAlt}
-                    className="max-h-24 max-w-full object-contain"
+                    className={sponsor.logoClassName}
                   />
                 </div>
                 <div className="mt-5 inline-flex items-center gap-2 text-lg font-black uppercase tracking-[0.06em] text-[#f7f1e8]">
