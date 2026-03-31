@@ -1,8 +1,10 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Compass, MapPinned, QrCode, Trophy } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Compass, MapPinned, QrCode, Trophy } from 'lucide-react'
 import { huntRoutes } from '../data/huntData'
 import { getRouteCompletionCount, getTotalCompletionCount } from '../lib/huntProgress'
+
+const HOME_SECTION_TARGET_KEY = 'maydayHomeSectionTarget'
 
 function ProgressBar({ value, max }) {
   const ratio = max > 0 ? Math.max(0, Math.min(100, Math.round((value / max) * 100))) : 0
@@ -66,8 +68,16 @@ function RouteCard({ route }) {
 }
 
 export default function HuntHome() {
+  const navigate = useNavigate()
   const totalStops = huntRoutes.reduce((sum, route) => sum + route.stops.length, 0)
   const totalComplete = getTotalCompletionCount()
+
+  function goToHomeSection(sectionId) {
+    try {
+      sessionStorage.setItem(HOME_SECTION_TARGET_KEY, sectionId)
+    } catch {}
+    navigate('/')
+  }
 
   return (
     <div className="min-h-screen bg-[#264636] px-4 py-8 text-white sm:px-6 lg:px-8">
@@ -134,13 +144,14 @@ export default function HuntHome() {
               </div>
 
               <div className="mt-6 space-y-3">
-                <a
-                  href="/#map"
+                <button
+                  type="button"
+                  onClick={() => goToHomeSection('map')}
                   className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
                 >
                   <MapPinned className="mr-2 h-4 w-4" />
                   check the map
-                </a>
+                </button>
               </div>
             </div>
           </div>

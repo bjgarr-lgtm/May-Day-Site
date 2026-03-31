@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
@@ -11,6 +11,8 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { getRouteBySlug, getStop } from '../data/huntData'
+
+const HOME_SECTION_TARGET_KEY = 'maydayHomeSectionTarget'
 
 function getStorageKey(category, stopId) {
   return `mayday-hunt-stop:${category}:${stopId}`
@@ -49,6 +51,7 @@ function InfoCard({ label, value }) {
 }
 
 export default function HuntStopPage() {
+  const navigate = useNavigate()
   const { category, stopId } = useParams()
   const route = useMemo(() => getRouteBySlug(category), [category])
   const stop = useMemo(() => getStop(category, stopId), [category, stopId])
@@ -62,6 +65,13 @@ export default function HuntStopPage() {
       setComplete(isCompleted(category, stopId))
     }
   }, [category, stopId])
+
+  function goToHomeSection(sectionId) {
+    try {
+      sessionStorage.setItem(HOME_SECTION_TARGET_KEY, sectionId)
+    } catch {}
+    navigate('/')
+  }
 
   if (!route || !stop) {
     return (
@@ -224,13 +234,14 @@ export default function HuntStopPage() {
               </Link>
             ) : null}
 
-            <a
-              href="/#map"
+            <button
+              type="button"
+              onClick={() => goToHomeSection('map')}
               className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
             >
               <MapPinned className="mr-2 h-4 w-4" />
               venue map
-            </a>
+            </button>
 
             <Link
               to="/hunt"

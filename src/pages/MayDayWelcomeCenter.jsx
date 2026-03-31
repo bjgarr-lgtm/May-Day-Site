@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Accessibility,
@@ -90,6 +90,8 @@ const buildingMapHref =
 
 const buildingMapEmbed =
   'https://www.canva.com/design/DAGiCuDHo70/kE429pS-5JdBHRcyJB4JqQ/view?embed'
+
+const HOME_SECTION_TARGET_KEY = 'maydayHomeSectionTarget'
 
 function scrollToSection(id, closeMenu) {
   const el = document.getElementById(id)
@@ -724,6 +726,22 @@ function Footer() {
 }
 
 export default function MayDayWelcomeCenter() {
+  useEffect(() => {
+    try {
+      const pendingSection = sessionStorage.getItem(HOME_SECTION_TARGET_KEY)
+      if (!pendingSection) return
+
+      sessionStorage.removeItem(HOME_SECTION_TARGET_KEY)
+
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const el = document.getElementById(pendingSection)
+          if (el) el.scrollIntoView({ behavior: 'smooth' })
+        }, 50)
+      })
+    } catch {}
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#264636] text-white">
       <NoiseBackground />
