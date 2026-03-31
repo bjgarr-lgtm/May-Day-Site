@@ -560,7 +560,7 @@ function HuntSection() {
           <div className="space-y-6">
             <SectionTitle eyebrow="scavenger hunt" title="Scavenger Hunt Portal" />
             <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-6">
-              <h3 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">how it works now</h3>
+              <h3 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">how it works</h3>
               <ul className="mt-4 space-y-3 text-[#f7f1e8]/84">
                 <li>start at the welcome center and scan the intro code</li>
                 <li>pick a route or roam between categories</li>
