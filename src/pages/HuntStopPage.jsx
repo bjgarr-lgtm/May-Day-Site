@@ -1,119 +1,246 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { CheckCircle2, Compass, HelpCircle } from 'lucide-react'
-import PageShell from '../components/mayday/PageShell'
-import { getStop } from '../data/huntData'
-import { isStopComplete, markStopComplete } from '../lib/huntProgress'
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Compass,
+  Home,
+  MapPinned,
+  Route,
+  Sparkles,
+} from 'lucide-react'
+import { getRouteBySlug, getStop } from '../data/huntData'
+
+function getStorageKey(category, stopId) {
+  return `mayday-hunt-stop:${category}:${stopId}`
+}
+
+function isCompleted(category, stopId) {
+  try {
+    return localStorage.getItem(getStorageKey(category, stopId)) === 'done'
+  } catch {
+    return false
+  }
+}
+
+function markCompleted(category, stopId) {
+  try {
+    localStorage.setItem(getStorageKey(category, stopId), 'done')
+  } catch {}
+}
+
+function ProgressPill({ complete, total }) {
+  return (
+    <div className="rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8]">
+      stop {complete} of {total}
+    </div>
+  )
+}
+
+function InfoCard({ label, value }) {
+  if (!value) return null
+  return (
+    <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-4">
+      <p className="text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-[#f7f1e8]/84">{value}</p>
+    </div>
+  )
+}
 
 export default function HuntStopPage() {
   const { category, stopId } = useParams()
-  const stop = getStop(category, stopId)
-  const [complete, setComplete] = useState(() => isStopComplete(category, stopId))
-  const [showHint, setShowHint] = useState(false)
+  const route = useMemo(() => getRouteBySlug(category), [category])
+  const stop = useMemo(() => getStop(category, stopId), [category, stopId])
 
-  if (!stop) {
+  const [complete, setComplete] = useState(() =>
+    category && stopId ? isCompleted(category, stopId) : false
+  )
+
+  useEffect(() => {
+    if (category && stopId) {
+      setComplete(isCompleted(category, stopId))
+    }
+  }, [category, stopId])
+
+  if (!route || !stop) {
     return (
-      <PageShell
-        eyebrow="scavenger hunt"
-        title="stop not found"
-        body="This hunt stop does not exist or the QR route is pointing somewhere wrong, which would be rude of it."
-      >
-        <Link
-          to="/hunt"
-          className="inline-flex rounded-full border border-[#f2c4cf]/20 bg-[#f2c4cf]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8]"
-        >
-          back to hunt home
-        </Link>
-      </PageShell>
+      <div className="min-h-screen bg-[#264636] px-4 py-8 text-white sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
+          <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">hunt</p>
+          <h1 className="mt-3 text-3xl font-black uppercase tracking-tight text-[#e3a7a5] sm:text-5xl">
+            stop not found
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-[#f7f1e8]/84">
+            This clue wandered off into the fog. Go back to the hunt home and choose a live route.
+          </p>
+          <div className="mt-6">
+            <Link
+              to="/hunt"
+              className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              back to hunt
+            </Link>
+          </div>
+        </div>
+      </div>
     )
   }
 
-  const handleComplete = () => {
-    markStopComplete(category, stopId)
+  const currentIndex = route.stops.findIndex((item) => item.id === stop.id)
+  const previousStop = currentIndex > 0 ? route.stops[currentIndex - 1] : null
+  const nextStop = currentIndex < route.stops.length - 1 ? route.stops[currentIndex + 1] : null
+
+  function onMarkComplete() {
+    markCompleted(category, stop.id)
     setComplete(true)
   }
 
   return (
-    <PageShell
-      eyebrow={`${stop.categoryTitle} · stop ${stop.number} of ${stop.totalStops}`}
-      title={stop.title}
-      body={stop.routeIntro}
-      backTo="/hunt"
-    >
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_.9fr]">
-        <div className="space-y-6">
-          <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/20 p-6">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#f2c4cf]/20 bg-[#f2c4cf]/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#f7f1e8]">
-              <Compass className="h-4 w-4 text-[#f2c4cf]" />
-              clue
+    <div className="min-h-screen bg-[#264636] px-4 py-8 text-white sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <Link
+            to="/hunt"
+            className="inline-flex items-center rounded-full border border-[#e3a7a5]/20 bg-black/20 px-4 py-2 text-sm font-bold uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            back to hunt
+          </Link>
+          <Link
+            to="/"
+            className="inline-flex items-center rounded-full border border-[#e3a7a5]/20 bg-black/20 px-4 py-2 text-sm font-bold uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            home
+          </Link>
+        </div>
+
+        <section className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">{route.title}</p>
+              <h1 className="mt-3 text-3xl font-black uppercase tracking-tight text-[#e3a7a5] sm:text-5xl">
+                {stop.title}
+              </h1>
+              <p className="mt-4 max-w-3xl text-base leading-7 text-[#f7f1e8]/84">
+                {stop.clue}
+              </p>
             </div>
-            <p className="text-xl leading-8 text-[#f7f1e8]/92">{stop.clue}</p>
-          </div>
 
-          <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-[#11261e] p-6">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#f2c4cf]/20 bg-black/20 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#f7f1e8]">
-              <HelpCircle className="h-4 w-4 text-[#f2c4cf]" />
-              answer prompt
-            </div>
-            <p className="text-lg leading-8 text-[#f7f1e8]/88">{stop.answerPrompt}</p>
-
-            <button
-              type="button"
-              onClick={() => setShowHint((value) => !value)}
-              className="mt-5 rounded-full border border-[#f2c4cf]/20 bg-[#f2c4cf]/10 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/15"
-            >
-              {showHint ? 'hide hint' : 'show hint'}
-            </button>
-
-            {showHint ? (
-              <div className="mt-4 rounded-2xl border border-[#f2c4cf]/15 bg-black/15 p-4 text-[#f7f1e8]/80">
-                {stop.hint}
+            <div className="flex flex-wrap gap-3">
+              <ProgressPill complete={stop.number} total={stop.totalStops} />
+              <div
+                className={`rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.14em] ${
+                  complete
+                    ? 'border-[#e3a7a5] bg-[#e3a7a5] text-[#264636]'
+                    : 'border-[#e3a7a5]/18 bg-black/20 text-[#f7f1e8]'
+                }`}
+              >
+                {complete ? 'completed' : 'in progress'}
               </div>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-black/20 p-6">
-            <h2 className="text-2xl font-black uppercase tracking-tight text-[#f2c4cf]">progress</h2>
-            <p className="mt-3 leading-7 text-[#f7f1e8]/84">
-              Mark this stop complete after you have found it or answered it. Progress is saved in this browser on this device.
-            </p>
-
-            <button
-              type="button"
-              onClick={handleComplete}
-              disabled={complete}
-              className={`mt-5 inline-flex items-center rounded-full px-5 py-3 text-sm font-black uppercase tracking-[0.14em] transition ${
-                complete
-                  ? 'cursor-default border border-[#9be1b1]/25 bg-[#9be1b1]/15 text-[#d8ffe3]'
-                  : 'bg-[#f2c4cf] text-[#153227] hover:bg-[#ffd8e1]'
-              }`}
-            >
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              {complete ? 'completed' : 'mark complete'}
-            </button>
-          </div>
-
-          <div className="rounded-[2rem] border border-[#f2c4cf]/20 bg-[#11261e] p-6">
-            <h2 className="text-2xl font-black uppercase tracking-tight text-[#f2c4cf]">next move</h2>
-            <div className="mt-4 flex flex-col gap-3">
-              <Link
-                to="/hunt"
-                className="rounded-full border border-[#f2c4cf]/20 bg-black/15 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10"
-              >
-                back to all routes
-              </Link>
-              <Link
-                to="/#map"
-                className="rounded-full border border-[#f2c4cf]/20 bg-black/15 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#f2c4cf]/10"
-              >
-                return to map
-              </Link>
             </div>
           </div>
-        </div>
+
+          <div className="mt-8 grid gap-4 lg:grid-cols-[1.15fr_.85fr]">
+            <div className="space-y-4">
+              <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/8 p-5 sm:p-6">
+                <div className="flex items-center gap-3 text-[#e3a7a5]">
+                  <Sparkles className="h-5 w-5" />
+                  <h2 className="text-lg font-black uppercase tracking-tight">what to do</h2>
+                </div>
+                <p className="mt-4 text-base leading-8 text-[#f7f1e8]/86">{stop.answerPrompt}</p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InfoCard label="hint" value={stop.hint} />
+                <InfoCard label="completion type" value={stop.completionType} />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
+                <div className="flex items-center gap-3 text-[#e3a7a5]">
+                  <Compass className="h-5 w-5" />
+                  <h2 className="text-lg font-black uppercase tracking-tight">route context</h2>
+                </div>
+                <p className="mt-4 text-sm leading-7 text-[#f7f1e8]/78">{route.intro}</p>
+              </div>
+
+              <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
+                <div className="flex items-center gap-3 text-[#e3a7a5]">
+                  <Route className="h-5 w-5" />
+                  <h2 className="text-lg font-black uppercase tracking-tight">next move</h2>
+                </div>
+                <p className="mt-4 text-sm leading-7 text-[#f7f1e8]/78">
+                  Mark this stop complete when you have done the thing, solved the clue, or checked in with the human being guarding the next piece of chaos.
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={onMarkComplete}
+                    className={`inline-flex min-h-12 items-center rounded-full px-5 py-3 text-sm font-black uppercase tracking-[0.14em] transition ${
+                      complete
+                        ? 'border border-[#e3a7a5]/18 bg-black/20 text-[#f7f1e8]'
+                        : 'bg-[#e3a7a5] text-[#264636] hover:bg-[#efbbb9]'
+                    }`}
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    {complete ? 'completed' : 'mark complete'}
+                  </button>
+
+                  {nextStop ? (
+                    <Link
+                      to={`/hunt/${category}/${nextStop.id}`}
+                      className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+                    >
+                      next stop
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/hunt"
+                      className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+                    >
+                      route complete
+                      <CheckCircle2 className="ml-2 h-4 w-4" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            {previousStop ? (
+              <Link
+                to={`/hunt/${category}/${previousStop.id}`}
+                className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                previous stop
+              </Link>
+            ) : null}
+
+            <a
+              href="/#map"
+              className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+            >
+              <MapPinned className="mr-2 h-4 w-4" />
+              venue map
+            </a>
+
+            <Link
+              to="/hunt"
+              className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+            >
+              all routes
+            </Link>
+          </div>
+        </section>
       </div>
-    </PageShell>
+    </div>
   )
 }
