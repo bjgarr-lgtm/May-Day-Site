@@ -35,7 +35,12 @@ export const scheduleItems = [
   { time: 'all day', category: 'family', title: 'art center', area: 'art center', blurb: 'Face painting, diy art, scavenger hunt activities, community projects, and youth friendly activities.' },
   { time: 'all day', category: 'vendors', title: 'vendors and info booths', area: 'indoors', blurb: 'Local vendors, mutual aid tables, community organizations, labor and grassroots groups.' },
   { time: '7:00 pm', category: 'film', title: 'labor wars of the northwest', area: 'indoors', blurb: 'Film screening as part of the evening program.' },
-  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music', area: 'indoors', blurb: 'In order: Ave Rats from Elma, WA, punk and garage rock, IG @ave_rats_band; Stinky Slem, labor folk from MN and PDX, IG @stinkyslem; Stink Animal and the Bad Smells, power folk duo, IG @stinkanimalbadsmells; The Moray from Tacoma, WA, riot folk and protest folk, IG @themoray_official; Job Smashing Window Creator from Skamania, WA, folk punk and protest folk, IG @jobsmashingwindowcreator.' },
+  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music lineup', area: 'indoors', blurb: 'In order: Ave Rats, Stinky Slem, Stink Animal & the Bad Smells, The Moray, and Job Smashing Window Creator.' },
+  { time: 'night lineup', category: 'music', title: 'Ave Rats', area: 'Elma, WA', blurb: 'Punk / garage rock. IG: @ave_rats_band.' },
+  { time: 'night lineup', category: 'music', title: 'Stinky Slem', area: 'MN / PDX', blurb: 'Labor folk. IG: @stinkyslem.' },
+  { time: 'night lineup', category: 'music', title: 'Stink Animal & the Bad Smells', area: 'indoors', blurb: 'Power folk duo. IG: @stinkanimalbadsmells.' },
+  { time: 'night lineup', category: 'music', title: 'The Moray', area: 'Tacoma, WA', blurb: 'Riot folk / protest folk. IG: @themoray_official.' },
+  { time: 'night lineup', category: 'music', title: 'Job Smashing Window Creator', area: 'Skamania, WA', blurb: 'Folk punk / protest folk. IG: @jobsmashingwindowcreator.' },
 ]
 
 export const mapZones = [

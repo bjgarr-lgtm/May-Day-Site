@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Compass, Lock, MapPinned, Ticket, Trophy } from 'lucide-react'
 import { huntRoutes } from '../data/huntData'
@@ -62,6 +62,10 @@ function RouteCard({ route }) {
 
 export default function HuntHome() {
   const navigate = useNavigate()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [])
   const totalStops = huntRoutes.reduce((sum, route) => sum + route.stops.length, 0)
   const totalComplete = getTotalCompletionCount(huntRoutes)
 
