@@ -18,18 +18,12 @@ export function markStopComplete(routeSlug, stopId) {
 
 export function getUnlockedStopCount(route) {
   if (!route?.stops?.length) return 0
-
   let unlocked = Math.min(3, route.stops.length)
-
   for (let index = 3; index < route.stops.length; index += 1) {
     const previous = route.stops[index - 1]
-    if (previous && isStopComplete(route.slug, previous.id)) {
-      unlocked += 1
-    } else {
-      break
-    }
+    if (previous && isStopComplete(route.slug, previous.id)) unlocked += 1
+    else break
   }
-
   return unlocked
 }
 
@@ -58,24 +52,49 @@ export function getTotalCompletionCount(routes) {
   return routes.reduce((sum, route) => sum + getRouteCompletionCount(route), 0)
 }
 
-export function verifyStopAnswer(stop, value) {
-  const expected =
+export function getStopValidationMode(stop) {
+  return (
+    stop?.validationMode ||
+    stop?.validation_mode ||
+    stop?.proofType ||
+    stop?.proof_type ||
+    (getExpectedAnswer(stop) ? 'answer' : 'manual')
+  )
+}
+
+export function getExpectedAnswer(stop) {
+  return (
     stop?.proofAnswer ??
     stop?.proof_answer ??
     stop?.answer ??
     stop?.verificationCode ??
     stop?.verification_code ??
     ''
+  )
+}
 
+export function getExpectedScanCode(stop) {
+  return (
+    stop?.qrCode ??
+    stop?.qr_code ??
+    stop?.scanCode ??
+    stop?.scan_code ??
+    ''
+  )
+}
+
+export function verifyStopAnswer(stop, value) {
+  const expected = getExpectedAnswer(stop)
   const normalizedExpected = String(expected || '').trim().toLowerCase()
   const normalizedValue = String(value || '').trim().toLowerCase()
+  if (!normalizedExpected) return { ok: true, mode: 'manual' }
+  return { ok: normalizedExpected === normalizedValue, mode: 'answer' }
+}
 
-  if (!normalizedExpected) {
-    return { ok: true, mode: 'manual' }
-  }
-
-  return {
-    ok: normalizedExpected === normalizedValue,
-    mode: 'answer',
-  }
+export function verifyScanCode(stop, value) {
+  const expected = getExpectedScanCode(stop)
+  const normalizedExpected = String(expected || '').trim().toLowerCase()
+  const normalizedValue = String(value || '').trim().toLowerCase()
+  if (!normalizedExpected) return { ok: true, mode: 'scan' }
+  return { ok: normalizedExpected === normalizedValue, mode: 'scan' }
 }
