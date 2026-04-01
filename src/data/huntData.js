@@ -2,118 +2,228 @@ export const huntRoutes = [
   {
     title: 'activities',
     slug: 'activities',
-    intro: 'Physical games, weird tasks, riddles, hidden codes, direct interaction with volunteers, and a few extra movement based challenges now folded into the current site.',
+    intro: 'Physical challenges, answer checks, hidden QR discoveries, and volunteer checkpoints.',
     stops: [
-      { id: 'photo-booth', title: 'photo booth', clue: 'Find the place that offers a fleeting glimpse of fame, a frozen moment, and a captured name.', answerPrompt: 'Take a photo booth photo, post it with the event hashtag, and show a volunteer to continue.', hint: 'This one is a real world activity stop. The next code comes from a volunteer, not the site.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'bowling-capitalists', title: 'bowling down the capitalists', clue: 'Find the game setup where bankers, landlords, billionaires, cops, CEOs, and oil execs are lined up to fall.', answerPrompt: 'Knock down at least three capitalist pins and get the next clue from a volunteer.', hint: 'No gutterballs for the people.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'face-paint', title: 'face paint station', clue: 'Find the place where your face becomes part of the movement.', answerPrompt: 'Get your face painted, then check in with a volunteer for the next clue.', hint: 'Symbol, stripe, flower, skull, star, whatever feels right.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'paper-die', title: 'giant paper die', clue: 'Find the giant paper die with six sides, five numbers, and one QR code.', answerPrompt: 'Roll the die until the QR side lands face up. Scan it only when luck allows.', hint: 'This code is intentionally only visible in the world challenge flow.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'obstacle-course', title: 'inflatable obstacle course', clue: 'Climb, crawl, bounce, and thrash your way through the inflatable obstacle course.', answerPrompt: 'Make it to the other side and get the next clue from the volunteer at the finish line.', hint: 'No speed required. Flailing dramatically is spiritually correct.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'haymarket', title: 'haymarket square', clue: 'Answer the labor history question about the 1886 labor uprising that became foundational to the workers movement and the origin of May Day.', answerPrompt: 'What is the name of the square where it all went down?', hint: 'Unlock the code at the booth where the tail is pinned.', completionType: 'password', validationMode: 'answer', proofAnswer: 'haymarket' },
-      { id: 'solidarity-riddle', title: 'solidarity riddle', clue: 'Solve the riddle about something born in break rooms, forged in chants, and whispered between tired hands.', answerPrompt: 'What is the start of every strike?', hint: 'You cannot own it, yet it owns the fight.', completionType: 'password', validationMode: 'answer', proofAnswer: 'solidarity' },
-      { id: 'perspective-hunt', title: 'perspective hunt', clue: 'Find the real world version of the mystery photo and stand where the camera stood.', answerPrompt: 'Scan the hidden QR code once you locate the matching perspective.', hint: 'This code only reveals itself from the right angle in the physical space.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'red-thread', title: 'red thread', clue: 'Follow the wild red thread through cones, chairs, trash bins, tape lines, protest signs, and whatever else it wraps around.', answerPrompt: 'Find the hidden pouch or last knot where the next QR code waits.', hint: 'It may split or disappear, but the true line continues.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'abc-letter', title: 'anarchist black cross letter', clue: 'Go to the Anarchist Black Cross table and write a letter to an incarcerated comrade.', answerPrompt: 'Turn in your letter and receive the clue that moves you into the next section.', hint: 'It does not need to be perfect. It just needs to be human.', completionType: 'volunteer', validationMode: 'volunteer' },
+      { id: 'photo-booth', title: 'photo booth', clue: `I offer a fleeting glimpse of fame,
+A frozen moment, a captured name.
+Striking a pose, you step inside,
+Your image preserved, nowhere to hide.
+What am I?`, answerPrompt: `Post your photo booth photo to #MayDayOnTheHarbor and show a volunteer for your next clue.`, hint: 'This one advances through a volunteer checkpoint, not a typed answer.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ACT-01', revealNextInUI: false },
+      { id: 'bowling-capitalists', title: 'bowling down the capitalists', clue: `You’ve entered the Zone of Active Resistance.
+Find the Bowling Down the Capitalists game setup and knock down at least three of the capitalist pins.`, answerPrompt: `Once you've bowled and knocked down at least three pins, a volunteer will hand you your next QR code or clue.`, hint: 'This one needs the volunteer to enter the completion code.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ACT-02', revealNextInUI: false },
+      { id: 'face-paint', title: 'face paint station', clue: `Every movement has a look. Some wear masks, some wear war paint, some wear joy.
+Find the Face Paint Station and let your face become part of the movement.`, answerPrompt: `Once your face is painted, a volunteer will hand you the next clue or QR code.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ACT-03', revealNextInUI: false },
+      { id: 'paper-die', title: 'giant paper die', clue: `Find the giant paper die at the Activities Station — six sides, five numbers, and one QR code.
+Your task? Roll the die until you land QR-side up.`, answerPrompt: `The QR code is the next clue — but you can’t scan it until it’s rolled face-up.`, hint: 'No next button here. The real world QR is the progression gate.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'ACT-04', revealNextInUI: false },
+      { id: 'obstacle-course', title: 'inflatable obstacle course', clue: `It’s time to move. Climb, crawl, bounce, and thrash your way through the Inflatable Obstacle Course — a glorious, ridiculous mess of resistance.
+Your goal: Make it to the other side.
+• No need for speed.
+• Just commit.
+• Bonus points for flailing dramatically or yelling “MAYDAY” as you tumble.`, answerPrompt: `Clue Delivery:
+Once you’ve completed the course, a volunteer at the finish line will hand you your next QR code or clue.`, hint: 'Volunteer checkpoint only.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ACT-05', revealNextInUI: false },
+      { id: 'haymarket', title: 'haymarket square', clue: `Take a breath. Wipe off the sweat. Time to remember why we’re all here.
+Which 1886 labor uprising — sparked by a bombing during a peaceful rally for the 8-hour workday — became a foundational moment for the international workers’ movement and the origin of May Day?
+Answer is the name of the square where it all went down.`, answerPrompt: `Unlock the code at the booth where the tail is pinned.`, hint: 'Type the answer exactly.', completionType: 'password', validationMode: 'answer', proofAnswer: 'haymarket', revealNextInUI: true },
+      { id: 'solidarity-riddle', title: 'solidarity riddle', clue: `Solve the riddle. The answer is your password to unlock the next QR code or clue.
+Riddle:
+I’m born in break rooms,
+Forged in chants,
+I grow when whispered between tired hands.
+You cannot own me,
+Yet I own the fight.
+I am the start of every strike.
+What am I?`, answerPrompt: `Enter the password to unlock the next clue.`, hint: 'Read it closely.', completionType: 'password', validationMode: 'answer', proofAnswer: 'solidarity', revealNextInUI: true },
+      { id: 'perspective-hunt', title: 'perspective hunt', clue: `Somewhere in this space is a photo — tacked to a wall, taped to a cone, or stuck to a sign.
+The image shows a very specific location taken from one exact angle. You’ll need to find that place and stand where the camera stood.
+Only then will the next QR code reveal itself.
+It might be under a bench.
+It might be behind a caution sign.
+It might be on the back of a megaphone.
+But it’s only visible when you’re looking the right way.`, answerPrompt: `Clue Delivery:
+Scan the hidden QR code once you locate the real-world version of the image.`, hint: 'This stop progresses only from the physical QR.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'ACT-08', revealNextInUI: false },
+      { id: 'red-thread', title: 'red thread', clue: `The red thread has returned — but this time, it’s wilder. Less careful. Maybe even angry.
+You’ll find it tied somewhere near where the last clue ended.
+From there, it winds…
+Through cones
+Over chairs
+Around trash bins
+Beneath tape lines
+Through a stack of protest signs
+Under a makeshift stage`, answerPrompt: `Follow the thread. It might split. It might disappear behind something. But the true line always continues.
+At the end of the thread is your next QR code — hidden in a pouch, tucked under a flap, or tied into the last knot.`, hint: 'Physical QR only.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'ACT-09', revealNextInUI: false },
+      { id: 'abc-letter', title: 'anarchist black cross letter', clue: `Go to the Anarchist Black Cross table.
+Write a letter to an incarcerated comrade.
+It doesn’t need to be perfect. It just needs to be you.`, answerPrompt: `Once you’ve written and turned in your letter, a volunteer will quietly hand you the QR code for the next section and ten tickets.`, hint: 'Volunteer checkpoint only.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ACT-10', revealNextInUI: false },
     ],
   },
   {
-    title: 'art center',
-    slug: 'art-center',
-    intro: 'Creative tasks, visual riddles, hands on making, collaboration, and weird signal debris.',
-    stops: [
-      { id: 'craft-puzzle-sheet', title: 'craft puzzle sheet', clue: 'Seek the place where old skills live on among weavers, stitchers, painters, and makers.', answerPrompt: 'Flip over the puzzle sheet at this station, complete it, and find the password hidden in Across 8.', hint: 'Your next clue waits quietly among crafts and traditions.', completionType: 'password', validationMode: 'answer' },
-      { id: 'recreate-rosie', title: 'recreate rosie', clue: 'Strike a pose. Resistance has a look.', answerPrompt: 'Recreate Rosie’s stance, post it to the event hashtag, and show the Art Center volunteer.', hint: 'This is a volunteer checked creative stop.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'wordsearch', title: 'wordsearch', clue: 'Complete the wordsearch provided at this station.', answerPrompt: 'The unused letters on the top line read left to right and spell your password.', hint: 'Every word you find is a piece of a movement.', completionType: 'password', validationMode: 'answer' },
-      { id: 'bucket-of-broken-signals', title: 'bucket of broken signals', clue: 'Ask for the Bucket of Broken Signals and choose the one QR square that actually matters.', answerPrompt: 'Find the one marked with the familiar logo.', hint: 'Most are lies, errors, or junk.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'collaboration-wall', title: 'collaboration wall', clue: 'Leave your mark on the Collaboration Wall.', answerPrompt: 'Paint, draw, write, or collage, then tell the Art Volunteer what you added.', hint: 'They will know if you are lying.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'banner-riddle', title: 'banner riddle', clue: 'Solve the riddle about something made not by one but by many hands, waving in the wind or screaming from a wall without a sound.', answerPrompt: 'What am I?', hint: 'Think of what waves in the wind at a march.', completionType: 'password', validationMode: 'answer', proofAnswer: 'banner' },
-      { id: 'agricultural-workshop', title: 'agricultural workshop', clue: 'Art doesn’t stop at the page. Creation continues in the soil.', answerPrompt: 'Complete the Agricultural Workshop and you will receive your final clue in this pathway.', hint: 'Hands are busy growing more than just food.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'recreate-revolution', title: 'recreate the revolution', clue: 'Find an open indoor space and recreate an iconic image of resistance using your body, crew, or what you can find nearby.', answerPrompt: 'Take a photo and show the Art Center volunteer.', hint: 'This was an old outdoors stop, now folded into the current hunt shape.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'do-art-get-clue', title: 'do art get clue', clue: 'Art is a kind of magic. It doesn’t need to be pretty. Just honest.', answerPrompt: 'Do art. Get a clue.', hint: 'Leave a piece of yourself here and get the key to your next path.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'art-route-finish', title: 'art route finish', clue: 'Complete the art route and close out this pathway with the Art Volunteer.', answerPrompt: 'Check in for your final clue or handoff.', hint: 'This keeps the human layer intact where it belongs.', completionType: 'volunteer', validationMode: 'volunteer' },
+    title: 'art center', slug: 'art-center', intro: 'Creative challenges, visual puzzles, making based clue flow, and volunteer handoffs.', stops: [
+      { id: 'craft-puzzle-sheet', title: 'craft puzzle sheet', clue: `Seek the place where old skills live on — where crafts and traditions gather, and hands move with the memory of generations.
+Among the weavers, stitchers, painters, and makers, your next clue waits quietly.`, answerPrompt: `Flip over the puzzle sheet at this station. Complete it, and you’ll find your password hidden in Across 8.`, hint: 'Type the solved password when you have it.', completionType: 'password', validationMode: 'answer', revealNextInUI: true },
+      { id: 'recreate-rosie', title: 'recreate rosie', clue: `Strike a pose. Resistance has a look.
+Recreate Rosie’s stance, snap a photo, and post to #MayDayOnTheHarbor.`, answerPrompt: `Show your post to the Art Center volunteer for your next clue.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ART-02', revealNextInUI: false },
+      { id: 'wordsearch', title: 'wordsearch password', clue: `Among the threads of words and the echoes of labor, your next password lies hidden.
+Complete the wordsearch provided at this station.
+The unused letters on the top line, when read left to right, will spell out your password.`, answerPrompt: `Enter the password to unlock the next clue.`, hint: 'Read the unused letters on the top line.', completionType: 'password', validationMode: 'answer', revealNextInUI: true },
+      { id: 'bucket-of-broken-signals', title: 'bucket of broken signals', clue: `You saw clearly. You stood in the right place. You found the hidden view. Now, the real mess begins.
+Go to the Art Center table and ask for “The Bucket of Broken Signals.”
+Inside, you’ll find dozens of QR code squares. Most of them lead nowhere. Lies. Errors. Junk.
+But one — just one — is marked with a familiar logo.`, answerPrompt: `Choose wisely. Or chaotically.`, hint: 'Physical QR only.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'ART-04', revealNextInUI: false },
+      { id: 'collaboration-wall', title: 'collaboration wall', clue: `You’ve survived the chaos of the Bucket. Good.
+Now you’re ready to leave something behind.
+Go to the Collaboration Wall — a massive canvas open to all hands.
+Paint. Draw. Write. Collage. Leave your mark.`, answerPrompt: `When you're done, find the Art Volunteer nearby. Tell them what you added. They’ll know if you're lying.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ART-05', revealNextInUI: false },
+      { id: 'banner-riddle', title: 'banner riddle', clue: `I am made not by one, but by many hands,
+In picket lines, in paint, in factory stands.
+I carry slogans, stories, and fight,
+Bold on walls or held up in strike.
+I am both protest and a plea,
+In colors loud, demanding to be free.
+What am I?`, answerPrompt: `Hint: Think of what waves in the wind at a march… or screams from a wall without making a sound.
+Go to the Art Center table. Scan the QR code and enter the password to unlock your next clue.`, hint: 'Type the password exactly.', completionType: 'password', validationMode: 'answer', proofAnswer: 'banner', revealNextInUI: true },
+      { id: 'agricultural-workshop', title: 'agricultural workshop', clue: `Art doesn’t stop at the page. Creation continues in the soil.
+Head to the Agricultural Workshop — where hands are busy growing more than just food.`, answerPrompt: `Complete the workshop and you will receive your final clue in this pathway.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ART-07', revealNextInUI: false },
+      { id: 'do-art-get-clue', title: 'do art get clue', clue: `Art is a kind of magic, you know.
+It doesn’t need to be pretty — just honest.
+Leave a piece of yourself here, and I’ll give you the key to your next path.`, answerPrompt: `Do art. Get a clue.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ART-08', revealNextInUI: false },
+      { id: 'photo-booth-redux', title: 'photo booth redux', clue: `I offer a fleeting glimpse of fame,
+A frozen moment, a captured name.
+Striking a pose, you step inside,
+Your image preserved, nowhere to hide.
+What am I?`, answerPrompt: `Post your photo booth photo to #MayDayOnTheHarbor and show our volunteer for your next code.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'ART-09', revealNextInUI: false },
+      { id: 'zine-making', title: 'zine making', clue: `“You’ve planted seeds in the earth — now plant one in paper.
+Your last task begins at the Zine Table.”`, answerPrompt: `At the Zine Table, you’ll find blank templates and instructions to fold a 16-page mini-zine from a single sheet of paper.
+Once folded, design at least 8 pages with your content — drawings, poems, slogans, rants, collage — whatever speaks from your bones.
+When your zine is finished, the front and back cover will align to reveal a full scannable QR code. That’s your final clue.`, hint: 'This one ends in a physical assembled QR. No next button here.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'ART-10', revealNextInUI: false },
     ],
   },
   {
-    title: 'vendors',
-    slug: 'vendors',
-    intro: 'Vendor stalls, radical literature, riddles, trades, hidden objects, and a classified detour.',
-    stops: [
-      { id: 'vendor-photo', title: 'vendor photo', clue: 'Wander the vendor stalls and info tables and choose one that inspires you.', answerPrompt: 'Take a photo of their table or something they are offering, post it with the event hashtag, and show the Welcome Center volunteer.', hint: 'This is the route opener and it is already clearly volunteer checked in the source.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'vendor-perspective', title: 'vendor perspective match', clue: 'Match the photo pinned to a corkboard or table with the real place and angle in the vendor and info area.', answerPrompt: 'Find the hidden QR code that only appears from the right perspective.', hint: 'Only the right angle reveals it.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'may-days-zine', title: 'may days zine', clue: 'Locate the zine “May Days” by CrimethInc. at the info table or radical lit distro.', answerPrompt: 'In the chapter about Barcelona, 1936, what was the name of the anarchist labor union that took over the city’s infrastructure and fought fascism?', hint: 'It is in bold. You will not miss it.', completionType: 'text-answer', validationMode: 'answer', proofAnswer: 'CNT' },
-      { id: 'mutual-aid-riddle', title: 'mutual aid riddle', clue: 'Solve the riddle about something that appears when systems fail and vanishes when justice prevails.', answerPrompt: 'What am I?', hint: 'It is not a place, but it brings people together.', completionType: 'password', validationMode: 'answer', proofAnswer: 'mutual aid' },
-      { id: 'classified-folder', title: 'classified folder', clue: 'At the Sabot Media table, find the thing that doesn’t quite belong among the flyers and ephemera.', answerPrompt: 'Follow the classified instructions if it is for you.', hint: 'This is the ARG branch, not really part of the main hunt.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'trade-challenge', title: 'trade challenge', clue: 'Find the table with space and spines and trade for your next clue instead of buying it.', answerPrompt: 'Offer an object, drawing, poem, snack, button, or token. They decide if it is fair.', hint: 'They will not give it to you for nothing.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'vendor-red-thread', title: 'vendor red thread', clue: 'Find the beginning of the red thread in the vendor zone and follow it through the space.', answerPrompt: 'Track it until you find the pouch at the end with the next code.', hint: 'Fence posts, flyer poles, and table legs are all fair game.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'bread-and-roses', title: 'bread and roses', clue: 'Find the hidden red roses and loaves of bread scattered through the vendor zone.', answerPrompt: 'Bring them to the correct volunteer and say nothing.', hint: 'If it is the wrong volunteer, they will just hand them back.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'your-voice', title: 'your voice', clue: 'Solve the riddle: I belong to you, but others use me more. I start conversations, spark revolutions, and cannot be taken back.', answerPrompt: 'What am I?', hint: 'This answer is explicitly stated in the source material.', completionType: 'text-answer', validationMode: 'answer', proofAnswer: 'your voice' },
-      { id: 'blackflower-zine', title: 'blackflower zine', clue: 'Find the Blackflower Collective zine and look under the wing of a bird.', answerPrompt: 'The first letter in each bullet line spells your next password.', hint: 'A quiet acrostic hidden in print.', completionType: 'password', validationMode: 'answer' },
+    title: 'vendors', slug: 'vendors', intro: 'Social posts, zines, mutual aid clues, trades, hidden objects, and a classified detour.', stops: [
+      { id: 'vendor-photo', title: 'vendor photo', clue: `Choose a vendor or info table that inspires you and document it.`, answerPrompt: `Post a photo of the table or what they’re offering with the hashtag #MayDayOnTheHarbor, then show your post to the Welcome Center volunteer.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'VEN-01', revealNextInUI: false },
+      { id: 'may-days-zine', title: 'may days zine', clue: `Locate the zine “May Days” by CrimethInc. at the info table or radical lit distro.
+In the chapter about Barcelona, 1936, what was the name of the anarchist labor union that took over the city’s infrastructure and fought fascism?`, answerPrompt: `Hint: It’s in bold. You won’t miss it.`, hint: 'Type the answer exactly.', completionType: 'password', validationMode: 'answer', proofAnswer: 'CNT', revealNextInUI: true },
+      { id: 'mutual-aid-riddle', title: 'mutual aid riddle', clue: `Solve the riddle below. The answer is your password to unlock the next QR clue.
+It’s something you’ll hear whispered at meetings, printed in zines, scribbled in margins, and shouted through bullhorns.
+Riddle:
+I am not a place, but I bring people together.
+I do not sell, but I give what is needed.
+I appear when systems fail,
+and vanish when justice prevails.
+What am I?`, answerPrompt: `Go to the table who represents the answer. Scan the QR code and enter the password to unlock your next clue.`, hint: 'Type the password exactly.', completionType: 'password', validationMode: 'answer', proofAnswer: 'mutual aid', revealNextInUI: true },
+      { id: 'vendor-perspective', title: 'vendor perspective match', clue: `Pinned to the corkboard or taped to the table, you’ll find a photo.
+It was taken somewhere within the Vendor & Info area — a real place, a real angle, just waiting to be found again.`, answerPrompt: `Your task: match the photo exactly. Find the location, stand in the same spot, and see the world as the camera once did.
+There, and only there, you’ll spot a hidden QR code.`, hint: 'Physical QR only.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'VEN-04', revealNextInUI: false },
+      { id: 'blackflower-zine', title: 'blackflower zine', clue: `Find the Blackflower Collective Zine.
+That table will have your next QR code.
+Within the zine, under the wing of a bird, you will find a series of bullets.
+The first letter in each line spells your next password.`, answerPrompt: `Enter the solved password when you have it.`, hint: 'Acrostic style password.', completionType: 'password', validationMode: 'answer', revealNextInUI: true },
+      { id: 'vendor-red-thread', title: 'vendor red thread', clue: `Some things unravel when pulled — others lead you to something hidden.
+In the Vendor Zone, find the beginning of the red thread.
+It might be tied to a table leg, wrapped through a fence, or dangling from a flyer pole.
+Follow it carefully — it winds through strange spaces and odd corners.`, answerPrompt: `At the end, you’ll find a small hidden pouch. Inside is a QR code. That’s your next clue.`, hint: 'Physical QR only.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'VEN-06', revealNextInUI: false },
+      { id: 'bread-and-roses', title: 'bread and roses', clue: `Scattered throughout the Vendor Zone are hidden red roses and loaves of bread — in flowerpots, taped under tables, tucked into signs.
+Your job is to find them.
+But don’t just keep them — they’re not for you.
+Find the right volunteer and hand them the bread and rose.
+Say nothing.`, answerPrompt: `If it’s the right volunteer, they’ll give you your next clue. If not… they’ll just hand it back.`, hint: 'Volunteer checkpoint only.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'VEN-07', revealNextInUI: false },
+      { id: 'your-voice', title: 'your voice', clue: `I belong to you, but others use me more.
+I start conversations, spark revolutions, and cannot be taken back.
+What am I?`, answerPrompt: `Answer correctly, and they’ll finally hand over your next clue.`, hint: 'Type the password exactly.', completionType: 'password', validationMode: 'answer', proofAnswer: 'your voice', revealNextInUI: true },
+      { id: 'trade-challenge', title: 'trade challenge', clue: `To get your next clue, you’ll need to trade — not buy, not beg.
+Find the table with space and spines.
+Offer them something. It can be anything — a small object, a handmade token, a drawing, a snack, a poem, a button from your vest.`, answerPrompt: `They get to decide if it’s fair. If they accept your trade, you’ll receive your next clue.`, hint: 'Volunteer checkpoint only.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'VEN-09', revealNextInUI: false },
+      { id: 'classified-folder', title: 'classified folder', clue: `At the Sabot Media table, somewhere among the flyers, booklets, and anarchist ephemera, you’ll find something that doesn’t quite belong.
+It might be:
+• A small folded note
+• A QR code stuck under the table
+• A half-page zine marked “CLASSIFIED”
+• A sticker with a strange symbol
+• A cassette labeled ??`, answerPrompt: `There’s no signage. No instructions. No one will help you.
+If you find it, you’ve taken the first step.
+If you’re ready, take the rabbit hole.`, hint: 'This is a direct physical discovery stop. No next button here.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'VEN-10', revealNextInUI: false },
     ],
   },
   {
-    title: 'history',
-    slug: 'history',
-    intro: 'Museum displays, labor history, perspective puzzles, hidden threads, poetry, and building based discovery.',
-    stops: [
-      { id: 'free-speech-fights', title: 'free speech fights', clue: 'Study the labor history displays inside, especially the Aberdeen Free Speech Fights.', answerPrompt: 'What religious organization was allowed to preach publicly on the same streets where IWW members were arrested and beaten?', hint: 'The answer is directly in the display content.', completionType: 'text-answer', validationMode: 'answer', proofAnswer: 'salvation army' },
-      { id: 'iww-riddle', title: 'iww riddle', clue: 'Solve the riddle about the radical labor union that believed in solidarity across all trades.', answerPrompt: 'Three letters. One fight. Who are they?', hint: 'Known to bosses with fear and to workers with pride.', completionType: 'password', validationMode: 'answer', proofAnswer: 'IWW' },
-      { id: 'notice-space', title: 'notice the space', clue: 'Take a moment to notice where you are. Find something strange, beautiful, or overlooked and document it.', answerPrompt: 'Snap a photo, post it with the event hashtag, and show a volunteer for your next clue.', hint: 'This space is part of the story too.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'history-perspective', title: 'history perspective match', clue: 'Study the provided image and match the exact location and angle somewhere within the event grounds or building.', answerPrompt: 'Find the hidden QR code that appears only from the right perspective.', hint: 'You only see it if you are standing just right.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'puppet-stop', title: 'puppet stop', clue: 'Complete the puppet based challenge.', answerPrompt: 'Finish the puppet based one in the world to receive the next clue.', hint: 'This one is clearly physical and not a typed answer stop.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'poem-mic', title: 'poem at the mic', clue: 'Write a poem about labor, resistance, identity, grief, hope, rage, home, or whatever burns in your chest.', answerPrompt: 'Read it aloud or hand it to a volunteer. Then you receive a QR showing a perspective hunt image.', hint: 'It doesn’t have to rhyme. It just has to be yours.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'history-red-thread', title: 'history red thread', clue: 'Somewhere in the building, a thin red thread is woven through shelves, vents, chair legs, or cracks in the wall.', answerPrompt: 'Follow it patiently to the tiny envelope or pouch holding the next QR code.', hint: 'It doesn’t go far, but it doesn’t go straight.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'laura-law', title: 'laura law', clue: 'Back in the museum displays, among the timelines, artifacts, and forgotten names, find the answer to the Laura Law question.', answerPrompt: 'What is the street number where Laura Law was murdered?', hint: 'The answer is explicit in the display set.', completionType: 'text-answer', validationMode: 'answer', proofAnswer: '1117' },
-      { id: 'seattle-general-strike', title: 'seattle general strike', clue: 'Solve the riddle about the moment when a city stood still, not from fear, but from unity.', answerPrompt: 'What am I?', hint: 'In twenty days it sparked. In five it shut it all down.', completionType: 'password', validationMode: 'answer', proofAnswer: 'seattle general strike' },
-      { id: 'jam-station', title: 'jam station', clue: 'Go to the Jam Station or Open Mic Area and add one real sound to the moment.', answerPrompt: 'Bang a drum, sing a line, shout a chant, recite a poem, or add one weird sound. The volunteer hands you the next clue.', hint: 'It doesn’t need to be good. It just needs to be yours.', completionType: 'volunteer', validationMode: 'volunteer' },
+    title: 'history', slug: 'history', intro: 'Labor history displays, museum questions, IWW lore, poetry, and building based discovery.', stops: [
+      { id: 'notice-space', title: 'notice the space', clue: `Take a moment to notice where you are.
+This space is part of the story too.
+Look around for something strange, beautiful, or overlooked — then snap a photo of it and post it with the hashtag #MayDayOnTheHarbor.`, answerPrompt: `Show a volunteer for your next clue.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'HIS-01', revealNextInUI: false },
+      { id: 'history-perspective', title: 'history perspective match', clue: `Some places hide in plain sight — waiting to be seen just right.
+Below, you'll find a photograph. It's taken from a very specific location, facing a very specific angle.`, answerPrompt: `Find that exact spot somewhere within the event grounds and scan the hidden QR code once you find it.`, hint: 'Physical QR only.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'HIS-02', revealNextInUI: false },
+      { id: 'free-speech-fights', title: 'aberdeen free speech fights', clue: `Study the labor history displays inside — especially the ones about the Aberdeen Free Speech Fights.
+During the Aberdeen Free Speech Fights, members of the IWW were arrested and beaten for speaking publicly.
+But what religious organization was allowed to preach on the same streets without harassment?`, answerPrompt: `Enter the answer to continue.`, hint: 'Type it exactly.', completionType: 'password', validationMode: 'answer', proofAnswer: 'salvation army', revealNextInUI: true },
+      { id: 'iww-riddle', title: 'iww riddle', clue: `Solve this riddle. The answer is a name known to bosses with fear and to workers with pride — a radical labor union that believed in solidarity across all trades.
+Riddle:
+We sang on picket lines, marched through jails,
+Preached no gods, no masters, no holy grails.
+Not just one trade — we took them all,
+From timber to textile, we answered the call.
+Our red song still echoes, defiant and true —
+Three letters. One fight. Who are we?`, answerPrompt: `Enter the password to continue.`, hint: 'Three letters.', completionType: 'password', validationMode: 'answer', proofAnswer: 'IWW', revealNextInUI: true },
+      { id: 'indoor-thread', title: 'indoor red thread', clue: `Somewhere in the building, a thin red thread is woven through shelves, vents, chair legs, or cracks in the wall.
+It’s barely visible — just a hint of color against the mundane.`, answerPrompt: `Follow it. At the end, you’ll find a tiny envelope or pouch — your next QR code is hidden inside.`, hint: 'Physical QR only.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'HIS-05', revealNextInUI: false },
+      { id: 'phone-flyer', title: 'phone flyer', clue: `Find the flyer taped to the wall near the back hallway. It looks like nothing — a boring office memo.
+But if you read closely, you’ll see a phone number scribbled at the bottom.
+Call it. You won’t talk to a person — just a recorded voice.`, answerPrompt: `“You’ve reached a voice that isn’t supposed to exist.
+Here’s your challenge:
+What walks without legs, whispers without sound, and spreads without moving?”
+Enter the password at the QR code on the flyer for your next clue.`, hint: 'Type the password exactly.', completionType: 'password', validationMode: 'answer', proofAnswer: 'fire', revealNextInUI: true },
+      { id: 'puppet-stop', title: 'puppet stop', clue: `Puppet based one.`, answerPrompt: `Complete the puppet based challenge in the world to receive the next clue.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'HIS-07', revealNextInUI: false },
+      { id: 'laura-law', title: 'laura law', clue: `Back in the Museum displays, among the timelines, artifacts, and forgotten names, is a clue to this question.
+What is the street number where Laura Law was murdered?`, answerPrompt: `Enter the street number.`, hint: 'The answer is in the displays.', completionType: 'password', validationMode: 'answer', proofAnswer: '1117', revealNextInUI: true },
+      { id: 'seattle-general-strike', title: 'seattle general strike', clue: `Solve this riddle. The answer is the name of a moment — when a city stood still, not from fear, but from unity.
+Riddle:
+In twenty days I sparked,
+In five I shut it all down.
+No wheel turned, no train ran,
+But we were not afraid.
+Milk was delivered, babies were born,
+But not a boss gave the order.
+What am I?`, answerPrompt: `Enter the answer to continue.`, hint: 'Type the full answer.', completionType: 'password', validationMode: 'answer', proofAnswer: 'seattle general strike', revealNextInUI: true },
+      { id: 'poem-mic', title: 'poem at the mic', clue: `Write a poem. It doesn’t have to rhyme. It doesn’t have to be long. It just has to be yours.`, answerPrompt: `When you’ve written it, step up to the mic (or the whisper corner, or the poetry booth). Read it aloud. Or, if you can’t perform, hand it to a volunteer.
+They’ll hand you a QR code.`, hint: 'Volunteer checkpoint only.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'HIS-10', revealNextInUI: false },
     ],
   },
   {
-    title: 'indoors',
-    slug: 'indoors',
-    intro: 'The renamed former outdoors route, now framed for the current site with movement, radio clues, maypole logic, hidden pieces, and embodied challenge flow.',
-    stops: [
-      { id: 'international-workers-day', title: 'international workers day', clue: 'Answer the trivia question about the historical name for the international workers holiday celebrated on May 1st.', answerPrompt: 'What is the historical name of the holiday?', hint: 'Bosses hate it. Workers remember it.', completionType: 'text-answer', validationMode: 'answer', proofAnswer: 'may day' },
-      { id: 'maypole-riddle', title: 'maypole riddle', clue: 'Solve the riddle about the symbol woven with tradition, resistance, and springtime defiance.', answerPrompt: 'What am I?', hint: 'A pole, a protest, a worker’s day.', completionType: 'password', validationMode: 'answer', proofAnswer: 'may pole' },
-      { id: 'maypole-thread', title: 'maypole red thread', clue: 'Find the red thread tied near the base of the maypole route marker and follow it.', answerPrompt: 'Trace it until you reach the hidden pouch or envelope containing the next QR.', hint: 'It may loop, double back, or wind beneath benches.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'outdoor-perspective', title: 'perspective hunt', clue: 'Use the provided photo to match a very specific location and angle in the real world path.', answerPrompt: 'Stand in the exact position to reveal the hidden QR code.', hint: 'You only see it if you are standing in the right place.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'cassette-player', title: 'cassette player', clue: 'Find the old school cassette player and listen to the queued message.', answerPrompt: 'Follow the spoken clue about glass, reversal, and what cannot be read.', hint: 'It is where people go to sit but don’t stay long.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'look-through-the-glass', title: 'look through the glass', clue: 'Use the reversed clue from the cassette stop and decode the password.', answerPrompt: 'What is the password hidden in the backwards message?', hint: 'Our sword is fire.', completionType: 'password', validationMode: 'answer', proofAnswer: 'fire' },
-      { id: 'station-mayday', title: 'station mayday', clue: 'Find the soft low power FM signal and listen to the broadcast.', answerPrompt: 'Use the radio message to begin collecting the broken QR code pieces.', hint: 'The message starts with “This is Station MAYDAY.”', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'broken-qr', title: 'broken qr code', clue: 'Find the scattered QR pieces hidden in multiple locations and assemble them.', answerPrompt: 'Piece them together and scan what you’ve made.', hint: 'The pieces do not wait forever.', completionType: 'onsite-only', validationMode: 'manual' },
-      { id: 'recreate-resistance', title: 'recreate resistance', clue: 'Recreate an iconic image of resistance using your body, your crew, or what you find nearby.', answerPrompt: 'Take a photo and show it to the Art Center volunteer.', hint: 'This route was renamed, not rewritten. The embodied challenge remains.', completionType: 'volunteer', validationMode: 'volunteer' },
-      { id: 'jam-or-noise', title: 'noise finish', clue: 'For the final challenge, show up, be loud, and be real.', answerPrompt: 'Join the noise and get the final handoff or route finish check.', hint: 'A drum, chant, line, or off-key strum still counts.', completionType: 'volunteer', validationMode: 'volunteer' },
+    title: 'indoors', slug: 'indoors', intro: 'Movement based clues, maypole logic, hidden perspectives, and physical clue flow.', stops: [
+      { id: 'recreate-resistance', title: 'recreate resistance', clue: `The fight doesn’t only live in galleries and archives — it lives in the streets, in parks, on sidewalks, in alleyways.
+Your challenge: Find an open space and recreate an iconic image of resistance using your body, your crew, or what you can find nearby.`, answerPrompt: `Take a photo and post it with #MayDayOnTheHarbor. Then show the post or photo to the Art Center volunteer.`, hint: 'Volunteer checkpoint.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'IND-01', revealNextInUI: false },
+      { id: 'international-workers-day', title: 'international workers day', clue: `This whole event is built around a day with radical roots — a day that bosses hate and workers remember.
+What is the historical name for the international workers’ holiday celebrated on May 1st?`, answerPrompt: `Enter the answer to continue.`, hint: 'Type it exactly.', completionType: 'password', validationMode: 'answer', proofAnswer: 'may day', revealNextInUI: true },
+      { id: 'maypole-riddle', title: 'maypole riddle', clue: `Solve this riddle. The answer will lead you to your next location — a symbol woven with tradition, resistance, and springtime defiance.
+Riddle:
+I rise once a year, wrapped in colors so bold,
+A worker’s celebration, centuries old.
+I dance without feet, spin without sound,
+But my ribbons are rooted deep in the ground.
+Around me they circle, through history they play —
+A pole, a protest, a worker’s day.
+What am I?`, answerPrompt: `Find the clue in the world and progress from the physical QR at that location.`, hint: 'This riddle sends you to the real world. No next button here.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'IND-03', revealNextInUI: false },
+      { id: 'maypole-thread', title: 'maypole red thread', clue: `You’ve found the May Pole — bright, tangled, defiant.
+Look closely near the base. You’ll see a red thread tied to a ribbon or a stake. It winds away.
+Follow the thread.`, answerPrompt: `At the end of the thread is a hidden pouch or sealed envelope containing your next QR code.`, hint: 'Physical QR only.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'IND-04', revealNextInUI: false },
+      { id: 'outdoor-perspective', title: 'outdoor perspective match', clue: `A photo was taken somewhere on the grounds. A specific angle. A specific place. It might look ordinary — a fence corner, a light pole, a busted trash can, a painted rock.
+But it matters.`, answerPrompt: `Match the exact location and angle in real life. Only from that perspective will you see the hidden QR code.`, hint: 'Physical QR only.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'IND-05', revealNextInUI: false },
+      { id: 'cassette-player', title: 'cassette player', clue: `The next clue isn’t written. It’s spoken. Muffled. Warped. Waiting.
+Somewhere in the route is an old-school cassette player with a tape already queued up.
+You just have to find it. And play it.`, answerPrompt: `Once you find the player, press play. Follow the message and clue it gives you in the physical space.`, hint: 'Physical discovery stop.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'IND-06', revealNextInUI: false },
+      { id: 'look-through-the-glass', title: 'look through the glass', clue: `“ssalg eht hguorht kool — ‘erif si drows ruo’”
+(Reversed: “look through the glass — ‘our sword is fire’ and so is your password”)`, answerPrompt: `Use the clue and enter the password to continue.`, hint: 'Type the password exactly.', completionType: 'password', validationMode: 'answer', proofAnswer: 'fire', revealNextInUI: true },
+      { id: 'station-mayday', title: 'station mayday', clue: `There’s a signal broadcasting right now — soft, low-power, and barely legal.
+Find the frequency and listen.`, answerPrompt: `Walk the edges of the grounds. You’ll know you’ve found it when you hear: “This is Station MAYDAY — the signal for those who still listen.”`, hint: 'Physical discovery stop.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'IND-08', revealNextInUI: false },
+      { id: 'hidden-clue', title: 'hidden clue', clue: `Find the next clue in the space and progress from the real world QR only.`, answerPrompt: `This stop does not reveal the next page in the UI. You must find the physical clue to continue.`, hint: 'This replaces the wrong site text and keeps the flow physical.', completionType: 'onsite-only', validationMode: 'onsite_qr_only', scanCode: 'IND-09', revealNextInUI: false },
+      { id: 'jam-station', title: 'jam station', clue: `For this route’s final challenge, you don’t need to be a musician. You just need to show up, be loud, and be real.
+Go to the Jam Station / Open Mic Area.
+Bang on a drum.
+Sing a line.
+Recite a poem.
+Shout a chant.
+Strum something out of tune.
+Add one weird sound to the moment.`, answerPrompt: `Once you perform, the Jam Station volunteer will hand you your next clue.`, hint: 'Volunteer checkpoint only.', completionType: 'volunteer', validationMode: 'volunteer', volunteerCode: 'IND-10', revealNextInUI: false },
     ],
   },
 ]
 
-export function getAllStops() {
-  return huntRoutes.flatMap((route) =>
-    route.stops.map((stop, index) => ({
-      ...stop,
-      category: route.slug,
-      categoryTitle: route.title,
-      routeIntro: route.intro,
-      number: index + 1,
-    }))
-  )
-}
-
-export function getRouteBySlug(slug) {
-  return huntRoutes.find((route) => route.slug === slug)
-}
-
-export function getStop(category, stopId) {
-  const route = getRouteBySlug(category)
-  if (!route) return null
-  const stop = route.stops.find((item) => item.id === stopId)
-  if (!stop) return null
-  const index = route.stops.findIndex((item) => item.id === stopId)
-  return {
-    ...stop,
-    category: route.slug,
-    categoryTitle: route.title,
-    routeIntro: route.intro,
-    number: index + 1,
-    totalStops: route.stops.length,
-  }
-}
+export function getRouteBySlug(slug) { return huntRoutes.find((route) => route.slug === slug) }
+export function getStop(category, stopId) { const route=getRouteBySlug(category); if(!route) return null; const index=route.stops.findIndex((item)=>item.id===stopId); if(index===-1) return null; return { ...route.stops[index], number:index+1, totalStops:route.stops.length } }
