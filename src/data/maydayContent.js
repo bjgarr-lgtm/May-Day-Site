@@ -21,18 +21,18 @@ export const highlights = [
 
 export const timeline = [
   { time: '12:00 pm', title: 'welcome center opens', detail: 'maps, orientation, hunt start, info, family activities' },
-  { time: '12:00 pm to 7:00 pm', title: 'may day festivities and potluck', detail: 'community programming, art, food, history, and tabling' },
+  { time: '12:00 pm to 4:00 pm', title: 'may day festivities and potluck', detail: 'community programming, art, food, history, and tabling' },
   { time: '7:00 pm', title: 'screening of labor wars of the northwest', detail: 'indoor evening program' },
   { time: '8:00 pm to 12:00 am', title: 'live music', detail: 'night programming indoors' },
 ]
 
 export const scheduleItems = [
   { time: '12:00 pm', category: 'all', title: 'welcome center opens', area: 'main entry', blurb: 'Start here for maps, scavenger hunt info, schedule, and accessibility information.' },
-  { time: '12:00 pm to 7:00 pm', category: 'family', title: 'may day festivities and potluck', area: 'site wide', blurb: 'Community activities, food, art, and working class history throughout the venue.' },
-  { time: 'all day', category: 'family', title: 'diy and guided art', area: 'art center', blurb: 'Face painting, diy art, guided art, scavenger hunt activities, and community projects.' },
-  { time: '12:00 pm to 7:00 pm', category: 'vendors', title: 'vendors and info booths', area: 'indoors', blurb: 'Local vendors, mutual aid tables, community organizations, labor and grassroots groups.' },
-  { time: '7:00 pm', category: 'film', title: 'labor wars of the northwest', area: 'stage', blurb: 'Film screening as part of the evening program.' },
-  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music', area: 'stage', blurb: 'Nighttime music programming.' },
+  { time: '12:00 pm to 4:00 pm', category: 'family', title: 'may day festivities and potluck', area: 'site wide', blurb: 'Community activities, food, art, and working class history throughout the venue.' },
+  { time: 'all day', category: 'family', title: 'art center', area: 'art center', blurb: 'Face painting, diy art, scavenger hunt activities, community projects, and youth friendly making.' },
+  { time: 'all day', category: 'vendors', title: 'vendors and info booths', area: 'indoors', blurb: 'Local vendors, mutual aid tables, community organizations, labor and grassroots groups.' },
+  { time: '7:00 pm', category: 'film', title: 'labor wars of the northwest', area: 'indoors', blurb: 'Film screening as part of the evening program.' },
+  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music', area: 'indoors', blurb: 'Nighttime music programming.' },
 ]
 
 export const mapZones = [
@@ -40,7 +40,8 @@ export const mapZones = [
   { title: 'Activities', swatchClassName: 'bg-lime-400/70', blurb: 'Games, family friendly tasks, activity based hunt stops, and casual roaming fun.' },
   { title: 'Art Center', swatchClassName: 'bg-fuchsia-400/70', blurb: 'Face painting, diy art, collaborative projects, and the hands on bits that make events worth attending.' },
   { title: 'Vendors', swatchClassName: 'bg-rose-400/70', blurb: 'Local sellers, organizations, tablers, and practical ways to support the event and community work.' },
-  { title: 'Indoors', swatchClassName: 'bg-amber-300/80', blurb: 'History displays, evening film screening, music, and all primary programming areas.' },
+  { title: 'History', swatchClassName: 'bg-amber-300/80', blurb: 'Labor history displays, museum clues, historical trivia, and building based discovery.' },
+  { title: 'Indoors', swatchClassName: 'bg-cyan-300/80', blurb: 'The renamed former outdoors route, now framed as roaming indoor challenge movement between spaces.' },
 ]
 
 export const infoCards = [
@@ -65,9 +66,11 @@ export const merchItems = [
 ]
 
 export const huntCategories = [
-  { title: 'Activities', stops: 14, detail: 'Photo tasks, physical challenges, riddles, hidden codes, direct interaction, and letter writing.' },
-  { title: 'Vendors', stops: 13, detail: 'Social posts, zines, mutual aid clues, trades, hidden objects, and a strange classified detour.' },
-  { title: 'Indoors', stops: 13, detail: 'History displays, IWW lore, red thread puzzles, poetry, building based discovery, and deeper ARG pieces.' },
+  { title: 'activities', stops: 10, detail: 'Photo tasks, physical challenges, riddles, hidden codes, and ticket earning tasks.' },
+  { title: 'art center', stops: 10, detail: 'Creative challenges, collaboration wall, visual puzzles, and maker based clue flow.' },
+  { title: 'vendors', stops: 10, detail: 'Social posts, zines, mutual aid clues, trade tasks, and a classified detour.' },
+  { title: 'history', stops: 10, detail: 'Labor history displays, museum questions, IWW lore, poetry, and building based discovery.' },
+  { title: 'indoors', stops: 10, detail: 'The former outdoors route, now reframed for the current site with movement, radio clues, and hidden QR hunts.' },
 ]
 
 export const siteMeta = {
@@ -80,9 +83,7 @@ export const siteMeta = {
   shopHref: 'https://maydayontheharbor.square.site/',
   donateHref: 'https://hcb.hackclub.com/donations/start/may-day-organizing-committee',
   linktreeHref: 'https://linktr.ee/maydayontheharbor',
-  vendorHref: '/vendor-application',
-  performerHref: '/performer-application',
-  volunteerEmail: 'mailto:maydayontheharbor@proton.me?subject=May%20Day%20Volunteer',
+  vendorHref: 'https://docs.google.com/document/d/1f6iByYjMyahEI1MbO-Hw7xUSwTcmBcqJUxEZoSzJQDY/edit?usp=sharing',
   mapHref: 'https://canva.link/tz2eq2avtaqloby',
   contactEmail: 'maydayontheharbor@proton.me',
   venueName: 'Historical Seaport',

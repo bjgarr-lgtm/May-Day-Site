@@ -28,73 +28,26 @@ export function getUnlockedStopCount(route) {
 }
 
 export function isStopUnlocked(route, stopId) {
-  if (!route?.stops?.length) return false
-  const index = route.stops.findIndex((item) => item.id === stopId)
-  if (index === -1) return false
-  return index < getUnlockedStopCount(route)
+  const index = route?.stops?.findIndex((item) => item.id === stopId) ?? -1
+  return index > -1 && index < getUnlockedStopCount(route)
 }
 
 export function getFirstAvailableStop(route) {
   if (!route?.stops?.length) return null
-  const unlockedCount = getUnlockedStopCount(route)
-  const visibleStops = route.stops.slice(0, unlockedCount)
-  const firstIncomplete = visibleStops.find((item) => !isStopComplete(route.slug, item.id))
-  return firstIncomplete || visibleStops[visibleStops.length - 1] || route.stops[0]
+  const unlocked = route.stops.slice(0, getUnlockedStopCount(route))
+  return unlocked.find((item) => !isStopComplete(route.slug, item.id)) || unlocked[unlocked.length - 1] || route.stops[0]
 }
 
 export function getRouteCompletionCount(route) {
-  if (!route?.stops?.length) return 0
-  return route.stops.filter((item) => isStopComplete(route.slug, item.id)).length
+  return route?.stops?.filter((item) => isStopComplete(route.slug, item.id)).length || 0
 }
 
 export function getTotalCompletionCount(routes) {
-  if (!Array.isArray(routes)) return 0
-  return routes.reduce((sum, route) => sum + getRouteCompletionCount(route), 0)
-}
-
-export function getStopValidationMode(stop) {
-  return (
-    stop?.validationMode ||
-    stop?.validation_mode ||
-    stop?.proofType ||
-    stop?.proof_type ||
-    (getExpectedAnswer(stop) ? 'answer' : 'manual')
-  )
-}
-
-export function getExpectedAnswer(stop) {
-  return (
-    stop?.proofAnswer ??
-    stop?.proof_answer ??
-    stop?.answer ??
-    stop?.verificationCode ??
-    stop?.verification_code ??
-    ''
-  )
-}
-
-export function getExpectedScanCode(stop) {
-  return (
-    stop?.qrCode ??
-    stop?.qr_code ??
-    stop?.scanCode ??
-    stop?.scan_code ??
-    ''
-  )
+  return (routes || []).reduce((sum, route) => sum + getRouteCompletionCount(route), 0)
 }
 
 export function verifyStopAnswer(stop, value) {
-  const expected = getExpectedAnswer(stop)
-  const normalizedExpected = String(expected || '').trim().toLowerCase()
-  const normalizedValue = String(value || '').trim().toLowerCase()
-  if (!normalizedExpected) return { ok: true, mode: 'manual' }
-  return { ok: normalizedExpected === normalizedValue, mode: 'answer' }
-}
-
-export function verifyScanCode(stop, value) {
-  const expected = getExpectedScanCode(stop)
-  const normalizedExpected = String(expected || '').trim().toLowerCase()
-  const normalizedValue = String(value || '').trim().toLowerCase()
-  if (!normalizedExpected) return { ok: true, mode: 'scan' }
-  return { ok: normalizedExpected === normalizedValue, mode: 'scan' }
+  const expected = String(stop?.proofAnswer || '').trim().toLowerCase()
+  if (!expected) return { ok: true }
+  return { ok: expected === String(value || '').trim().toLowerCase() }
 }
