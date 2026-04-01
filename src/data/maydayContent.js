@@ -11,7 +11,7 @@ export const highlights = [
   'family friendly',
   'masks required and provided',
   'vendors through 7 pm',
-  'live music at night',
+  'live music 8 pm to midnight',
   'film screening',
   'art center',
   'potluck',
@@ -21,18 +21,21 @@ export const highlights = [
 
 export const timeline = [
   { time: '12:00 pm', title: 'welcome center opens', detail: 'maps, orientation, hunt start, info, family activities' },
-  { time: '12:00 pm to 4:00 pm', title: 'may day festivities and potluck', detail: 'community programming, art, food, history, and tabling' },
+  { time: '12:00 pm to 7:00 pm', title: 'may day festivities and potluck', detail: 'community programming, art, food, history, puppet skits, and tabling' },
   { time: '7:00 pm', title: 'screening of labor wars of the northwest', detail: 'indoor evening program' },
   { time: '8:00 pm to 12:00 am', title: 'live music', detail: 'night programming indoors' },
 ]
 
 export const scheduleItems = [
   { time: '12:00 pm', category: 'all', title: 'welcome center opens', area: 'main entry', blurb: 'Start here for maps, scavenger hunt info, schedule, and accessibility information.' },
-  { time: '12:00 pm to 4:00 pm', category: 'family', title: 'may day festivities and potluck', area: 'site wide', blurb: 'Community activities, food, art, and working class history throughout the venue.' },
-  { time: 'all day', category: 'family', title: 'art center', area: 'art center', blurb: 'Face painting, diy art, scavenger hunt activities, community projects, and youth friendly making.' },
+  { time: '12:00 pm to 7:00 pm', category: 'family', title: 'may day festivities and potluck', area: 'site wide', blurb: 'Community programming, art, food, history, puppet skits, and tabling throughout the day.' },
+  { time: '12:00 pm to 7:00 pm', category: 'family', title: 'jawbone puppet theater', area: 'site wide', blurb: 'Recurring puppet skits throughout the day. Vashon Island puppet theater and community performance work. More at adamende.art/about.' },
+  { time: 'all day', category: 'music', title: 'hosted by rebbie the roustabout', area: 'site wide', blurb: 'MC for the day, tying together announcements, transitions, and live programming. IG: @rebbietheroustabout.' },
+  { time: 'all day', category: 'music', title: 'harbor squallers and open jam', area: 'site wide', blurb: 'Local Grays Harbor folk punk group holding down open mic and jam time between scheduled acts, plus a daytime set.' },
+  { time: 'all day', category: 'family', title: 'art center', area: 'art center', blurb: 'Face painting, diy art, scavenger hunt activities, community projects, and youth friendly activities.' },
   { time: 'all day', category: 'vendors', title: 'vendors and info booths', area: 'indoors', blurb: 'Local vendors, mutual aid tables, community organizations, labor and grassroots groups.' },
   { time: '7:00 pm', category: 'film', title: 'labor wars of the northwest', area: 'indoors', blurb: 'Film screening as part of the evening program.' },
-  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music', area: 'indoors', blurb: 'Nighttime music programming.' },
+  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music', area: 'indoors', blurb: 'In order: Ave Rats from Elma, WA, punk and garage rock, IG @ave_rats_band; Stinky Slem, labor folk from MN and PDX, IG @stinkyslem; Stink Animal and the Bad Smells, power folk duo, IG @stinkanimalbadsmells; The Moray from Tacoma, WA, riot folk and protest folk, IG @themoray_official; Job Smashing Window Creator from Skamania, WA, folk punk and protest folk, IG @jobsmashingwindowcreator.' },
 ]
 
 export const mapZones = [
