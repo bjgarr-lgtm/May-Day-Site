@@ -9,3 +9,15 @@ export function getTotalCompletionCount(routes) { return (routes || []).reduce((
 export function verifyStopAnswer(stop, value) { const expected=String(stop?.proofAnswer || '').trim().toLowerCase(); return expected && String(value || '').trim().toLowerCase() === expected }
 export function verifyVolunteerCode(stop, value) { const expected=String(stop?.volunteerCode || '').trim().toLowerCase(); return expected && String(value || '').trim().toLowerCase() === expected }
 export function hasValidScan(stop) { try { const params = new URLSearchParams(window.location.search); const expected=String(stop?.scanCode || '').trim().toLowerCase(); if(!expected) return false; return String(params.get('scan') || '').trim().toLowerCase() === expected } catch { return false } }
+
+export function getCompletedCount(route) {
+  return route?.stops?.filter((item) => isStopComplete(route.slug, item.id)).length || 0
+}
+
+export function isRouteComplete(route) {
+  return !!route?.stops?.length && getCompletedCount(route) === route.stops.length
+}
+
+export function areAllRoutesComplete(routes = []) {
+  return routes.length > 0 && routes.every((route) => isRouteComplete(route))
+}
