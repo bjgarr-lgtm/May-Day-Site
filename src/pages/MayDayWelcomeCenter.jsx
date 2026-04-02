@@ -325,13 +325,13 @@ function Hero() {
         <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/25 p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6">
           <div className="relative aspect-[4/5] max-h-[36rem] overflow-hidden rounded-[1.5rem] border border-[#e3a7a5]/15 bg-black/20">
             <img
-              src="/shop/poster-2026-pink-green.png"
+              src="poster-2026-pink-green.png"
               alt="May Day on the Harbor 2026 poster art"
               className="absolute inset-0 h-full w-full object-cover object-bottom"
               onError={(event) => {
                 if (event.currentTarget.dataset.fallbackApplied === 'true') return
                 event.currentTarget.dataset.fallbackApplied = 'true'
-                event.currentTarget.src = '/shop/poster.webp'
+                event.currentTarget.src = 'poster-2026-pink-green.png'
               }}
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.18)_55%,rgba(0,0,0,.55))]" />
