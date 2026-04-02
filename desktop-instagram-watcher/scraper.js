@@ -23,12 +23,45 @@ function stamp() {
   return new Date().toLocaleTimeString()
 }
 
+async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 async function collectPostsFromPage(page, url, source, username) {
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 })
-  await page.waitForTimeout(3000)
+  await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 })
+  await page.waitForLoadState('domcontentloaded')
+  await sleep(4000)
+
+  const selectors = [
+    'article a[href*="/p/"]',
+    'article a[href*="/reel/"]',
+    'a[href*="/p/"]',
+    'a[href*="/reel/"]',
+  ]
+
+  let found = false
+  for (const selector of selectors) {
+    try {
+      await page.waitForSelector(selector, { timeout: 8000 })
+      found = true
+      break
+    } catch {}
+  }
+
+  if (!found) {
+    await page.mouse.wheel(0, 1200)
+    await sleep(2500)
+  }
 
   const posts = await page.evaluate(({ source, username, maxItems }) => {
-    const anchors = Array.from(document.querySelectorAll('a[href*="/p/"], a[href*="/reel/"]'))
+    const selectors = [
+      'article a[href*="/p/"]',
+      'article a[href*="/reel/"]',
+      'a[href*="/p/"]',
+      'a[href*="/reel/"]',
+    ]
+
+    const anchors = selectors.flatMap((selector) => Array.from(document.querySelectorAll(selector)))
     const seen = new Set()
     const results = []
 
@@ -38,8 +71,11 @@ async function collectPostsFromPage(page, url, source, username) {
       if (!permalink || seen.has(permalink)) continue
       seen.add(permalink)
 
-      const img = anchor.querySelector('img')
-      const caption = img?.getAttribute('alt') || ''
+      const img = anchor.querySelector('img') || anchor.closest('article')?.querySelector('img')
+      const caption =
+        img?.getAttribute('alt') ||
+        anchor.getAttribute('aria-label') ||
+        ''
       const mediaUrl = img?.getAttribute('src') || ''
 
       results.push({
@@ -57,6 +93,16 @@ async function collectPostsFromPage(page, url, source, username) {
     return results
   }, { source, username, maxItems: MAX_PER_SOURCE })
 
+  return posts
+}
+
+async function collectWithRetry(page, url, source, username) {
+  let posts = await collectPostsFromPage(page, url, source, username)
+  if (posts.length) return posts
+
+  console.log(`[${stamp()}] no posts found on first pass for ${source}, retrying`)
+  await sleep(3000)
+  posts = await collectPostsFromPage(page, url, source, username)
   return posts
 }
 
@@ -86,14 +132,17 @@ async function runOnce(browser) {
     viewport: { width: 1440, height: 1200 },
     userAgent:
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    locale: 'en-US',
+    timezoneId: 'America/Los_Angeles',
   })
 
   try {
     const page = await context.newPage()
-    const official = await collectPostsFromPage(page, profileUrl, 'official', OFFICIAL_PROFILE)
-    const hashtag = await collectPostsFromPage(page, hashtagUrl, 'hashtag', `#${HASHTAG}`)
+    const official = await collectWithRetry(page, profileUrl, 'official', OFFICIAL_PROFILE)
+    const hashtag = await collectWithRetry(page, hashtagUrl, 'hashtag', `#${HASHTAG}`)
     const merged = [...official, ...hashtag]
 
+    console.log(`[${stamp()}] found ${official.length} official and ${hashtag.length} hashtag posts`)
     const result = await pushFeed(merged)
     console.log(`[${stamp()}] pushed ${result.count} items`)
   } finally {
