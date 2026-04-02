@@ -23,6 +23,7 @@ export async function onRequestGet({ request, env }) {
 export async function onRequestPost({ request, env }) {
   try {
     const payload = await request.json()
+
     if (env.IG_FEED) {
       await env.IG_FEED.put(
         'webhook-last-hit',
@@ -32,6 +33,7 @@ export async function onRequestPost({ request, env }) {
         }),
         { expirationTtl: 86400 }
       )
+
       await env.IG_FEED.delete('live-feed')
     }
   } catch {}

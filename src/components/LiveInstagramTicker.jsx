@@ -18,7 +18,7 @@ const FALLBACK_ITEMS = [
   {
     id: 'event-hashtag',
     source: 'hashtag',
-    caption: `Post with #${HASHTAG} so it can roll into the event feed once the API is wired.`,
+    caption: `Post with #${HASHTAG} so it can roll into the event feed once the Meta token is wired.`,
     permalink: HASHTAG_URL,
     media_url: '',
     timestamp: '',
@@ -46,7 +46,7 @@ function FeedCard({ item }) {
       href={item.permalink || siteMeta.instagramHref}
       target="_blank"
       rel="noreferrer"
-      className="group flex min-w-[15rem] snap-start flex-col overflow-hidden rounded-[1.4rem] border border-[#e3a7a5]/18 bg-black/25 transition hover:border-[#e3a7a5]/40 hover:bg-black/35 sm:min-w-[17rem] lg:min-w-[18rem]"
+      className="group flex min-w-[16rem] max-w-[20rem] snap-start flex-col overflow-hidden rounded-[1.4rem] border border-[#e3a7a5]/18 bg-black/25 transition hover:border-[#e3a7a5]/40 hover:bg-black/35 sm:min-w-[18rem] lg:min-w-[20rem]"
     >
       <div className="flex items-center justify-between border-b border-[#e3a7a5]/10 px-4 py-3">
         <div className="flex items-center gap-2 text-[#f7f1e8]">
@@ -97,6 +97,7 @@ export default function LiveInstagramTicker() {
   const [items, setItems] = useState(FALLBACK_ITEMS)
   const [status, setStatus] = useState('loading')
   const [lastUpdated, setLastUpdated] = useState('')
+  const [mode, setMode] = useState('fallback')
 
   useEffect(() => {
     let ignore = false
@@ -111,11 +112,13 @@ export default function LiveInstagramTicker() {
         const nextItems = Array.isArray(data.items) && data.items.length ? data.items : FALLBACK_ITEMS
         setItems(nextItems)
         setLastUpdated(data.generatedAt || new Date().toISOString())
+        setMode(data.mode || 'fallback')
         setStatus(Array.isArray(data.items) && data.items.length ? 'live' : 'fallback')
       } catch {
         if (ignore) return
         setItems(FALLBACK_ITEMS)
         setLastUpdated(new Date().toISOString())
+        setMode('fallback')
         setStatus('fallback')
       }
     }
@@ -133,10 +136,16 @@ export default function LiveInstagramTicker() {
     return `${items.length} item${items.length === 1 ? '' : 's'}`
   }, [items])
 
+  const modeLabel = useMemo(() => {
+    if (mode === 'meta-live') return 'meta live mode'
+    if (mode === 'cached-live') return 'cached live mode'
+    return 'fallback mode'
+  }, [mode])
+
   return (
     <section id="live-feed" className="border-t border-[#e3a7a5]/10 bg-black/20">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl space-y-3">
             <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/75">live feed</p>
             <h2 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5] sm:text-3xl">
@@ -144,14 +153,13 @@ export default function LiveInstagramTicker() {
             </h2>
             <p className="text-sm leading-7 text-[#f7f1e8]/84 sm:text-base">
               Day of posts from the official account and anything tagged with <span className="font-black text-[#f7f1e8]">#{HASHTAG}</span>.
-              This section still renders even before Meta is hooked up, because invisible features are a spectacular waste of everyone’s time.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-[0.14em]">
             <span className="inline-flex min-h-10 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-2 text-[#f7f1e8]">
               <Radio className="mr-2 h-4 w-4 text-[#e3a7a5]" />
-              {status === 'live' ? 'live data' : status === 'loading' ? 'loading feed' : 'fallback mode'}
+              {status === 'live' ? modeLabel : status === 'loading' ? 'loading feed' : 'fallback mode'}
             </span>
             <span className="inline-flex min-h-10 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-4 py-2 text-[#f7f1e8]/80">
               {itemCountLabel}
