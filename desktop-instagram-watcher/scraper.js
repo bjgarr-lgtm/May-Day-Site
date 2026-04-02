@@ -10,6 +10,7 @@ const HASHTAG = process.env.HASHTAG || 'MayDayOnTheHarbor'
 const SCRAPE_INTERVAL_MS = Number(process.env.SCRAPE_INTERVAL_MS || 60000)
 const HEADLESS = String(process.env.HEADLESS || 'true').toLowerCase() !== 'false'
 const MAX_PER_SOURCE = 8
+const PROFILE_DIR = './playwright-profile'
 
 if (!INGEST_URL || !INGEST_TOKEN) {
   console.error('Missing INGEST_URL or INGEST_TOKEN in .env')
@@ -28,9 +29,8 @@ async function sleep(ms) {
 }
 
 async function collectPostsFromPage(page, url, source, username) {
-  await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 })
-  await page.waitForLoadState('domcontentloaded')
-  await sleep(4000)
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })
+  await sleep(5000)
 
   const selectors = [
     'article a[href*="/p/"]',
@@ -40,6 +40,7 @@ async function collectPostsFromPage(page, url, source, username) {
   ]
 
   let found = false
+
   for (const selector of selectors) {
     try {
       await page.waitForSelector(selector, { timeout: 8000 })
@@ -50,7 +51,7 @@ async function collectPostsFromPage(page, url, source, username) {
 
   if (!found) {
     await page.mouse.wheel(0, 1200)
-    await sleep(2500)
+    await sleep(3000)
   }
 
   const posts = await page.evaluate(({ source, username, maxItems }) => {
@@ -61,21 +62,31 @@ async function collectPostsFromPage(page, url, source, username) {
       'a[href*="/reel/"]',
     ]
 
-    const anchors = selectors.flatMap((selector) => Array.from(document.querySelectorAll(selector)))
+    const anchors = selectors.flatMap((selector) =>
+      Array.from(document.querySelectorAll(selector))
+    )
+
     const seen = new Set()
     const results = []
 
     for (const anchor of anchors) {
       const href = anchor.getAttribute('href') || ''
-      const permalink = href.startsWith('http') ? href : `https://www.instagram.com${href}`
+      const permalink = href.startsWith('http')
+        ? href
+        : `https://www.instagram.com${href}`
+
       if (!permalink || seen.has(permalink)) continue
       seen.add(permalink)
 
-      const img = anchor.querySelector('img') || anchor.closest('article')?.querySelector('img')
+      const img =
+        anchor.querySelector('img') ||
+        anchor.closest('article')?.querySelector('img')
+
       const caption =
         img?.getAttribute('alt') ||
         anchor.getAttribute('aria-label') ||
         ''
+
       const mediaUrl = img?.getAttribute('src') || ''
 
       results.push({
@@ -101,7 +112,7 @@ async function collectWithRetry(page, url, source, username) {
   if (posts.length) return posts
 
   console.log(`[${stamp()}] no posts found on first pass for ${source}, retrying`)
-  await sleep(3000)
+  await sleep(4000)
   posts = await collectPostsFromPage(page, url, source, username)
   return posts
 }
@@ -127,8 +138,25 @@ async function pushFeed(items) {
   return res.json()
 }
 
-async function runOnce(browser) {
-  const context = await browser.newContext({
+async function runOnce(context) {
+  const page = context.pages()[0] || await context.newPage()
+
+  const official = await collectWithRetry(page, profileUrl, 'official', OFFICIAL_PROFILE)
+  const hashtag = await collectWithRetry(page, hashtagUrl, 'hashtag', `#${HASHTAG}`)
+  const merged = [...official, ...hashtag]
+
+  console.log(
+    `[${stamp()}] found ${official.length} official and ${hashtag.length} hashtag posts`
+  )
+
+  const result = await pushFeed(merged)
+  console.log(`[${stamp()}] pushed ${result.count} items`)
+}
+
+async function main() {
+  const context = await chromium.launchPersistentContext(PROFILE_DIR, {
+    headless: HEADLESS,
+    channel: 'chrome',
     viewport: { width: 1440, height: 1200 },
     userAgent:
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -136,29 +164,10 @@ async function runOnce(browser) {
     timezoneId: 'America/Los_Angeles',
   })
 
-  try {
-    const page = await context.newPage()
-    const official = await collectWithRetry(page, profileUrl, 'official', OFFICIAL_PROFILE)
-    const hashtag = await collectWithRetry(page, hashtagUrl, 'hashtag', `#${HASHTAG}`)
-    const merged = [...official, ...hashtag]
-
-    console.log(`[${stamp()}] found ${official.length} official and ${hashtag.length} hashtag posts`)
-    const result = await pushFeed(merged)
-    console.log(`[${stamp()}] pushed ${result.count} items`)
-  } finally {
-    await context.close()
-  }
-}
-
-async function main() {
-  const browser = await chromium.launch({
-    headless: HEADLESS,
-    channel: 'chrome',
-  })
   async function loop() {
     try {
       console.log(`[${stamp()}] scraping ${profileUrl} and #${HASHTAG}`)
-      await runOnce(browser)
+      await runOnce(context)
     } catch (error) {
       console.error(`[${stamp()}] ${error.message}`)
     }
@@ -169,7 +178,7 @@ async function main() {
 
   const shutdown = async () => {
     clearInterval(timer)
-    await browser.close()
+    await context.close()
     process.exit(0)
   }
 
