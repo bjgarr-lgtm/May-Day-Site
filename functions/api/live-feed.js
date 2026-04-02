@@ -1,5 +1,6 @@
 const FEED_CACHE_KEY = 'live-feed'
 const HASHTAG = 'MayDayOnTheHarbor'
+const FEED_SETTINGS_KEY = 'instagram_feed_settings'
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -55,12 +56,47 @@ async function setCachedFeed(env, data) {
   await env.IG_FEED.put(FEED_CACHE_KEY, JSON.stringify(data), { expirationTtl: 3600 })
 }
 
+async function getFeedConfig(env) {
+  const db = env.MAYDAY_DB
+  if (!db) {
+    return { hashtagEnabled: false, hiddenPermalinks: [] }
+  }
+
+  const result = await db.prepare('SELECT value_json FROM site_runtime_state WHERE key = ?').bind(FEED_SETTINGS_KEY).first()
+  if (!result?.value_json) return { hashtagEnabled: false, hiddenPermalinks: [] }
+
+  try {
+    const parsed = JSON.parse(result.value_json)
+    return {
+      hashtagEnabled: !!parsed?.hashtagEnabled,
+      hiddenPermalinks: Array.isArray(parsed?.hiddenPermalinks) ? parsed.hiddenPermalinks.filter((item) => typeof item === 'string') : [],
+    }
+  } catch {
+    return { hashtagEnabled: false, hiddenPermalinks: [] }
+  }
+}
+
+function applyFeedConfig(items, config) {
+  const hidden = new Set(config.hiddenPermalinks || [])
+  return (Array.isArray(items) ? items : []).filter((item) => {
+    if (!config.hashtagEnabled && item?.source === 'hashtag') return false
+    if (item?.permalink && hidden.has(item.permalink)) return false
+    return true
+  })
+}
+
 export async function onRequestGet({ env }) {
-  const cached = await getCachedFeed(env)
+  const [cached, config] = await Promise.all([
+    getCachedFeed(env),
+    getFeedConfig(env),
+  ])
+
   if (cached) {
     return json({
       ...cached,
+      items: applyFeedConfig(cached.items, config),
       mode: cached.mode || 'desktop-cached',
+      feedConfig: config,
     })
   }
 
@@ -71,5 +107,9 @@ export async function onRequestGet({ env }) {
   }
 
   await setCachedFeed(env, payload)
-  return json(payload)
+  return json({
+    ...payload,
+    items: applyFeedConfig(payload.items, config),
+    feedConfig: config,
+  })
 }
