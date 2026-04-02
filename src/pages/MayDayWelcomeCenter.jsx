@@ -42,6 +42,7 @@ import { huntRoutes } from '../data/huntData'
 import { getTotalCompletionCount } from '../lib/huntProgress'
 import SponsorsSection from '../components/SponsorsSection'
 import MobileActionBar from '../components/MobileActionBar'
+import LiveInstagramTicker from '../components/LiveInstagramTicker'
 
 const iconMap = {
   CalendarDays,
@@ -145,6 +146,13 @@ function NavBar() {
           >
             Labor History
           </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection('live-feed')}
+            className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
+          >
+            Live Feed
+          </button>
         </nav>
 
         <button
@@ -178,6 +186,13 @@ function NavBar() {
               className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
             >
               Labor History
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('live-feed', setOpen)}
+              className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
+            >
+              Live Feed
             </button>
           </div>
         </div>
@@ -240,6 +255,14 @@ function Hero() {
             >
               <BookOpen className="mr-2 h-4 w-4 shrink-0" />
               labor history
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('live-feed')}
+              className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]"
+            >
+              <Instagram className="mr-2 h-4 w-4 shrink-0" />
+              live feed
             </button>
           </div>
 
@@ -748,6 +771,7 @@ export default function MayDayWelcomeCenter() {
         <ShopSection />
         <InfoSection />
         <SponsorsSection />
+        <LiveInstagramTicker />
         <Footer />
         <MobileActionBar />
       </div>
