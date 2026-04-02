@@ -151,8 +151,10 @@ async function runOnce(browser) {
 }
 
 async function main() {
-  const browser = await chromium.launch({ headless: HEADLESS })
-
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    channel: 'chrome',
+  })
   async function loop() {
     try {
       console.log(`[${stamp()}] scraping ${profileUrl} and #${HASHTAG}`)
