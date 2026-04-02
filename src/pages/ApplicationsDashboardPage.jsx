@@ -104,6 +104,7 @@ export default function ApplicationsDashboardPage() {
   const [runtimeError, setRuntimeError] = useState('')
   const [huntSettings, setHuntSettings] = useState([])
   const [huntSaveStatus, setHuntSaveStatus] = useState('idle')
+  const [huntError, setHuntError] = useState('')
   const [ticketLookupKey, setTicketLookupKey] = useState('')
   const [ticketLookupState, setTicketLookupState] = useState(null)
   const [ticketLookupError, setTicketLookupError] = useState('')
@@ -145,6 +146,7 @@ export default function ApplicationsDashboardPage() {
 
   async function loadRuntimeState(currentPassword = password) {
     if (!currentPassword) return
+    setRuntimeError('')
     try {
       const response = await fetch('/api/runtime/admin', { headers: { Accept: 'application/json', 'x-applications-password': currentPassword } })
       const data = await response.json().catch(() => ({}))
@@ -157,13 +159,14 @@ export default function ApplicationsDashboardPage() {
 
   async function loadHuntSettings(currentPassword = password) {
     if (!currentPassword) return
+    setHuntError('')
     try {
       const response = await fetch('/api/hunt/admin', { headers: { Accept: 'application/json', 'x-applications-password': currentPassword } })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data?.error || 'Could not load hunt ops.')
       setHuntSettings(Array.isArray(data?.settings) ? data.settings : [])
     } catch (err) {
-      setRuntimeError(err?.message || 'Could not load hunt ops.')
+      setHuntError(err?.message || 'Could not load hunt ops.')
     }
   }
 
@@ -201,6 +204,7 @@ export default function ApplicationsDashboardPage() {
     setPassword(next)
     setError('')
     setRuntimeError('')
+    setHuntError('')
     setFeedError('')
   }
 
@@ -211,6 +215,8 @@ export default function ApplicationsDashboardPage() {
     setItems([])
     setStatus('locked')
     setError('')
+    setRuntimeError('')
+    setHuntError('')
     setFeedError('')
   }
 
@@ -263,6 +269,7 @@ export default function ApplicationsDashboardPage() {
 
   async function saveHuntSettings() {
     setHuntSaveStatus('saving')
+    setHuntError('')
     try {
       const response = await fetch('/api/hunt/admin', {
         method: 'POST',
@@ -275,7 +282,7 @@ export default function ApplicationsDashboardPage() {
       setHuntSaveStatus('saved')
     } catch (err) {
       setHuntSaveStatus('idle')
-      setRuntimeError(err?.message || 'Could not save hunt settings.')
+      setHuntError(err?.message || 'Could not save hunt settings.')
     }
   }
 
@@ -342,9 +349,7 @@ export default function ApplicationsDashboardPage() {
   const vendorCount = items.filter((item) => item.submission_type === 'vendor').length
   const performerCount = items.filter((item) => item.submission_type === 'performer').length
   const hiddenPermalinks = new Set(feedConfig.hiddenPermalinks || [])
-  const visibleFeedCount = feedItems
-    .filter((item) => item.source !== 'hashtag' || feedConfig.hashtagEnabled)
-    .filter((item) => !hiddenPermalinks.has(item.permalink)).length
+  const visibleFeedCount = feedItems.filter((item) => item.source !== 'hashtag' || feedConfig.hashtagEnabled).filter((item) => !hiddenPermalinks.has(item.permalink)).length
   const hashtagCount = feedItems.filter((item) => item.source === 'hashtag').length
 
   return (
@@ -414,6 +419,7 @@ export default function ApplicationsDashboardPage() {
                 <StatCard label="stops" value={mergedRoutes.reduce((sum, route) => sum + route.stops.length, 0)} subtext="Ticketed progression stops." />
                 <StatCard label="visible feed posts" value={visibleFeedCount} subtext="Current homepage feed output." />
               </div>
+              {huntError ? <div className="rounded-[1.5rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">{huntError}</div> : null}
             </div>
           ) : null}
 
@@ -503,6 +509,7 @@ export default function ApplicationsDashboardPage() {
 
           {password && tab === 'hunt-ops' ? (
             <div className="mt-8 space-y-8">
+              {huntError ? <div className="rounded-[1.5rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">{huntError}</div> : null}
               {mergedRoutes.map((route) => (
                 <div key={route.slug} className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
                   <h2 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5]">{route.title}</h2>
