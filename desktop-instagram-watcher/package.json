@@ -1,0 +1,14 @@
+{
+  "name": "mayday-desktop-instagram-watcher",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scraper.js",
+    "watch": "node scraper.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "playwright": "^1.54.1"
+  }
+}

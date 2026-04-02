@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { ExternalLink, Hash, Instagram, Radio, RefreshCw } from 'lucide-react'
+import { ExternalLink, Hash, Instagram, Radio, RefreshCw, MonitorSmartphone } from 'lucide-react'
 import { siteMeta } from '../data/maydayContent'
 
 const HASHTAG = 'MayDayOnTheHarbor'
@@ -18,7 +18,7 @@ const FALLBACK_ITEMS = [
   {
     id: 'event-hashtag',
     source: 'hashtag',
-    caption: `Post with #${HASHTAG} so it can roll into the event feed once the Meta token is wired.`,
+    caption: `Post with #${HASHTAG} so it can roll into the event feed once the desktop watcher is running.`,
     permalink: HASHTAG_URL,
     media_url: '',
     timestamp: '',
@@ -70,9 +70,9 @@ function FeedCard({ item }) {
       ) : (
         <div className="flex aspect-[16/10] items-center justify-center bg-[linear-gradient(135deg,rgba(227,167,165,.22),rgba(13,23,19,.92))] px-4 text-center">
           <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#e3a7a5]">live feed ready</p>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-[#e3a7a5]">feed standing by</p>
             <p className="text-sm leading-6 text-[#f7f1e8]/80">
-              {isHashtag ? `watch #${HASHTAG}` : 'official account connection point'}
+              {isHashtag ? `watch #${HASHTAG}` : 'desktop watcher will fill this in'}
             </p>
           </div>
         </div>
@@ -137,8 +137,8 @@ export default function LiveInstagramTicker() {
   }, [items])
 
   const modeLabel = useMemo(() => {
-    if (mode === 'meta-live') return 'meta live mode'
-    if (mode === 'cached-live') return 'cached live mode'
+    if (mode === 'desktop-live') return 'desktop live mode'
+    if (mode === 'desktop-cached') return 'desktop cached'
     return 'fallback mode'
   }, [mode])
 
@@ -152,7 +152,7 @@ export default function LiveInstagramTicker() {
               instagram updates from the harbor
             </h2>
             <p className="text-sm leading-7 text-[#f7f1e8]/84 sm:text-base">
-              Day of posts from the official account and anything tagged with <span className="font-black text-[#f7f1e8]">#{HASHTAG}</span>.
+              Official account posts plus anything tagged with <span className="font-black text-[#f7f1e8]">#{HASHTAG}</span>, pushed from your desktop watcher instead of feeding Meta’s bureaucracy.
             </p>
           </div>
 
@@ -203,6 +203,10 @@ export default function LiveInstagramTicker() {
             <Hash className="mr-2 h-4 w-4 text-[#e3a7a5]" />
             browse #{HASHTAG}
           </a>
+          <span className="inline-flex min-h-10 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-4 py-2 text-[#f7f1e8]/72">
+            <MonitorSmartphone className="mr-2 h-4 w-4 text-[#e3a7a5]" />
+            driven by your desktop watcher
+          </span>
         </div>
       </div>
     </section>
