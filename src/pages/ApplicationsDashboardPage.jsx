@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, BarChart3, ClipboardList, Lock, RefreshCw, RadioTower, Save, Search, Ticket } from 'lucide-react'
+import { ArrowLeft, BarChart3, ClipboardList, Eye, EyeOff, Hash, Instagram, Lock, RefreshCw, RadioTower, Save, Search, Ticket } from 'lucide-react'
 import { huntRoutes } from '../data/huntData'
 import { applyRuntimeToRoutes, buildRuntimeSettingsMap } from '../lib/huntTickets'
 
@@ -14,6 +14,7 @@ const tabOptions = [
   { value: 'overview', label: 'overview', icon: BarChart3 },
   { value: 'applications', label: 'applications', icon: ClipboardList },
   { value: 'live-ops', label: 'live ops', icon: RadioTower },
+  { value: 'feed-ops', label: 'feed ops', icon: Instagram },
   { value: 'hunt-ops', label: 'hunt ops', icon: Save },
   { value: 'tickets', label: 'tickets', icon: Ticket },
 ]
@@ -46,6 +47,50 @@ function SubmissionCard({ item }) {
   )
 }
 
+function FeedItemCard({ item, hidden, onToggleHidden }) {
+  return (
+    <article className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-4 sm:p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">
+            {item.source === 'hashtag' ? 'hashtag' : 'official'}
+          </p>
+          <h3 className="mt-2 truncate text-lg font-black uppercase tracking-tight text-[#f7f1e8]">
+            {item.username || 'instagram post'}
+          </h3>
+          <p className="mt-1 text-xs text-[#f7f1e8]/58">{formatDate(item.timestamp)}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onToggleHidden}
+          className={`inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.14em] transition ${hidden ? 'border-[#e3a7a5] bg-[#e3a7a5] text-[#264636]' : 'border-[#e3a7a5]/18 bg-black/20 text-[#f7f1e8] hover:bg-[#e3a7a5]/10'}`}
+        >
+          {hidden ? <Eye className="mr-2 h-4 w-4" /> : <EyeOff className="mr-2 h-4 w-4" />}
+          {hidden ? 'show post' : 'hide post'}
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[13rem_minmax(0,1fr)] lg:items-start">
+        {item.media_url ? (
+          <img
+            src={item.media_url}
+            alt={item.caption || 'Instagram post'}
+            className="h-36 w-full rounded-[1rem] border border-[#e3a7a5]/15 object-cover lg:h-28"
+          />
+        ) : (
+          <div className="flex h-36 w-full items-center justify-center rounded-[1rem] border border-[#e3a7a5]/15 bg-black/15 text-xs uppercase tracking-[0.16em] text-[#f7f1e8]/48 lg:h-28">
+            no image
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="text-sm leading-6 text-[#f7f1e8]/82">{item.caption || 'No caption found.'}</p>
+          <div className="mt-3 break-all text-xs leading-5 text-[#f7f1e8]/56">{item.permalink || ''}</div>
+        </div>
+      </div>
+    </article>
+  )
+}
+
 export default function ApplicationsDashboardPage() {
   const [tab, setTab] = useState('overview')
   const [filter, setFilter] = useState('all')
@@ -59,11 +104,17 @@ export default function ApplicationsDashboardPage() {
   const [runtimeError, setRuntimeError] = useState('')
   const [huntSettings, setHuntSettings] = useState([])
   const [huntSaveStatus, setHuntSaveStatus] = useState('idle')
+  const [huntError, setHuntError] = useState('')
   const [ticketLookupKey, setTicketLookupKey] = useState('')
   const [ticketLookupState, setTicketLookupState] = useState(null)
   const [ticketLookupError, setTicketLookupError] = useState('')
   const [ticketAdjustAmount, setTicketAdjustAmount] = useState('0')
   const [ticketAdjustMode, setTicketAdjustMode] = useState('claimed')
+  const [feedConfig, setFeedConfig] = useState({ hashtagEnabled: false, hiddenPermalinks: [] })
+  const [feedItems, setFeedItems] = useState([])
+  const [feedGeneratedAt, setFeedGeneratedAt] = useState('')
+  const [feedSaveStatus, setFeedSaveStatus] = useState('idle')
+  const [feedError, setFeedError] = useState('')
 
   const endpoint = useMemo(() => {
     const query = filter === 'all' ? '' : `?type=${encodeURIComponent(filter)}`
@@ -95,11 +146,23 @@ export default function ApplicationsDashboardPage() {
 
   async function loadRuntimeState(currentPassword = password) {
     if (!currentPassword) return
+    setRuntimeError('')
     try {
       const response = await fetch('/api/runtime/admin', { headers: { Accept: 'application/json', 'x-applications-password': currentPassword } })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data?.error || 'Could not load live ops.')
-      if (data?.state) setRuntimeState(data.state)
+      if (data?.state) {
+        setRuntimeState({
+          liveMode: !!data.state.liveMode,
+          announcement: {
+            enabled: !!data?.state?.announcement?.enabled,
+            text: typeof data?.state?.announcement?.text === 'string' ? data.state.announcement.text : '',
+            level: ['info', 'warning', 'urgent'].includes(data?.state?.announcement?.level) ? data.state.announcement.level : 'info',
+          },
+          happeningNow: typeof data?.state?.happeningNow === 'string' ? data.state.happeningNow : '',
+          upNext: typeof data?.state?.upNext === 'string' ? data.state.upNext : '',
+        })
+      }
     } catch (err) {
       setRuntimeError(err?.message || 'Could not load live ops.')
     }
@@ -107,13 +170,29 @@ export default function ApplicationsDashboardPage() {
 
   async function loadHuntSettings(currentPassword = password) {
     if (!currentPassword) return
+    setHuntError('')
     try {
       const response = await fetch('/api/hunt/admin', { headers: { Accept: 'application/json', 'x-applications-password': currentPassword } })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data?.error || 'Could not load hunt ops.')
       setHuntSettings(Array.isArray(data?.settings) ? data.settings : [])
     } catch (err) {
-      setRuntimeError(err?.message || 'Could not load hunt ops.')
+      setHuntError(err?.message || 'Could not load hunt ops.')
+    }
+  }
+
+  async function loadFeedOps(currentPassword = password) {
+    if (!currentPassword) return
+    setFeedError('')
+    try {
+      const response = await fetch('/api/instagram/admin', { headers: { Accept: 'application/json', 'x-applications-password': currentPassword } })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data?.error || 'Could not load feed ops.')
+      setFeedConfig(data?.config || { hashtagEnabled: false, hiddenPermalinks: [] })
+      setFeedItems(Array.isArray(data?.items) ? data.items : [])
+      setFeedGeneratedAt(data?.generatedAt || '')
+    } catch (err) {
+      setFeedError(err?.message || 'Could not load feed ops.')
     }
   }
 
@@ -122,6 +201,7 @@ export default function ApplicationsDashboardPage() {
       loadSubmissions(password)
       loadRuntimeState(password)
       loadHuntSettings(password)
+      loadFeedOps(password)
     } else {
       setStatus('locked')
     }
@@ -135,6 +215,8 @@ export default function ApplicationsDashboardPage() {
     setPassword(next)
     setError('')
     setRuntimeError('')
+    setHuntError('')
+    setFeedError('')
   }
 
   function lockNow() {
@@ -144,6 +226,9 @@ export default function ApplicationsDashboardPage() {
     setItems([])
     setStatus('locked')
     setError('')
+    setRuntimeError('')
+    setHuntError('')
+    setFeedError('')
   }
 
   function updateRuntime(path, value) {
@@ -167,6 +252,7 @@ export default function ApplicationsDashboardPage() {
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data?.error || 'Could not save live ops.')
+      if (data?.state) setRuntimeState(data.state)
       setRuntimeSaveStatus('saved')
     } catch (err) {
       setRuntimeSaveStatus('idle')
@@ -195,6 +281,7 @@ export default function ApplicationsDashboardPage() {
 
   async function saveHuntSettings() {
     setHuntSaveStatus('saving')
+    setHuntError('')
     try {
       const response = await fetch('/api/hunt/admin', {
         method: 'POST',
@@ -207,7 +294,7 @@ export default function ApplicationsDashboardPage() {
       setHuntSaveStatus('saved')
     } catch (err) {
       setHuntSaveStatus('idle')
-      setRuntimeError(err?.message || 'Could not save hunt settings.')
+      setHuntError(err?.message || 'Could not save hunt settings.')
     }
   }
 
@@ -242,8 +329,40 @@ export default function ApplicationsDashboardPage() {
     }
   }
 
+  function toggleHiddenPermalink(permalink) {
+    setFeedConfig((current) => {
+      const hidden = new Set(current.hiddenPermalinks || [])
+      if (hidden.has(permalink)) hidden.delete(permalink)
+      else hidden.add(permalink)
+      return { ...current, hiddenPermalinks: Array.from(hidden) }
+    })
+  }
+
+  async function saveFeedConfig() {
+    setFeedSaveStatus('saving')
+    setFeedError('')
+    try {
+      const response = await fetch('/api/instagram/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-applications-password': password },
+        body: JSON.stringify(feedConfig),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data?.error || 'Could not save feed ops.')
+      setFeedConfig(data?.config || feedConfig)
+      setFeedSaveStatus('saved')
+      await loadFeedOps(password)
+    } catch (err) {
+      setFeedSaveStatus('idle')
+      setFeedError(err?.message || 'Could not save feed ops.')
+    }
+  }
+
   const vendorCount = items.filter((item) => item.submission_type === 'vendor').length
   const performerCount = items.filter((item) => item.submission_type === 'performer').length
+  const hiddenPermalinks = new Set(feedConfig.hiddenPermalinks || [])
+  const visibleFeedCount = feedItems.filter((item) => item.source !== 'hashtag' || feedConfig.hashtagEnabled).filter((item) => !hiddenPermalinks.has(item.permalink)).length
+  const hashtagCount = feedItems.filter((item) => item.source === 'hashtag').length
 
   return (
     <div className="min-h-screen bg-[#264636] px-4 py-8 text-white sm:px-6 lg:px-8">
@@ -256,7 +375,7 @@ export default function ApplicationsDashboardPage() {
           <div className="flex flex-wrap gap-2">
             {password ? (
               <>
-                <button type="button" onClick={() => { loadSubmissions(password); loadRuntimeState(password); loadHuntSettings(password) }} className="inline-flex items-center rounded-full border border-[#e3a7a5]/20 bg-black/20 px-4 py-2 text-sm font-bold uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                <button type="button" onClick={() => { loadSubmissions(password); loadRuntimeState(password); loadHuntSettings(password); loadFeedOps(password) }} className="inline-flex items-center rounded-full border border-[#e3a7a5]/20 bg-black/20 px-4 py-2 text-sm font-bold uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
                   <RefreshCw className="mr-2 h-4 w-4" />refresh
                 </button>
                 <button type="button" onClick={lockNow} className="inline-flex items-center rounded-full border border-[#e3a7a5]/20 bg-black/20 px-4 py-2 text-sm font-bold uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
@@ -272,7 +391,7 @@ export default function ApplicationsDashboardPage() {
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">admin</p>
               <h1 className="mt-3 text-3xl font-black uppercase tracking-tight text-[#e3a7a5] sm:text-5xl">may day admin</h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-[#f7f1e8]/84">Forms, live ops, hunt stop settings, and ticket redemption without making you edit code on event day.</p>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[#f7f1e8]/84">Forms, live ops, hunt stop settings, ticket redemption, and feed controls without making you edit code on event day.</p>
             </div>
             {password ? (
               <div className="flex flex-wrap gap-2">
@@ -300,7 +419,6 @@ export default function ApplicationsDashboardPage() {
             </form>
           ) : null}
 
-          
           {password && tab === 'overview' ? (
             <div className="mt-8 space-y-6">
               <div className="grid gap-4 md:grid-cols-3">
@@ -311,8 +429,9 @@ export default function ApplicationsDashboardPage() {
               <div className="grid gap-4 md:grid-cols-3">
                 <StatCard label="hunt routes" value={mergedRoutes.length} subtext="Five route hunt now active." />
                 <StatCard label="stops" value={mergedRoutes.reduce((sum, route) => sum + route.stops.length, 0)} subtext="Ticketed progression stops." />
-                <StatCard label="hunt settings rows" value={huntSettings.length} subtext="Runtime overrides saved in D1." />
+                <StatCard label="visible feed posts" value={visibleFeedCount} subtext="Current homepage feed output." />
               </div>
+              {huntError ? <div className="rounded-[1.5rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">{huntError}</div> : null}
             </div>
           ) : null}
 
@@ -333,23 +452,111 @@ export default function ApplicationsDashboardPage() {
 
           {password && tab === 'live-ops' ? (
             <div className="mt-8 space-y-6">
-              <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5">
-                <label className="inline-flex items-center gap-3 text-sm text-[#f7f1e8]/86">
-                  <input type="checkbox" checked={runtimeState.liveMode} onChange={(event) => updateRuntime('liveMode', event.target.checked)} />
-                  force site into live mode
-                </label>
-                <label className="mt-4 block">
-                  <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">banner text</span>
-                  <textarea rows={3} value={runtimeState.announcement?.text || ''} onChange={(event) => updateRuntime('announcement.text', event.target.value)} className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]" />
-                </label>
+              <div className="grid gap-4 md:grid-cols-3">
+                <StatCard label="site mode" value={runtimeState.liveMode ? 'live' : 'standard'} subtext="Force homepage into live event mode." />
+                <StatCard label="banner level" value={runtimeState.announcement.level || 'info'} subtext="Info, warning, or urgent styling." />
+                <StatCard label="banner status" value={runtimeState.announcement.enabled ? 'enabled' : 'off'} subtext="Top of page alert visibility." />
               </div>
+
+              <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <label className="inline-flex items-center gap-3 rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-sm text-[#f7f1e8]/86">
+                    <input type="checkbox" checked={runtimeState.liveMode} onChange={(event) => updateRuntime('liveMode', event.target.checked)} />
+                    force site into live mode
+                  </label>
+                  <label className="inline-flex items-center gap-3 rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-sm text-[#f7f1e8]/86">
+                    <input type="checkbox" checked={runtimeState.announcement.enabled} onChange={(event) => updateRuntime('announcement.enabled', event.target.checked)} />
+                    enable homepage banner
+                  </label>
+                </div>
+
+                <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">banner urgency level</span>
+                    <select value={runtimeState.announcement.level} onChange={(event) => updateRuntime('announcement.level', event.target.value)} className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]">
+                      <option value="info">info</option>
+                      <option value="warning">warning</option>
+                      <option value="urgent">urgent</option>
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">happening now</span>
+                    <input value={runtimeState.happeningNow || ''} onChange={(event) => updateRuntime('happeningNow', event.target.value)} className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]" placeholder="masked march at the front steps" />
+                  </label>
+                </div>
+
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                  <label className="block lg:col-span-2">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">banner message</span>
+                    <textarea rows={4} value={runtimeState.announcement.text || ''} onChange={(event) => updateRuntime('announcement.text', event.target.value)} className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]" placeholder="masks required indoors. film starts at 7. main stage resets at 6:30." />
+                  </label>
+                  <label className="block lg:col-span-2">
+                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">up next</span>
+                    <input value={runtimeState.upNext || ''} onChange={(event) => updateRuntime('upNext', event.target.value)} className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]" placeholder="solidarity choir at 2 pm in the courtyard" />
+                  </label>
+                </div>
+              </div>
+
               {runtimeError ? <div className="rounded-[1.5rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">{runtimeError}</div> : null}
               <div><button type="button" onClick={saveRuntimeState} className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636]"><Save className="mr-2 h-4 w-4" />{runtimeSaveStatus === 'saving' ? 'saving...' : 'save live ops'}</button></div>
             </div>
           ) : null}
 
+          {password && tab === 'feed-ops' ? (
+            <div className="mt-8 space-y-6">
+              <div className="grid gap-4 md:grid-cols-3">
+                <StatCard label="current feed items" value={feedItems.length} subtext={feedGeneratedAt ? `last ingest ${formatDate(feedGeneratedAt)}` : 'Waiting for desktop watcher.'} />
+                <StatCard label="visible on homepage" value={visibleFeedCount} subtext="After source toggles and hidden post filtering." />
+                <StatCard label="hashtag items" value={hashtagCount} subtext="Kept ingested even when hidden." />
+              </div>
+
+              <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="max-w-2xl">
+                    <h2 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">feed switches</h2>
+                    <p className="mt-2 text-sm leading-7 text-[#f7f1e8]/78">Leave the desktop watcher running and control what the homepage actually shows here instead of editing code every time the hashtag gets weird.</p>
+                  </div>
+                  <button type="button" onClick={() => loadFeedOps(password)} className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                    <RefreshCw className="mr-2 h-4 w-4" />reload feed
+                  </button>
+                </div>
+
+                <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                  <label className="inline-flex items-center gap-3 rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-sm text-[#f7f1e8]/86">
+                    <input type="checkbox" checked={feedConfig.hashtagEnabled} onChange={(event) => setFeedConfig((current) => ({ ...current, hashtagEnabled: event.target.checked }))} />
+                    <span className="inline-flex items-center"><Hash className="mr-2 h-4 w-4 text-[#e3a7a5]" />show hashtag posts on homepage</span>
+                  </label>
+                  <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-sm text-[#f7f1e8]/84">
+                    <p className="font-black uppercase tracking-[0.12em] text-[#e3a7a5]">hidden post count</p>
+                    <p className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">{hiddenPermalinks.size}</p>
+                  </div>
+                </div>
+
+                {feedError ? <div className="mt-5 rounded-[1.25rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">{feedError}</div> : null}
+
+                <div className="mt-5">
+                  <button type="button" onClick={saveFeedConfig} className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636]">
+                    <Save className="mr-2 h-4 w-4" />{feedSaveStatus === 'saving' ? 'saving...' : 'save feed ops'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                {feedItems.map((item) => (
+                  <FeedItemCard
+                    key={item.permalink || item.id}
+                    item={item}
+                    hidden={hiddenPermalinks.has(item.permalink)}
+                    onToggleHidden={() => toggleHiddenPermalink(item.permalink)}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {password && tab === 'hunt-ops' ? (
             <div className="mt-8 space-y-8">
+              {huntError ? <div className="rounded-[1.5rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">{huntError}</div> : null}
               {mergedRoutes.map((route) => (
                 <div key={route.slug} className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
                   <h2 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5]">{route.title}</h2>
