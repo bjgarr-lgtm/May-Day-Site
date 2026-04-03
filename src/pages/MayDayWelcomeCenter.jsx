@@ -42,6 +42,7 @@ import { huntRoutes } from '../data/huntData'
 import { getTotalCompletionCount } from '../lib/huntProgress'
 import SponsorsSection from '../components/SponsorsSection'
 import MobileActionBar from '../components/MobileActionBar'
+import LiveInstagramTicker from '../components/LiveInstagramTicker'
 
 const iconMap = {
   CalendarDays,
@@ -145,6 +146,13 @@ function NavBar() {
           >
             Labor History
           </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection('live-feed')}
+            className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
+          >
+            Live Feed
+          </button>
         </nav>
 
         <button
@@ -178,6 +186,13 @@ function NavBar() {
               className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
             >
               Labor History
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('live-feed', setOpen)}
+              className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
+            >
+              Live Feed
             </button>
           </div>
         </div>
@@ -241,6 +256,14 @@ function Hero() {
               <BookOpen className="mr-2 h-4 w-4 shrink-0" />
               labor history
             </button>
+            <button
+              type="button"
+              onClick={() => scrollToSection('live-feed')}
+              className="inline-flex h-auto min-h-11 items-center rounded-full border border-[#e3a7a5]/25 bg-black/20 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10 sm:px-5 sm:text-sm sm:tracking-[0.15em]"
+            >
+              <Instagram className="mr-2 h-4 w-4 shrink-0" />
+              live feed
+            </button>
           </div>
 
           <div className="rounded-[1.75rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
@@ -301,7 +324,16 @@ function Hero() {
 
         <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/25 p-4 shadow-2xl shadow-black/20 backdrop-blur-sm sm:p-6">
           <div className="relative aspect-[4/5] max-h-[36rem] overflow-hidden rounded-[1.5rem] border border-[#e3a7a5]/15 bg-black/20">
-            <img src="/shop/poster-2026-pink-green.png" alt="May Day on the Harbor 2026 poster art" className="absolute inset-0 h-full w-full object-cover object-bottom" />
+            <img
+              src="poster-2026-pink-green.png"
+              alt="May Day on the Harbor 2026 poster art"
+              className="absolute inset-0 h-full w-full object-cover object-bottom"
+              onError={(event) => {
+                if (event.currentTarget.dataset.fallbackApplied === 'true') return
+                event.currentTarget.dataset.fallbackApplied = 'true'
+                event.currentTarget.src = 'poster-2026-pink-green.png'
+              }}
+            />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.18)_55%,rgba(0,0,0,.55))]" />
             <div className="absolute left-4 top-4">
               <span className="rounded-full border border-[#e3a7a5]/30 bg-black/35 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-[#f7f1e8] sm:text-xs">
@@ -748,6 +780,7 @@ export default function MayDayWelcomeCenter() {
         <ShopSection />
         <InfoSection />
         <SponsorsSection />
+        <LiveInstagramTicker />
         <Footer />
         <MobileActionBar />
       </div>
