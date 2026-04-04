@@ -1,5 +1,6 @@
-2026/04/02-01:26:44.690 3ed0 Reusing MANIFEST C:\Users\bjgar\Documents\may-day-site\desktop-instagram-watcher\playwright-profile\Default\Local Storage\leveldb/MANIFEST-000001
-2026/04/02-01:26:44.706 3ed0 Recovering log #3
-2026/04/02-01:26:44.707 3ed0 Level-0 table #3: started
-2026/04/02-01:26:44.736 3ed0 Level-0 table #3: 22510 bytes OK
-2026/04/02-01:26:44.752 3ed0 Delete type=0 #3
+2026/04/02-03:56:22.865 108c Reusing MANIFEST C:\Users\bjgar\Documents\may-day-site\desktop-instagram-watcher\playwright-profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/04/02-03:56:22.904 108c Recovering log #4
+2026/04/02-03:56:22.956 108c Reusing old log C:\Users\bjgar\Documents\may-day-site\desktop-instagram-watcher\playwright-profile\Default\Local Storage\leveldb/000004.log 
+2026/04/02-03:59:35.905 3438 Level-0 table #7: started
+2026/04/02-03:59:35.924 3438 Level-0 table #7: 15161 bytes OK
+2026/04/02-03:59:35.927 3438 Delete type=0 #4
