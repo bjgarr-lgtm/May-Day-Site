@@ -4,6 +4,7 @@ import { siteMeta } from '../data/maydayContent'
 
 const HASHTAG = 'MayDayOnTheHarbor'
 const HASHTAG_URL = `https://www.instagram.com/explore/tags/${HASHTAG.toLowerCase()}/`
+const LOCAL_FEED_CACHE_KEY = 'mayday_live_feed_cache_v1'
 
 const FALLBACK_ITEMS = [
   {
@@ -25,6 +26,39 @@ const FALLBACK_ITEMS = [
     username: `#${HASHTAG}`,
   },
 ]
+
+function readLocalFeedCache() {
+  try {
+    const raw = window.localStorage.getItem(LOCAL_FEED_CACHE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed?.items) || !parsed.items.length) return null
+    return {
+      items: parsed.items,
+      lastUpdated: parsed.lastUpdated || '',
+      mode: parsed.mode || 'local-cached',
+    }
+  } catch {
+    return null
+  }
+}
+
+function writeLocalFeedCache(payload) {
+  try {
+    window.localStorage.setItem(
+      LOCAL_FEED_CACHE_KEY,
+      JSON.stringify({
+        items: Array.isArray(payload?.items) ? payload.items : [],
+        lastUpdated: payload?.lastUpdated || '',
+        mode: payload?.mode || 'local-cached',
+      })
+    )
+  } catch {}
+}
+
+function isServerFallback(data) {
+  return !Array.isArray(data?.items) || !data.items.length || data?.mode === 'fallback'
+}
 
 function formatTime(value) {
   if (!value) return 'live now'
@@ -94,10 +128,11 @@ function FeedCard({ item }) {
 }
 
 export default function LiveInstagramTicker() {
-  const [items, setItems] = useState(FALLBACK_ITEMS)
-  const [status, setStatus] = useState('loading')
-  const [lastUpdated, setLastUpdated] = useState('')
-  const [mode, setMode] = useState('fallback')
+  const localCache = typeof window !== 'undefined' ? readLocalFeedCache() : null
+  const [items, setItems] = useState(localCache?.items || FALLBACK_ITEMS)
+  const [status, setStatus] = useState(localCache?.items?.length ? 'live' : 'loading')
+  const [lastUpdated, setLastUpdated] = useState(localCache?.lastUpdated || '')
+  const [mode, setMode] = useState(localCache?.mode || 'fallback')
 
   useEffect(() => {
     let ignore = false
@@ -109,13 +144,43 @@ export default function LiveInstagramTicker() {
         const data = await res.json()
         if (ignore) return
 
+        const cachedLocal = readLocalFeedCache()
+
+        if (isServerFallback(data) && cachedLocal?.items?.length) {
+          setItems(cachedLocal.items)
+          setLastUpdated(cachedLocal.lastUpdated || data.generatedAt || '')
+          setMode('local-cached')
+          setStatus('live')
+          return
+        }
+
         const nextItems = Array.isArray(data.items) && data.items.length ? data.items : FALLBACK_ITEMS
+        const nextLastUpdated = data.generatedAt || new Date().toISOString()
+        const nextMode = data.mode || 'fallback'
+
         setItems(nextItems)
-        setLastUpdated(data.generatedAt || new Date().toISOString())
-        setMode(data.mode || 'fallback')
+        setLastUpdated(nextLastUpdated)
+        setMode(nextMode)
         setStatus(Array.isArray(data.items) && data.items.length ? 'live' : 'fallback')
+
+        if (nextMode !== 'fallback' && Array.isArray(data.items) && data.items.length) {
+          writeLocalFeedCache({
+            items: data.items,
+            lastUpdated: nextLastUpdated,
+            mode: nextMode,
+          })
+        }
       } catch {
         if (ignore) return
+        const cachedLocal = readLocalFeedCache()
+        if (cachedLocal?.items?.length) {
+          setItems(cachedLocal.items)
+          setLastUpdated(cachedLocal.lastUpdated || new Date().toISOString())
+          setMode('local-cached')
+          setStatus('live')
+          return
+        }
+
         setItems(FALLBACK_ITEMS)
         setLastUpdated(new Date().toISOString())
         setMode('fallback')
@@ -139,6 +204,7 @@ export default function LiveInstagramTicker() {
   const modeLabel = useMemo(() => {
     if (mode === 'desktop-live') return 'desktop live mode'
     if (mode === 'desktop-cached') return 'desktop cached'
+    if (mode === 'local-cached') return 'saved on this device'
     return 'fallback mode'
   }, [mode])
 
