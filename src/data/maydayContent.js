@@ -35,12 +35,13 @@ export const scheduleItems = [
   { time: 'all day', category: 'family', title: 'art center', area: 'art center', blurb: 'Face painting, diy art, scavenger hunt activities, community projects, and youth friendly activities.' },
   { time: 'all day', category: 'vendors', title: 'vendors and info booths', area: 'indoors', blurb: 'Local vendors, mutual aid tables, community organizations, labor and grassroots groups.' },
   { time: '7:00 pm', category: 'film', title: 'labor wars of the northwest', area: 'indoors', blurb: 'Film screening as part of the evening program.' },
-  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music lineup', area: 'indoors', blurb: 'In order: Ave Rats, Stinky Slem, Stink Animal & the Bad Smells, The Moray, and Job Smashing Window Creator.' },
+  { time: '8:00 pm to 12:00 am', category: 'music', title: 'live music lineup', area: 'indoors', blurb: 'In order: Ave Rats, Stinky Slem, Stink Animal & the Bad Smells, The Moray, Job Smashing Window Creator, and Toxic Tears.' },
   { time: 'night lineup', category: 'music', title: 'Ave Rats', area: 'Elma, WA', blurb: 'Punk / garage rock. IG: @ave_rats_band.' },
   { time: 'night lineup', category: 'music', title: 'Stinky Slem', area: 'MN / PDX', blurb: 'Labor folk. IG: @stinkyslem.' },
   { time: 'night lineup', category: 'music', title: 'Stink Animal & the Bad Smells', area: 'indoors', blurb: 'Power folk duo. IG: @stinkanimalbadsmells.' },
   { time: 'night lineup', category: 'music', title: 'The Moray', area: 'Tacoma, WA', blurb: 'Riot folk / protest folk. IG: @themoray_official.' },
   { time: 'night lineup', category: 'music', title: 'Job Smashing Window Creator', area: 'Skamania, WA', blurb: 'Folk punk / protest folk. IG: @jobsmashingwindowcreator.' },
+  { time: 'night lineup', category: 'music', title: 'Toxic Tears', area: 'indoors', blurb: 'Punk / goth adjacent chaos. IG: @wecrytoxictears.' },
 ]
 
 export const mapZones = [
@@ -48,7 +49,7 @@ export const mapZones = [
   { title: 'Activities', swatchClassName: 'bg-lime-400/70', blurb: 'Games, family friendly tasks, activity based hunt stops, and casual roaming fun.' },
   { title: 'Art Center', swatchClassName: 'bg-fuchsia-400/70', blurb: 'Face painting, diy art, collaborative projects, and the hands on bits that make events worth attending.' },
   { title: 'Vendors', swatchClassName: 'bg-rose-400/70', blurb: 'Local sellers, organizations, tablers, and practical ways to support the event and community work.' },
-  { title: 'History', swatchClassName: 'bg-amber-300/80', blurb: 'Labor history displays, museum clues, historical trivia, and building based discovery.' },
+  { title: 'History', swatchClassName: 'bg-amber-300/80', blurb: 'Labor history displays, museum questions, historical trivia, and building based discovery.' },
   { title: 'Indoors', swatchClassName: 'bg-cyan-300/80', blurb: 'The renamed former outdoors route, now framed as roaming indoor challenge movement between spaces.' },
 ]
 
