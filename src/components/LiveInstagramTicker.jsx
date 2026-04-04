@@ -218,7 +218,7 @@ export default function LiveInstagramTicker() {
               instagram updates from the harbor
             </h2>
             <p className="text-sm leading-7 text-[#f7f1e8]/84 sm:text-base">
-              Official account posts plus anything tagged with <span className="font-black text-[#f7f1e8]">#{HASHTAG}</span>, pushed from your desktop watcher instead of feeding Meta’s bureaucracy.
+              Official account posts plus anything tagged with <span className="font-black text-[#f7f1e8]">#{HASHTAG}</span>, 
             </p>
           </div>
 
