@@ -1,6 +1,23 @@
-2026/04/02-03:56:22.865 108c Reusing MANIFEST C:\Users\bjgar\Documents\may-day-site\desktop-instagram-watcher\playwright-profile\Default\Local Storage\leveldb/MANIFEST-000001
-2026/04/02-03:56:22.904 108c Recovering log #4
-2026/04/02-03:56:22.956 108c Reusing old log C:\Users\bjgar\Documents\may-day-site\desktop-instagram-watcher\playwright-profile\Default\Local Storage\leveldb/000004.log 
-2026/04/02-03:59:35.905 3438 Level-0 table #7: started
-2026/04/02-03:59:35.924 3438 Level-0 table #7: 15161 bytes OK
-2026/04/02-03:59:35.927 3438 Delete type=0 #4
+2026/04/03-23:18:33.989 8b4 Reusing MANIFEST C:\Users\bjgar\Documents\may-day-site\desktop-instagram-watcher\playwright-profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/04/03-23:18:34.038 8b4 Recovering log #6
+2026/04/03-23:18:34.045 8b4 Reusing old log C:\Users\bjgar\Documents\may-day-site\desktop-instagram-watcher\playwright-profile\Default\Local Storage\leveldb/000006.log 
+2026/04/03-23:20:35.135 8b4 Level-0 table #10: started
+2026/04/03-23:20:35.264 8b4 Level-0 table #10: 18772 bytes OK
+2026/04/03-23:20:35.280 8b4 Delete type=0 #6
+2026/04/03-23:28:24.288 24e0 Level-0 table #12: started
+2026/04/03-23:28:24.323 24e0 Level-0 table #12: 17550 bytes OK
+2026/04/03-23:28:24.328 24e0 Delete type=0 #9
+2026/04/03-23:28:24.330 24e0 Compacting 4@0 + 0@1 files
+2026/04/03-23:28:24.347 24e0 Generated table #13@0: 66 keys, 18047 bytes
+2026/04/03-23:28:24.347 24e0 Compacted 4@0 + 0@1 files => 18047 bytes
+2026/04/03-23:28:24.350 24e0 compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/04/03-23:28:24.354 24e0 Delete type=2 #3
+2026/04/03-23:28:24.355 24e0 Delete type=2 #7
+2026/04/03-23:28:24.355 24e0 Delete type=2 #10
+2026/04/03-23:28:24.355 24e0 Delete type=2 #12
+2026/04/03-23:35:24.352 24e0 Level-0 table #15: started
+2026/04/03-23:35:24.363 24e0 Level-0 table #15: 16694 bytes OK
+2026/04/03-23:35:24.366 24e0 Delete type=0 #11
+2026/04/03-23:41:24.483 24e0 Level-0 table #17: started
+2026/04/03-23:41:24.503 24e0 Level-0 table #17: 17882 bytes OK
+2026/04/03-23:41:24.507 24e0 Delete type=0 #14
