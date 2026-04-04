@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, ExternalLink, Upload } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Upload } from 'lucide-react'
 
 const baseFieldClasses =
   'w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8] placeholder:text-[#f7f1e8]/40 focus:border-[#e3a7a5]/50 focus:outline-none'
 
-function normalizePayload(form) {
+function normalizePayload(form, upload) {
   return {
     name: form.name.trim(),
     email: form.email.trim(),
@@ -13,7 +13,10 @@ function normalizePayload(form) {
     artist_name: form.artistName.trim(),
     instagram: form.instagram.trim(),
     location: form.location.trim(),
-    artwork_link: form.artworkLink.trim(),
+    artwork_key: upload?.key || '',
+    artwork_filename: upload?.filename || '',
+    artwork_mime: upload?.contentType || '',
+    artwork_url: upload?.viewUrl || '',
     portfolio_link: form.portfolioLink.trim(),
     statement: form.statement.trim(),
     notes: form.notes.trim(),
@@ -22,7 +25,9 @@ function normalizePayload(form) {
 
 export default function PosterArtContestPage() {
   const [status, setStatus] = useState('idle')
+  const [uploadStatus, setUploadStatus] = useState('idle')
   const [error, setError] = useState('')
+  const [selectedFile, setSelectedFile] = useState(null)
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -30,7 +35,6 @@ export default function PosterArtContestPage() {
     artistName: '',
     instagram: '',
     location: '',
-    artworkLink: '',
     portfolioLink: '',
     statement: '',
     notes: '',
@@ -42,20 +46,45 @@ export default function PosterArtContestPage() {
     setForm((current) => ({ ...current, [key]: value }))
   }
 
+  async function uploadArtwork() {
+    if (!selectedFile) {
+      throw new Error('Please choose an image file to upload.')
+    }
+
+    setUploadStatus('uploading')
+
+    const formData = new FormData()
+    formData.append('file', selectedFile)
+
+    const response = await fetch('/api/uploads/poster-art', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(data?.error || 'Artwork upload failed.')
+    }
+
+    setUploadStatus('done')
+    return data
+  }
+
   async function onSubmit(event) {
     event.preventDefault()
     setStatus('submitting')
     setError('')
 
     try {
+      const upload = await uploadArtwork()
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(normalizePayload(form)),
+        body: JSON.stringify(normalizePayload(form, upload)),
       })
 
       const data = await response.json().catch(() => ({}))
-
       if (!response.ok) {
         throw new Error(data?.error || 'Submission failed.')
       }
@@ -63,6 +92,7 @@ export default function PosterArtContestPage() {
       setStatus('success')
     } catch (err) {
       setStatus('idle')
+      setUploadStatus('idle')
       setError(err?.message || 'Something went wrong.')
     }
   }
@@ -89,18 +119,8 @@ export default function PosterArtContestPage() {
             New this year: we’re opening the poster to local artists. We want May Day on the Harbor to look like the Harbor. Submit your art for a chance to become this year’s official poster. We’ll choose a winning piece and announce it on event day.
           </p>
 
-          <div className="mt-6 rounded-[1.5rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/8 p-5">
-            <div className="flex items-start gap-3">
-              <Upload className="mt-1 h-5 w-5 text-[#e3a7a5]" />
-              <div className="space-y-3 text-sm leading-7 text-[#f7f1e8]/82">
-                <p>
-                  This first version uses a <strong>submission link</strong> rather than a direct binary upload so nobody has to wrestle with broken file storage in the middle of event prep.
-                </p>
-                <p>
-                  Upload your image to a shareable location like Google Drive, Dropbox, or another public view link, then paste that link into the form below.
-                </p>
-              </div>
-            </div>
+          <div className="mt-6 rounded-[1.5rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/8 p-5 text-sm leading-7 text-[#f7f1e8]/82">
+            Upload your actual artwork file here. Images only. Max file size 15 MB.
           </div>
 
           {status === 'success' ? (
@@ -162,16 +182,20 @@ export default function PosterArtContestPage() {
 
               <label className="block">
                 <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                  artwork submission link
+                  poster artwork file
                 </span>
                 <input
-                  type="url"
-                  className={baseFieldClasses}
-                  placeholder="https://..."
-                  value={form.artworkLink}
-                  onChange={(e) => updateField('artworkLink', e.target.value)}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                  className="block w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8] file:mr-4 file:rounded-full file:border-0 file:bg-[#e3a7a5] file:px-4 file:py-2 file:text-sm file:font-black file:uppercase file:tracking-[0.12em] file:text-[#264636]"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                   required
                 />
+                {selectedFile ? (
+                  <p className="mt-2 text-sm text-[#f7f1e8]/68">
+                    selected: {selectedFile.name}
+                  </p>
+                ) : null}
               </label>
 
               <label className="block">
@@ -213,17 +237,13 @@ export default function PosterArtContestPage() {
                   disabled={status === 'submitting'}
                   className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {status === 'submitting' ? 'submitting...' : 'submit poster art'}
+                  <Upload className="mr-2 h-4 w-4" />
+                  {status === 'submitting'
+                    ? uploadStatus === 'uploading'
+                      ? 'uploading artwork...'
+                      : 'submitting...'
+                    : 'submit poster art'}
                 </button>
-                <a
-                  href="https://drive.google.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
-                >
-                  open upload service
-                  <ExternalLink className="ml-2 h-4 w-4" />
-                </a>
               </div>
             </form>
           )}
