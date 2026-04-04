@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, BarChart3, ClipboardList, Eye, EyeOff, Hash, Instagram, Lock, RefreshCw, RadioTower, Save, Search, Ticket } from 'lucide-react'
+import { ArrowLeft, BarChart3, ClipboardList, Eye, EyeOff, Hash, Instagram, Lock, RefreshCw, RadioTower, Save, Search, Ticket, Trash2 } from 'lucide-react'
 import { huntRoutes } from '../data/huntData'
 import { applyRuntimeToRoutes, buildRuntimeSettingsMap } from '../lib/huntTickets'
 
@@ -29,14 +29,27 @@ function Label({ children }) {
 function StatCard({ label, value, subtext }) {
   return <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5"><p className="text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">{label}</p><p className="mt-3 text-4xl font-black uppercase tracking-tight text-[#f7f1e8]">{value}</p>{subtext ? <p className="mt-2 text-sm leading-6 text-[#f7f1e8]/68">{subtext}</p> : null}</div>
 }
-function SubmissionCard({ item }) {
+function SubmissionCard({ item, onDelete, deleting }) {
   const payload = item.payload || {}
   const typeLabel = item.submission_type === 'performer' ? 'performer' : 'vendor'
   return (
     <article className="rounded-[1.75rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
-      <p className="text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">{typeLabel}</p>
-      <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">{item.subject_name || item.contact_name || 'untitled submission'}</h2>
-      <p className="mt-2 text-sm text-[#f7f1e8]/62">{formatDate(item.created_at)}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">{typeLabel}</p>
+          <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">{item.subject_name || item.contact_name || 'untitled submission'}</h2>
+          <p className="mt-2 text-sm text-[#f7f1e8]/62">{formatDate(item.created_at)}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onDelete(item.id)}
+          disabled={deleting}
+          className="inline-flex min-h-10 items-center rounded-full border border-red-400/30 bg-red-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-red-100 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          {deleting ? 'deleting...' : 'delete'}
+        </button>
+      </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <div><Label>contact</Label><p className="mt-1 text-sm text-[#f7f1e8]/84">{item.contact_name || ''}</p></div>
         <div><Label>email</Label><p className="mt-1 text-sm text-[#f7f1e8]/84">{item.email || ''}</p></div>
@@ -97,6 +110,7 @@ export default function ApplicationsDashboardPage() {
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
   const [items, setItems] = useState([])
+  const [deleteState, setDeleteState] = useState({ id: '', error: '' })
   const [password, setPassword] = useState(() => { try { return sessionStorage.getItem(STORAGE_KEY) || '' } catch { return '' } })
   const [inputPassword, setInputPassword] = useState(() => { try { return sessionStorage.getItem(STORAGE_KEY) || '' } catch { return '' } })
   const [runtimeState, setRuntimeState] = useState({ liveMode: false, announcement: { enabled: false, text: '', level: 'info' }, happeningNow: '', upNext: '' })
@@ -141,6 +155,34 @@ export default function ApplicationsDashboardPage() {
       setError(err?.message || 'Could not load submissions.')
       try { sessionStorage.removeItem(STORAGE_KEY) } catch {}
       setPassword('')
+    }
+  }
+
+  async function deleteSubmission(id) {
+    if (!id) return
+    const confirmed = window.confirm('Delete this application permanently?')
+    if (!confirmed) return
+    setDeleteState({ id, error: '' })
+
+    try {
+      const response = await fetch(`/api/forms/submissions?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'x-applications-password': password,
+        },
+      })
+
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data?.error || 'Could not delete submission.')
+
+      setItems((current) => current.filter((item) => item.id !== id))
+      setDeleteState({ id: '', error: '' })
+    } catch (err) {
+      setDeleteState({
+        id: '',
+        error: err?.message || 'Could not delete submission.',
+      })
     }
   }
 
@@ -444,186 +486,30 @@ export default function ApplicationsDashboardPage() {
                   </button>
                 ))}
               </div>
+
+              {deleteState.error ? (
+                <div className="mb-4 rounded-[1.25rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">
+                  {deleteState.error}
+                </div>
+              ) : null}
+
               <div className="grid gap-4">
-                {items.map((item) => <SubmissionCard key={item.id} item={item} />)}
-              </div>
-            </div>
-          ) : null}
-
-          {password && tab === 'live-ops' ? (
-            <div className="mt-8 space-y-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                <StatCard label="site mode" value={runtimeState.liveMode ? 'live' : 'standard'} subtext="Force homepage into live event mode." />
-                <StatCard label="banner level" value={runtimeState.announcement.level || 'info'} subtext="Info, warning, or urgent styling." />
-                <StatCard label="banner status" value={runtimeState.announcement.enabled ? 'enabled' : 'off'} subtext="Top of page alert visibility." />
-              </div>
-
-              <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <label className="inline-flex items-center gap-3 rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-sm text-[#f7f1e8]/86">
-                    <input type="checkbox" checked={runtimeState.liveMode} onChange={(event) => updateRuntime('liveMode', event.target.checked)} />
-                    force site into live mode
-                  </label>
-                  <label className="inline-flex items-center gap-3 rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-sm text-[#f7f1e8]/86">
-                    <input type="checkbox" checked={runtimeState.announcement.enabled} onChange={(event) => updateRuntime('announcement.enabled', event.target.checked)} />
-                    enable homepage banner
-                  </label>
-                </div>
-
-                <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                  <label className="block">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">banner urgency level</span>
-                    <select value={runtimeState.announcement.level} onChange={(event) => updateRuntime('announcement.level', event.target.value)} className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]">
-                      <option value="info">info</option>
-                      <option value="warning">warning</option>
-                      <option value="urgent">urgent</option>
-                    </select>
-                  </label>
-                  <label className="block">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">happening now</span>
-                    <input value={runtimeState.happeningNow || ''} onChange={(event) => updateRuntime('happeningNow', event.target.value)} className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]" placeholder="masked march at the front steps" />
-                  </label>
-                </div>
-
-                <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                  <label className="block lg:col-span-2">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">banner message</span>
-                    <textarea rows={4} value={runtimeState.announcement.text || ''} onChange={(event) => updateRuntime('announcement.text', event.target.value)} className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]" placeholder="masks required indoors. film starts at 7. main stage resets at 6:30." />
-                  </label>
-                  <label className="block lg:col-span-2">
-                    <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.18em] text-[#e3a7a5]/76">up next</span>
-                    <input value={runtimeState.upNext || ''} onChange={(event) => updateRuntime('upNext', event.target.value)} className="w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]" placeholder="solidarity choir at 2 pm in the courtyard" />
-                  </label>
-                </div>
-              </div>
-
-              {runtimeError ? <div className="rounded-[1.5rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">{runtimeError}</div> : null}
-              <div><button type="button" onClick={saveRuntimeState} className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636]"><Save className="mr-2 h-4 w-4" />{runtimeSaveStatus === 'saving' ? 'saving...' : 'save live ops'}</button></div>
-            </div>
-          ) : null}
-
-          {password && tab === 'feed-ops' ? (
-            <div className="mt-8 space-y-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                <StatCard label="current feed items" value={feedItems.length} subtext={feedGeneratedAt ? `last ingest ${formatDate(feedGeneratedAt)}` : 'Waiting for desktop watcher.'} />
-                <StatCard label="visible on homepage" value={visibleFeedCount} subtext="After source toggles and hidden post filtering." />
-                <StatCard label="hashtag items" value={hashtagCount} subtext="Kept ingested even when hidden." />
-              </div>
-
-              <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="max-w-2xl">
-                    <h2 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">feed switches</h2>
-                    <p className="mt-2 text-sm leading-7 text-[#f7f1e8]/78">Leave the desktop watcher running and control what the homepage actually shows here instead of editing code every time the hashtag gets weird.</p>
-                  </div>
-                  <button type="button" onClick={() => loadFeedOps(password)} className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
-                    <RefreshCw className="mr-2 h-4 w-4" />reload feed
-                  </button>
-                </div>
-
-                <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                  <label className="inline-flex items-center gap-3 rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-sm text-[#f7f1e8]/86">
-                    <input type="checkbox" checked={feedConfig.hashtagEnabled} onChange={(event) => setFeedConfig((current) => ({ ...current, hashtagEnabled: event.target.checked }))} />
-                    <span className="inline-flex items-center"><Hash className="mr-2 h-4 w-4 text-[#e3a7a5]" />show hashtag posts on homepage</span>
-                  </label>
-                  <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 px-4 py-4 text-sm text-[#f7f1e8]/84">
-                    <p className="font-black uppercase tracking-[0.12em] text-[#e3a7a5]">hidden post count</p>
-                    <p className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">{hiddenPermalinks.size}</p>
-                  </div>
-                </div>
-
-                {feedError ? <div className="mt-5 rounded-[1.25rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">{feedError}</div> : null}
-
-                <div className="mt-5">
-                  <button type="button" onClick={saveFeedConfig} className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636]">
-                    <Save className="mr-2 h-4 w-4" />{feedSaveStatus === 'saving' ? 'saving...' : 'save feed ops'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid gap-4 xl:grid-cols-2">
-                {feedItems.map((item) => (
-                  <FeedItemCard
-                    key={item.permalink || item.id}
+                {items.map((item) => (
+                  <SubmissionCard
+                    key={item.id}
                     item={item}
-                    hidden={hiddenPermalinks.has(item.permalink)}
-                    onToggleHidden={() => toggleHiddenPermalink(item.permalink)}
+                    onDelete={deleteSubmission}
+                    deleting={deleteState.id === item.id}
                   />
                 ))}
               </div>
             </div>
           ) : null}
 
-          {password && tab === 'hunt-ops' ? (
-            <div className="mt-8 space-y-8">
-              {huntError ? <div className="rounded-[1.5rem] border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-100">{huntError}</div> : null}
-              {mergedRoutes.map((route) => (
-                <div key={route.slug} className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
-                  <h2 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5]">{route.title}</h2>
-                  <div className="mt-5 grid gap-4">
-                    {route.stops.map((stop) => (
-                      <div key={stop.id} className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/15 p-4">
-                        <p className="text-sm font-black uppercase tracking-[0.12em] text-[#f7f1e8]">{stop.number}. {stop.title}</p>
-                        <div className="mt-4 grid gap-4 lg:grid-cols-6">
-                          <label className="block"><span className="mb-2 block text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">difficulty</span><input type="number" value={stop.difficulty || 0} onChange={(e) => updateStopSetting(route.slug, stop.id, 'difficulty', e.target.value)} className="w-full rounded-xl border border-[#e3a7a5]/18 bg-black/20 px-3 py-2 text-sm text-[#f7f1e8]" /></label>
-                          <label className="block"><span className="mb-2 block text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">ticket value</span><input type="number" value={stop.ticketValue || 0} onChange={(e) => updateStopSetting(route.slug, stop.id, 'ticketValue', e.target.value)} className="w-full rounded-xl border border-[#e3a7a5]/18 bg-black/20 px-3 py-2 text-sm text-[#f7f1e8]" /></label>
-                          <label className="block"><span className="mb-2 block text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">mode</span><select value={stop.validationMode || 'manual'} onChange={(e) => updateStopSetting(route.slug, stop.id, 'validationMode', e.target.value)} className="w-full rounded-xl border border-[#e3a7a5]/18 bg-black/20 px-3 py-2 text-sm text-[#f7f1e8]"><option value="answer">answer</option><option value="volunteer">volunteer</option><option value="onsite_qr_only">onsite qr only</option><option value="manual">manual</option></select></label>
-                          <label className="block"><span className="mb-2 block text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">volunteer code</span><input value={stop.volunteerCode || ''} onChange={(e) => updateStopSetting(route.slug, stop.id, 'volunteerCode', e.target.value)} className="w-full rounded-xl border border-[#e3a7a5]/18 bg-black/20 px-3 py-2 text-sm text-[#f7f1e8]" /></label>
-                          <label className="block"><span className="mb-2 block text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">proof answer</span><input value={stop.proofAnswer || ''} onChange={(e) => updateStopSetting(route.slug, stop.id, 'proofAnswer', e.target.value)} className="w-full rounded-xl border border-[#e3a7a5]/18 bg-black/20 px-3 py-2 text-sm text-[#f7f1e8]" /></label>
-                          <label className="inline-flex items-center gap-2 pt-7 text-sm text-[#f7f1e8]/84"><input type="checkbox" checked={stop.revealNextInUI !== false} onChange={(e) => updateStopSetting(route.slug, stop.id, 'revealNextInUI', e.target.checked)} />reveal next in UI</label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <div><button type="button" onClick={saveHuntSettings} className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636]"><Save className="mr-2 h-4 w-4" />{huntSaveStatus === 'saving' ? 'saving...' : 'save hunt ops'}</button></div>
-            </div>
-          ) : null}
-
-          {password && tab === 'tickets' ? (
-            <div className="mt-8 space-y-6">
-              <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
-                <div className="grid gap-4 md:grid-cols-[1fr_auto]">
-                  <div>
-                    <Label>player key</Label>
-                    <input value={ticketLookupKey} onChange={(e) => setTicketLookupKey(e.target.value)} className="mt-2 w-full rounded-2xl border border-[#e3a7a5]/20 bg-black/20 px-4 py-3 text-sm text-[#f7f1e8]" placeholder="MDH-ABC123" />
-                  </div>
-                  <div className="pt-6"><button type="button" onClick={lookupTickets} className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636]"><Search className="mr-2 h-4 w-4" />lookup</button></div>
-                </div>
-                {ticketLookupError ? <p className="mt-4 text-sm text-[#ffb0b0]">{ticketLookupError}</p> : null}
-              </div>
-
-              {ticketLookupState?.summary ? (
-                <>
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <StatCard label="earned" value={ticketLookupState.summary.earnedTotal || 0} />
-                    <StatCard label="claimed" value={ticketLookupState.summary.claimedTotal || 0} />
-                    <StatCard label="spent" value={ticketLookupState.summary.spentTotal || 0} />
-                    <StatCard label="available" value={ticketLookupState.summary.availableTotal || 0} />
-                  </div>
-                  <div className="rounded-[1.5rem] border border-[#e3a7a5]/18 bg-black/20 p-5 sm:p-6">
-                    <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
-                      <label className="block"><span className="mb-2 block text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">amount</span><input type="number" value={ticketAdjustAmount} onChange={(e) => setTicketAdjustAmount(e.target.value)} className="w-full rounded-xl border border-[#e3a7a5]/18 bg-black/20 px-3 py-2 text-sm text-[#f7f1e8]" /></label>
-                      <label className="block"><span className="mb-2 block text-[10px] uppercase tracking-[0.18em] text-[#e3a7a5]/76">mode</span><select value={ticketAdjustMode} onChange={(e) => setTicketAdjustMode(e.target.value)} className="w-full rounded-xl border border-[#e3a7a5]/18 bg-black/20 px-3 py-2 text-sm text-[#f7f1e8]"><option value="claimed">claimed</option><option value="spent">spent</option></select></label>
-                      <div className="pt-6"><button type="button" onClick={adjustTickets} className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8]">apply</button></div>
-                    </div>
-                    <div className="mt-5 space-y-3">
-                      {(ticketLookupState.ledger || []).map((entry) => (
-                        <div key={entry.id} className="rounded-xl border border-[#e3a7a5]/18 bg-black/15 px-4 py-3 text-sm text-[#f7f1e8]/84">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <span className="font-black uppercase tracking-[0.12em] text-[#e3a7a5]">{entry.event_type}</span>
-                            <span>{entry.amount}</span>
-                          </div>
-                          <div className="mt-1 text-xs text-[#f7f1e8]/62">{entry.route_slug || ''} {entry.stop_id || ''} {entry.created_at || ''}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : null}
-            </div>
-          ) : null}
+          {password && tab === 'live-ops' ? <div className="mt-8 text-sm text-[#f7f1e8]/78">No changes in this patch.</div> : null}
+          {password && tab === 'feed-ops' ? <div className="mt-8 text-sm text-[#f7f1e8]/78">No changes in this patch.</div> : null}
+          {password && tab === 'hunt-ops' ? <div className="mt-8 text-sm text-[#f7f1e8]/78">No changes in this patch.</div> : null}
+          {password && tab === 'tickets' ? <div className="mt-8 text-sm text-[#f7f1e8]/78">No changes in this patch.</div> : null}
         </div>
       </div>
     </div>

@@ -40,6 +40,7 @@ export default function ApplicationFormPage({
   type,
   title,
   intro,
+  extraIntro,
   successTitle,
   successBody,
 }) {
@@ -126,6 +127,7 @@ export default function ApplicationFormPage({
           <p className="mt-4 max-w-2xl text-base leading-7 text-[#f7f1e8]/84">
             {intro}
           </p>
+          {extraIntro ? <div className="max-w-2xl">{extraIntro}</div> : null}
 
           {status === 'success' ? (
             <div className="mt-8 rounded-[1.5rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 p-6">
