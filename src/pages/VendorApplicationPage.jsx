@@ -6,9 +6,24 @@ export default function VendorApplicationPage() {
     <ApplicationFormPage
       type="vendor"
       title="vendor application"
-      intro="Apply here if you want to vend, table, distro, share organizational material, or otherwise hold space at May Day on the Harbor."
-      successTitle="vendor application submitted"
-      successBody="We saved your submission. You can follow up at maydayontheharbor@proton.me if you need to add details."
+      intro="Apply here if you want to vend or table."
+      extraIntro={
+        <>
+          <p className="mt-4 text-base text-white">
+            If a vendor fee applies, submit payment here:
+          </p>
+          <a
+            href="https://hcb.hackclub.com/donations/start/may-day-organizing-committee"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex px-6 py-3 bg-pink-300 text-green-900 font-bold rounded-full"
+          >
+            pay vendor fee
+          </a>
+        </>
+      }
+      successTitle="submitted"
+      successBody="we got it"
     />
   )
 }
