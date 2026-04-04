@@ -22,6 +22,7 @@ import {
   Instagram,
   BookOpen,
   Mail,
+  Palette,
 } from 'lucide-react'
 
 import NoiseBackground from '../components/mayday/NoiseBackground'
@@ -43,14 +44,6 @@ import { getTotalCompletionCount } from '../lib/huntProgress'
 import SponsorsSection from '../components/SponsorsSection'
 import MobileActionBar from '../components/MobileActionBar'
 import LiveInstagramTicker from '../components/LiveInstagramTicker'
-
-const iconMap = {
-  CalendarDays,
-  MapPinned,
-  Search,
-  Info,
-  ShoppingBag,
-}
 
 const infoIconMap = {
   'who this is for': Users,
@@ -135,23 +128,6 @@ function SectionTitle({ eyebrow, title, body }) {
   )
 }
 
-function FacebookEventBanner() {
-  if (!siteMeta.facebookEventHref) return null
-
-  return (
-    <a
-      href={siteMeta.facebookEventHref}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex items-center rounded-full border border-[#e3a7a5]/25 bg-[#e3a7a5]/12 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/18 sm:text-sm"
-    >
-      <Facebook className="mr-2 h-4 w-4 shrink-0" />
-      RSVP on Facebook
-      <ExternalLink className="ml-2 h-4 w-4 shrink-0" />
-    </a>
-  )
-}
-
 function NavBar() {
   const [open, setOpen] = useState(false)
 
@@ -168,18 +144,16 @@ function NavBar() {
         </button>
 
         <nav className="hidden items-center gap-2 md:flex">
-          {quickLinks
-            .filter((item) => item.label !== 'Hunt Routes' && item.id !== 'hunt-routes')
-            .map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => scrollToSection(item.id)}
-                className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
-              >
-                {item.label}
-              </button>
-            ))}
+          {quickLinks.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => scrollToSection(item.id)}
+              className="rounded-full border border-[#e3a7a5]/18 px-4 py-2 text-sm font-semibold text-[#f7f1e8]/85 transition hover:border-[#e3a7a5]/45 hover:bg-[#e3a7a5]/10 hover:text-white"
+            >
+              {item.label}
+            </button>
+          ))}
           <button
             type="button"
             onClick={() => scrollToSection('labor-history')}
@@ -209,18 +183,16 @@ function NavBar() {
       {open ? (
         <div className="border-t border-[#e3a7a5]/10 px-4 py-4 md:hidden">
           <div className="flex flex-col gap-2">
-            {quickLinks
-              .filter((item) => item.label !== 'Hunt Routes' && item.id !== 'hunt-routes')
-              .map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => scrollToSection(item.id, setOpen)}
-                  className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
-                >
-                  {item.label}
-                </button>
-              ))}
+            {quickLinks.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.id, setOpen)}
+                className="rounded-2xl border border-[#e3a7a5]/15 px-4 py-3 text-left text-sm font-semibold text-[#f7f1e8]/88"
+              >
+                {item.label}
+              </button>
+            ))}
             <button
               type="button"
               onClick={() => scrollToSection('labor-history', setOpen)}
@@ -317,8 +289,8 @@ function Hero() {
                 <p className="mt-3 text-sm leading-7 text-[#f7f1e8]/78 sm:text-base">
                   Apply as a vendor or performer, support the event, or reach out directly if you want to help make the day happen.
                 </p>
-                {siteMeta.facebookEventHref ? (
-                  <div className="mt-4">
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {siteMeta.facebookEventHref ? (
                     <a
                       href={siteMeta.facebookEventHref}
                       target="_blank"
@@ -328,8 +300,17 @@ function Hero() {
                       <Facebook className="mr-2 h-4 w-4 shrink-0" />
                       RSVP on Facebook
                     </a>
-                  </div>
-                ) : null}
+                  ) : null}
+                  {siteMeta.posterContestHref ? (
+                    <Link
+                      to={siteMeta.posterContestHref}
+                      className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                    >
+                      <Palette className="mr-2 h-4 w-4 shrink-0" />
+                      poster art contest
+                    </Link>
+                  ) : null}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -451,6 +432,39 @@ function HomeSection() {
   )
 }
 
+function PosterArtContestSection() {
+  if (!siteMeta.posterContestHref) return null
+
+  return (
+    <section className="border-y border-[#e3a7a5]/10 bg-black/15">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">new this year</p>
+              <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-4xl">
+                poster art contest
+              </h2>
+              <p className="mt-4 max-w-3xl text-base leading-7 text-[#f7f1e8]/84">
+                New this year: we’re opening the poster to local artists. We want May Day on the Harbor to look like the Harbor. Submit your art for a chance to become this year’s official poster. We’ll choose a winning piece and announce it on event day.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to={siteMeta.posterContestHref}
+                className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
+              >
+                <Palette className="mr-2 h-4 w-4" />
+                submit poster art
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function LaborHistorySection() {
   return (
     <section id="labor-history" className="border-y border-[#e3a7a5]/10 bg-black/15">
@@ -480,26 +494,6 @@ function LaborHistorySection() {
               <p className="mt-3 leading-7 text-[#f7f1e8]/78">{item.detail}</p>
             </div>
           ))}
-        </div>
-
-        <div className="mt-8 rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6">
-          <div className="grid gap-4 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
-            <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">why it matters</p>
-              <h3 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#f7f1e8]">history should not be hidden behind one tiny button</h3>
-              <p className="mt-3 max-w-3xl leading-7 text-[#f7f1e8]/78">
-                This archive gives people a way to move from event language into real local history. Not abstract labor history. Not generic slogans. The Harbor. The fights. The violence. The organizing. The dead. The records that still remain.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 lg:justify-end">
-              <Link
-                to={siteMeta.laborHistoryHref}
-                className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
-              >
-                explore labor history
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -550,20 +544,256 @@ function ScheduleSection() {
   )
 }
 
-function MapSection() { return null }
-function HuntSection() { return null }
-function InfoSection() { return null }
-function ShopSection() { return null }
-function Footer() { return null }
+function MapSection() {
+  return (
+    <section id="map" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+      <div className="space-y-4">
+        <SectionTitle eyebrow="map" title="find your way around" body="Use the arrival map for the long road in and parking approach, then the building map for the interior layout and room level navigation." />
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-3">
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#e3a7a5]/80">arrival map</p>
+                <h3 className="mt-1 text-base font-black uppercase tracking-tight text-[#f7f1e8] sm:text-lg">road, entrance, and parking</h3>
+              </div>
+              <a href={arrivalMapHref} target="_blank" rel="noreferrer" className="inline-flex min-h-9 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-3 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15">open full</a>
+            </div>
+            <div className="overflow-hidden rounded-[1rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
+              <div className="relative w-full overflow-hidden" style={{ paddingTop: '42%' }}>
+                <iframe loading="lazy" src={arrivalMapEmbed} className="absolute inset-0 h-full w-full border-0" allowFullScreen allow="fullscreen" title="Arrival Map" />
+              </div>
+            </div>
+          </div>
+          <div className="rounded-[1.25rem] border border-[#e3a7a5]/18 bg-black/20 p-3">
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-[#e3a7a5]/80">building map</p>
+                <h3 className="mt-1 text-base font-black uppercase tracking-tight text-[#f7f1e8] sm:text-lg">interior layout and rooms</h3>
+              </div>
+              <a href={buildingMapHref} target="_blank" rel="noreferrer" className="inline-flex min-h-9 shrink-0 items-center rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-3 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15">open full</a>
+            </div>
+            <div className="overflow-hidden rounded-[1rem] border border-[#f7f1e8]/10 bg-white shadow-2xl">
+              <div className="relative w-full overflow-hidden" style={{ paddingTop: '42%' }}>
+                <iframe loading="lazy" src={buildingMapEmbed} className="absolute inset-0 h-full w-full border-0" allowFullScreen allow="fullscreen" title="Building Map" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {mapZones.map((zone) => (
+            <div key={zone.title} className="rounded-3xl border border-[#e3a7a5]/15 bg-black/15 p-4">
+              <div className={`mb-3 h-3 w-20 rounded-full ${zone.swatchClassName}`} />
+              <h3 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">{zone.title}</h3>
+              <p className="mt-2 leading-7 text-[#f7f1e8]/82">{zone.blurb}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function HuntSection() {
+  return (
+    <section id="hunt" className="border-y border-[#e3a7a5]/10 bg-black/15">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr]">
+          <div className="space-y-6">
+            <SectionTitle eyebrow="scavenger hunt" title="Scavenger Hunt Portal" />
+            <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-6">
+              <h3 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">how it works</h3>
+              <ul className="mt-4 space-y-3 text-[#f7f1e8]/84">
+                <li>start at the welcome center and scan the intro code</li>
+                <li>pick a route or roam between categories</li>
+                <li>some clues can be read online, but certain qr codes are intentionally only available in the real world</li>
+                <li>progress saves in the browser on your phone</li>
+              </ul>
+              <Link to="/hunt" className="mt-5 inline-flex rounded-full border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15">
+                open hunt routes
+              </Link>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+            {huntCategories.map((item) => (
+              <div key={item.title} className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-5">
+                <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">{item.stops} stops</p>
+                <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-2xl">{item.title}</h3>
+                <p className="mt-3 leading-7 text-[#f7f1e8]/78">{item.detail}</p>
+                <Link to="/hunt" className="mt-5 inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em] text-[#e3a7a5]">
+                  view route <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function InfoSection() {
+  return (
+    <section id="info" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
+        <div className="space-y-6">
+          <SectionTitle eyebrow="event info" title="practical details" />
+          <div className="grid gap-4">
+            {practicalInfo.map((item) => (
+              <div key={item.title} className="rounded-3xl border border-[#e3a7a5]/15 bg-black/15 p-5">
+                <h3 className="text-xl font-black uppercase tracking-tight text-[#e3a7a5]">{item.title}</h3>
+                <p className="mt-2 leading-7 text-[#f7f1e8]/82">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
+            <h3 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5]">poster art contest</h3>
+            <p className="mt-3 leading-7 text-[#f7f1e8]/82">
+              New this year: we’re opening the poster to local artists. We want May Day on the Harbor to look like the Harbor. Submit your art for a chance to become this year’s official poster. We’ll choose a winning piece and announce it on event day.
+            </p>
+            {siteMeta.posterContestHref ? (
+              <Link
+                to={siteMeta.posterContestHref}
+                className="mt-5 inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]"
+              >
+                <Palette className="mr-2 h-4 w-4" />
+                submit poster art
+              </Link>
+            ) : null}
+          </div>
+
+          {(siteMeta.venueName || siteMeta.venueAddress || siteMeta.contactEmail) ? (
+            <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
+              <h3 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5]">venue</h3>
+              {siteMeta.venueName ? <p className="mt-3 leading-7 text-[#f7f1e8]/82">{siteMeta.venueName}</p> : null}
+              {siteMeta.venueAddress ? <p className="leading-7 text-[#f7f1e8]/82">{siteMeta.venueAddress}</p> : null}
+              {siteMeta.contactEmail ? <p className="mt-4 break-all leading-7 text-[#f7f1e8]/82">Contact: {siteMeta.contactEmail}</p> : null}
+            </div>
+          ) : null}
+
+          <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
+            <h3 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5]">support and connect</h3>
+            <div className="mt-5 flex flex-col gap-3">
+              {siteMeta.donateHref ? (
+                <a href={siteMeta.donateHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#e3a7a5] px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]">
+                  <HandCoins className="mr-2 h-4 w-4 shrink-0" />
+                  donate
+                </a>
+              ) : null}
+              {siteMeta.shopHref ? (
+                <a href={siteMeta.shopHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                  <ShoppingBag className="mr-2 h-4 w-4 shrink-0" />
+                  shop merch
+                </a>
+              ) : null}
+              {siteMeta.vendorHref ? (
+                <Link to={siteMeta.vendorHref} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                  <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
+                  vendor application
+                </Link>
+              ) : null}
+              {siteMeta.performerHref ? (
+                <Link to={siteMeta.performerHref} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                  <ClipboardPenLine className="mr-2 h-4 w-4 shrink-0" />
+                  performer application
+                </Link>
+              ) : null}
+              {siteMeta.posterContestHref ? (
+                <Link to={siteMeta.posterContestHref} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                  <Palette className="mr-2 h-4 w-4 shrink-0" />
+                  poster art contest
+                </Link>
+              ) : null}
+              {siteMeta.facebookEventHref ? (
+                <a href={siteMeta.facebookEventHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                  <Facebook className="mr-2 h-4 w-4 shrink-0" />
+                  RSVP on Facebook
+                </a>
+              ) : null}
+              {siteMeta.linktreeHref ? (
+                <a href={siteMeta.linktreeHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                  <Link2 className="mr-2 h-4 w-4 shrink-0" />
+                  linktree
+                </a>
+              ) : null}
+            </div>
+          </div>
+
+          {(siteMeta.facebookHref || siteMeta.instagramHref) ? (
+            <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
+              <h3 className="text-2xl font-black uppercase tracking-tight text-[#e3a7a5]">social</h3>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {siteMeta.facebookHref ? (
+                  <a href={siteMeta.facebookHref} target="_blank" rel="noreferrer" className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10" aria-label="Facebook">
+                    <Facebook className="h-5 w-5" />
+                  </a>
+                ) : null}
+                {siteMeta.instagramHref ? (
+                  <a href={siteMeta.instagramHref} target="_blank" rel="noreferrer" className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10" aria-label="Instagram">
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ShopSection() {
+  return (
+    <section id="shop" className="border-t border-[#e3a7a5]/10 bg-black/15">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <SectionTitle eyebrow="shop" title="support the event" body="Shop using our Square Site" />
+          <a href={siteMeta.shopHref} target="_blank" rel="noreferrer">
+            <button type="button" className="inline-flex h-auto min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9]">
+              open shop <ExternalLink className="ml-2 h-4 w-4" />
+            </button>
+          </a>
+        </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {merchItems.map((item) => (
+            <div key={item.title} className="rounded-[2rem] border border-[#e3a7a5]/18 bg-[#183126]/75 p-5">
+              {item.imageSrc ? (
+                <img src={item.imageSrc} alt={item.title} className="mb-4 aspect-[4/3] w-full rounded-[1.5rem] border border-[#e3a7a5]/15 object-cover" />
+              ) : (
+                <div className="mb-4 aspect-[4/3] rounded-[1.5rem] border border-[#e3a7a5]/15 bg-[linear-gradient(135deg,rgba(227,167,165,.28),rgba(0,0,0,.12))]" />
+              )}
+              <h3 className="text-xl font-black uppercase tracking-tight text-[#f7f1e8] sm:text-2xl">{item.title}</h3>
+              <p className="mt-3 leading-7 text-[#f7f1e8]/78">{item.desc}</p>
+              <a href={siteMeta.shopHref} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em] text-[#e3a7a5]">
+                {item.cta} <ChevronRight className="h-4 w-4" />
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-[#e3a7a5]/10">
+      <div className="mx-auto max-w-7xl px-4 py-10 text-sm text-[#f7f1e8]/64 sm:px-6 lg:px-8">
+        <p className="font-semibold uppercase tracking-[0.16em] text-[#e3a7a5]">may day on the harbor 2026</p>
+        {siteMeta.venueName || siteMeta.venueAddress ? <p className="mt-2 max-w-3xl leading-7">{siteMeta.venueName}{siteMeta.venueName && siteMeta.venueAddress ? ' · ' : ''}{siteMeta.venueAddress}</p> : null}
+        {siteMeta.contactEmail ? <p className="max-w-3xl break-all leading-7">{siteMeta.contactEmail}</p> : null}
+      </div>
+    </footer>
+  )
+}
 
 export default function MayDayWelcomeCenter() {
   useEffect(() => {
     try {
       const pendingSection = sessionStorage.getItem(HOME_SECTION_TARGET_KEY)
       if (!pendingSection) return
-
       sessionStorage.removeItem(HOME_SECTION_TARGET_KEY)
-
       requestAnimationFrame(() => {
         setTimeout(() => {
           const el = document.getElementById(pendingSection)
@@ -580,6 +810,7 @@ export default function MayDayWelcomeCenter() {
         <NavBar />
         <Hero />
         <HomeSection />
+        <PosterArtContestSection />
         <LaborHistorySection />
         <ScheduleSection />
         <MapSection />

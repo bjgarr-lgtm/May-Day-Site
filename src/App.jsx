@@ -6,6 +6,7 @@ import HuntStopPage from './pages/HuntStopPage'
 import LaborHistoryPage from './pages/LaborHistoryPage'
 import VendorApplicationPage from './pages/VendorApplicationPage'
 import PerformerApplicationPage from './pages/PerformerApplicationPage'
+import PosterArtContestPage from './pages/PosterArtContestPage'
 import ApplicationsDashboardPage from './pages/ApplicationsDashboardPage'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
       <Route path="/labor-history" element={<LaborHistoryPage />} />
       <Route path="/vendor-application" element={<VendorApplicationPage />} />
       <Route path="/performer-application" element={<PerformerApplicationPage />} />
+      <Route path="/poster-art-contest" element={<PosterArtContestPage />} />
       <Route path="/admin" element={<ApplicationsDashboardPage />} />
       <Route path="/applications" element={<Navigate to="/admin" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />

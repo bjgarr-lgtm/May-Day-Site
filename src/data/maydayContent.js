@@ -64,7 +64,7 @@ export const practicalInfo = [
   { title: 'family friendly', body: 'Daytime programming is built for the whole community, with art activities, games, vendors, food, and casual learning.' },
   { title: 'masks', body: 'Required and provided.' },
   { title: 'parking', body: 'Plenty of parking is available. Use the arrival map for the drive in and building approach.' },
-  { title: 'accessibility', body: 'Add mobility notes, seating, restrooms, quiet space, and any terrain or entry information here once the venue map is finalized.' },
+  { title: 'accessibility', body: 'Masks are required and provided. The event is designed to be more accessible and community minded, with indoor programming, seating, and places to pause. If you need help finding accessible entry points, restrooms, quieter areas, or a lower stimulation place to regroup, check in at the welcome center and we will point you where you need to go. We would rather help directly than make people guess.' },
   { title: 'contact', body: 'maydayontheharbor@proton.me' },
 ]
 
@@ -94,6 +94,7 @@ export const siteMeta = {
   linktreeHref: 'https://linktr.ee/maydayontheharbor',
   vendorHref: '/vendor-application',
   performerHref: '/performer-application',
+  posterContestHref: '/poster-art-contest',
   mapHref: 'https://canva.link/tz2eq2avtaqloby',
   contactEmail: 'maydayontheharbor@proton.me',
   venueName: 'Historical Seaport',
