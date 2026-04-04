@@ -135,6 +135,23 @@ function SectionTitle({ eyebrow, title, body }) {
   )
 }
 
+function FacebookEventBanner() {
+  if (!siteMeta.facebookEventHref) return null
+
+  return (
+    <a
+      href={siteMeta.facebookEventHref}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center rounded-full border border-[#e3a7a5]/25 bg-[#e3a7a5]/12 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/18 sm:text-sm"
+    >
+      <Facebook className="mr-2 h-4 w-4 shrink-0" />
+      RSVP on Facebook
+      <ExternalLink className="ml-2 h-4 w-4 shrink-0" />
+    </a>
+  )
+}
+
 function NavBar() {
   const [open, setOpen] = useState(false)
 
@@ -254,6 +271,7 @@ function Hero() {
           </div>
 
           <div className="flex flex-wrap gap-2 sm:gap-3">
+            <FacebookEventBanner />
             {[
               { id: 'schedule', label: 'Schedule', icon: CalendarDays },
               { id: 'map', label: 'Map', icon: MapPinned },
@@ -300,6 +318,19 @@ function Hero() {
                 <p className="mt-3 text-sm leading-7 text-[#f7f1e8]/78 sm:text-base">
                   Apply as a vendor or performer, support the event, or reach out directly if you want to help make the day happen.
                 </p>
+                {siteMeta.facebookEventHref ? (
+                  <div className="mt-4">
+                    <a
+                      href={siteMeta.facebookEventHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex min-h-11 items-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
+                    >
+                      <Facebook className="mr-2 h-4 w-4 shrink-0" />
+                      RSVP on Facebook
+                    </a>
+                  </div>
+                ) : null}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

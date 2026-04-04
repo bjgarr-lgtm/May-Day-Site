@@ -99,6 +99,7 @@ export const siteMeta = {
   venueName: 'Historical Seaport',
   venueAddress: '500 N. Custer St., Aberdeen, WA 98520',
   facebookHref: 'https://www.facebook.com/profile.php?id=61574621251510',
+  facebookEventHref: 'https://www.facebook.com/events/1684105282750772/?active_tab=discussion',
   instagramHref: 'https://www.instagram.com/maydayontheharbor/',
   laborHistoryHref: '/labor-history',
 }
