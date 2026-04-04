@@ -271,7 +271,6 @@ function Hero() {
           </div>
 
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            <FacebookEventBanner />
             {[
               { id: 'schedule', label: 'Schedule', icon: CalendarDays },
               { id: 'map', label: 'Map', icon: MapPinned },
