@@ -75,7 +75,7 @@ export function OpsStoreProvider({ children }) {
     };
   }, [state]);
 
-  return <OpsStoreContext.Provider value={api}>{children}</OpsStoreContext.Provider>;
+  return React.createElement(OpsStoreContext.Provider, { value: api }, children);
 }
 
 export function useOpsStore() {
