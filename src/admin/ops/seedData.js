@@ -12,7 +12,7 @@ function makeId(prefix) {
 }
 
 export function blankTask() {
-  return {
+  return finalizeState({
     id: makeId("task"),
     title: "",
     category: "Operations",
@@ -41,10 +41,12 @@ export function blankProgramming() {
   return {
     id: makeId("prog"),
     activity: "",
+    category: "General",
     location: "",
     time: "",
     lead: "",
     needs: "",
+    cost: "",
     status: DEFAULT_PROGRAM_STATUS,
     notes: "",
   };
@@ -100,11 +102,40 @@ export function blankVolunteer() {
   };
 }
 
-export const WORKBOOK_IMPORT_NOTES = [
-  "Seeded from the uploaded May Day 2026 workbook.",
-  "The social media sheet contained credentials. Those were intentionally excluded because turning passwords into app data would be idiotic.",
-  "Publicity dates appeared to come from a 2025 tab, so they were rolled forward to 2026 and flagged for verification.",
-];
+export const WORKBOOK_IMPORT_NOTES = ["Seeded from the uploaded May Day 2026 workbook."];
+
+export function inferProgrammingCategory(item = {}) {
+  const text = `${item.activity || ""} ${item.needs || ""} ${item.notes || ""} ${item.lead || ""}`.toLowerCase();
+  if (/music|band|poetry|open mic|dance|film|artist|jam/.test(text)) return "Performance";
+  if (/food|popcorn|cotton candy|potluck|coffee|tea|donut|truck/.test(text)) return "Food";
+  if (/tent|table|porta|parking|supply|chalk|radio|med|seating|banner|flag/.test(text)) return "Operations";
+  if (/art|zine|button|weaving|face paint|photo booth|piñata|pinata|seed|scavenger|jelly bean|bowling|cornhole|chalkboard/.test(text)) return "Activity";
+  return "General";
+}
+
+function cleanTimelineItem(item) {
+  const notes = item.notes && /imported from 2025|verify/i.test(item.notes) ? "" : (item.notes || "");
+  return { ...item, notes };
+}
+
+function cleanTaskItem(item) {
+  const notes = item.notes && /Imported from 2025|Verify\.?/i.test(item.notes) ? item.notes.replace(/Imported from 2025[^.]*\.?/gi, "").replace(/Verify\.?/gi, "").trim() : (item.notes || "");
+  return { ...item, notes };
+}
+
+function enrichProgrammingItem(item) {
+  return { ...item, category: item.category || inferProgrammingCategory(item), cost: item.cost || "" };
+}
+
+function finalizeState(state) {
+  return {
+    ...state,
+    meta: { ...state.meta, notes: ["Seeded from the uploaded May Day 2026 workbook."] },
+    tasks: (state.tasks || []).map(cleanTaskItem),
+    timeline: (state.timeline || []).map(cleanTimelineItem),
+    programming: (state.programming || []).map(enrichProgrammingItem),
+  };
+}
 
 
 function buildVolunteerSeed() {
@@ -3575,12 +3606,12 @@ export function createInitialOpsState() {
 ],
     volunteers: buildVolunteerSeed(),
     runOfShow: deriveRunOfShowChecklist([], []),
-  };
+  });
 }
 
 export function normalizeOpsState(input) {
   const base = createInitialOpsState();
-  return {
+  return finalizeState({
     meta: typeof input?.meta === "object" && input?.meta ? { ...base.meta, ...input.meta } : base.meta,
     tasks: Array.isArray(input?.tasks) ? input.tasks : base.tasks,
     timeline: Array.isArray(input?.timeline) ? input.timeline : base.timeline,
@@ -3595,7 +3626,7 @@ export function normalizeOpsState(input) {
           Array.isArray(input?.tasks) ? input.tasks : base.tasks,
           Array.isArray(input?.timeline) ? input.timeline : base.timeline
         ),
-  };
+  });
 }
 
 export function withOpsProvider(element) {
