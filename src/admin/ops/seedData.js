@@ -3599,5 +3599,5 @@ export function normalizeOpsState(input) {
 }
 
 export function withOpsProvider(element) {
-  return <OpsStoreProvider>{element}</OpsStoreProvider>;
+  return React.createElement(OpsStoreProvider, null, element);
 }
