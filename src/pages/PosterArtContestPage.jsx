@@ -115,58 +115,112 @@ export default function PosterArtContestPage() {
           <h1 className="mt-3 text-3xl font-black uppercase tracking-tight text-[#e3a7a5] sm:text-5xl">
             poster art contest
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-[#f7f1e8]/84">
-            New this year: we’re opening the poster to local artists. We want May Day on the Harbor to look like the Harbor. Submit your art for a chance to become this year’s official poster. We’ll choose a winning piece and announce it on event day. Our visual identity draws from ornate, symbolic, and narrative-driven illustration, similar to historical labor prints, woodcuts, and art nouveau compositions.
+        <div className="mt-4 space-y-6 text-[#f7f1e8]/84">
 
-              Core Themes
-              Solidarity and collective action
-              Labor and working-class power
-              Mutual aid and community care
-              Growth, resistance, and transformation
-              Land, harbor, and regionally rooted identity
-              Visual Direction
-
-              We are especially drawn to artwork that includes:
-
-              Human figures in motion or collaboration (workers, organizers, community members)
-              Symbolic elements (plants, tools, banners, fire, water, roots, etc.)
-              Flowing composition (ribbons, text banners, circular or vertical movement)
-              Ornate or structured borders
-              Dense, detailed storytelling imagery
-
-              Styles that resonate:
-
-              Woodcut / linocut aesthetics
-              Engraving-style linework
-              Art nouveau composition and framing
-              High-contrast illustration (black and white or limited palette)
-              Tone
-              Bold but not corporate
-              Radical but not sterile
-              Mythic, grounded, and human
-              Serious, but alive
-
-              Avoid:
-
-              Generic protest graphics
-              Clip-art style or overly digital/flat design
-              Minimalist logos as the primary focus
-              Color
-              Black & white strongly encouraged
-              Limited color palettes welcome
-              Should remain legible when printed
-              Text (optional)
-
-              Artists may include:
-
-              “May Day on the Harbor”
-              Date/location (optional depending on use case)
-              Banners or embedded text elements in the illustration
-              Format Requirements
-              Vertical poster format preferred
-              High resolution (print-ready)
-              Must scale well for web and print
+          <p className="text-base leading-7">
+            New this year: we’re opening the poster to local artists. We want May Day on the Harbor to look like the Harbor.
+            Submit your art for a chance to become this year’s official poster.
           </p>
+
+          {/* REFERENCE IMAGES */}
+          <div className="space-y-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#e3a7a5]/80">
+              visual reference
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <img
+                src="/reference-solidarity.webp"
+                alt="Solidarity of Labour woodcut reference"
+                className="rounded-xl border border-[#e3a7a5]/20"
+              />
+              <img
+                src="/reference-nobonzo.png"
+                alt="Previous May Day poster reference"
+                className="rounded-xl border border-[#e3a7a5]/20"
+              />
+            </div>
+          </div>
+
+          {/* THEMES */}
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-[#e3a7a5] mb-2">
+              core themes
+            </h2>
+            <ul className="space-y-1 text-sm">
+              <li>Solidarity and collective action</li>
+              <li>Labor and working-class power</li>
+              <li>Mutual aid and community care</li>
+              <li>Growth, resistance, and transformation</li>
+              <li>Land, harbor, and regional identity</li>
+            </ul>
+          </div>
+
+          {/* VISUAL DIRECTION */}
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-[#e3a7a5] mb-2">
+              visual direction
+            </h2>
+            <ul className="space-y-1 text-sm">
+              <li>Human figures in motion or collaboration</li>
+              <li>Symbolic elements (plants, tools, banners, fire, water, roots)</li>
+              <li>Flowing composition (ribbons, circular or vertical movement)</li>
+              <li>Ornate or structured borders</li>
+              <li>Dense, detailed storytelling imagery</li>
+            </ul>
+          </div>
+
+          {/* STYLE */}
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-[#e3a7a5] mb-2">
+              style references
+            </h2>
+            <ul className="space-y-1 text-sm">
+              <li>Woodcut / linocut aesthetics</li>
+              <li>Engraving-style linework</li>
+              <li>Art nouveau composition</li>
+              <li>High-contrast illustration (black & white or limited palette)</li>
+            </ul>
+          </div>
+
+          {/* TONE */}
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-[#e3a7a5] mb-2">
+              tone
+            </h2>
+            <ul className="space-y-1 text-sm">
+              <li>Bold but not corporate</li>
+              <li>Radical but not sterile</li>
+              <li>Mythic, grounded, and human</li>
+              <li>Serious, but alive</li>
+            </ul>
+          </div>
+
+          {/* AVOID */}
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-[#e3a7a5] mb-2">
+              avoid
+            </h2>
+            <ul className="space-y-1 text-sm">
+              <li>Generic protest graphics</li>
+              <li>Clip-art or overly flat digital design</li>
+              <li>Minimalist logo-first submissions</li>
+            </ul>
+          </div>
+
+          {/* FORMAT */}
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-[0.16em] text-[#e3a7a5] mb-2">
+              format
+            </h2>
+            <ul className="space-y-1 text-sm">
+              <li>Vertical poster preferred</li>
+              <li>High resolution (print-ready)</li>
+              <li>Must scale for web and print</li>
+            </ul>
+          </div>
+
+        </div>
 
           <div className="mt-6 rounded-[1.5rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/8 p-5 text-sm leading-7 text-[#f7f1e8]/82">
             Upload your actual artwork file here. Images only. Max file size 15 MB.
