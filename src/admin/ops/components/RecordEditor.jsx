@@ -10,18 +10,32 @@ export default function RecordEditor({
   isOpen = true,
   onToggle,
   mode = "add",
+  editorRef,
 }) {
+  const localRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const node = (editorRef && "current" in editorRef ? editorRef.current : null) || localRef.current;
+    if (!node) return;
+    const firstField = node.querySelector("input:not([type='checkbox']), select, textarea");
+    if (firstField) firstField.focus();
+  }, [isOpen, editorRef]);
+
   return (
-    <div className="ops-editor">
+    <div className="ops-editor" ref={editorRef || localRef}>
       <div className="ops-editor-header">
-        <h3>{title}</h3>
-        {onToggle && (
+        <div>
+          <h3>{title}</h3>
+          {mode === "edit" && isOpen ? <p className="ops-editor-kicker">Editing existing item</p> : null}
+        </div>
+        {onToggle ? (
           <button type="button" className="ops-button ops-button-small ops-button-secondary ops-collapsible-toggle" onClick={onToggle}>
             {isOpen ? "Hide editor" : mode === "edit" ? "Edit item" : "Add item"}
           </button>
-        )}
+        ) : null}
       </div>
-      {isOpen && (
+      {isOpen ? (
         <>
           <div className="ops-form-grid">
             {fields.map((field) => (
@@ -54,11 +68,11 @@ export default function RecordEditor({
             ))}
           </div>
           <div className="ops-editor-actions">
-            <button type="button" className="ops-button" onClick={onSave}>Save</button>
+            <button type="button" className="ops-button" onClick={onSave}>{mode === "edit" ? "Save changes" : "Save"}</button>
             <button type="button" className="ops-button ops-button-secondary" onClick={onCancel}>Cancel</button>
           </div>
         </>
-      )}
+      ) : null}
     </div>
   );
 }

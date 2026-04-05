@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
@@ -14,8 +13,13 @@ export default function ResourcesView() {
   const store = useOpsStore();
   const [tab, setTab] = React.useState("Inventory");
   const [editor, setEditor] = React.useState(blankInventory());
+  const [isEditorOpen, setIsEditorOpen] = React.useState(false);
+  const [query, setQuery] = React.useState("");
+  const editorRef = React.useRef(null);
 
   React.useEffect(() => {
+    setQuery("");
+    setIsEditorOpen(false);
     if (tab === "Inventory") setEditor(blankInventory());
     if (tab === "Sponsors") setEditor(blankSponsor());
     if (tab === "Budget") setEditor(blankBudget());
@@ -23,12 +27,23 @@ export default function ResourcesView() {
 
   const totalBudget = store.budget.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
 
+  const openEditor = React.useCallback((next) => {
+    setEditor(next);
+    setIsEditorOpen(true);
+    requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, []);
+
+  const inventoryRows = store.inventory.filter((item) => (`${item.item} ${item.location} ${item.owner} ${item.condition} ${item.notes}`).toLowerCase().includes(query.toLowerCase()));
+  const sponsorRows = store.sponsors.filter((item) => (`${item.name} ${item.type} ${item.contact} ${item.status} ${item.notes}`).toLowerCase().includes(query.toLowerCase()));
+  const budgetRows = store.budget.filter((item) => (`${item.item} ${item.category} ${item.cost} ${item.notes}`).toLowerCase().includes(query.toLowerCase()));
+
   const handleSave = () => {
     if (tab === "Inventory") {
       if (!editor.item.trim()) return window.alert("Item name is required.");
       const exists = store.inventory.some((item) => item.id === editor.id);
       exists ? store.updateItem("inventory", editor.id, editor) : store.addItem("inventory", editor);
       setEditor(blankInventory());
+      setIsEditorOpen(false);
       return;
     }
 
@@ -37,6 +52,7 @@ export default function ResourcesView() {
       const exists = store.sponsors.some((item) => item.id === editor.id);
       exists ? store.updateItem("sponsors", editor.id, editor) : store.addItem("sponsors", editor);
       setEditor(blankSponsor());
+      setIsEditorOpen(false);
       return;
     }
 
@@ -44,7 +60,13 @@ export default function ResourcesView() {
     const exists = store.budget.some((item) => item.id === editor.id);
     exists ? store.updateItem("budget", editor.id, editor) : store.addItem("budget", editor);
     setEditor(blankBudget());
+    setIsEditorOpen(false);
   };
+
+  const editorTitle = tab === "Inventory" ? "Inventory editor" : tab === "Sponsors" ? "Sponsor or vendor editor" : "Budget editor";
+  const addLabel = tab === "Inventory" ? "inventory item" : tab === "Sponsors" ? "sponsor or vendor" : "budget line";
+  const editLabel = tab === "Inventory" ? "inventory item" : tab === "Sponsors" ? "sponsor or vendor" : "budget line";
+  const isEditing = tab === "Inventory" ? store.inventory.some((item) => item.id === editor.id) : tab === "Sponsors" ? store.sponsors.some((item) => item.id === editor.id) : store.budget.some((item) => item.id === editor.id);
 
   return (
     <div className="ops-page">
@@ -54,30 +76,81 @@ export default function ResourcesView() {
         <div className="ops-stat-card"><div className="ops-stat-label">Budget tracked</div><div className="ops-stat-value">{`$${totalBudget.toFixed(0)}`}</div></div>
       </div>
 
+      <SectionCard title={isEditing ? `Edit ${editLabel}` : `Add ${addLabel}`}>
+        <RecordEditor
+          editorRef={editorRef}
+          title={editorTitle}
+          value={editor}
+          isOpen={isEditorOpen}
+          onToggle={() => {
+            if (isEditorOpen) setIsEditorOpen(false);
+            else {
+              if (!isEditing) {
+                if (tab === "Inventory") setEditor(blankInventory());
+                if (tab === "Sponsors") setEditor(blankSponsor());
+                if (tab === "Budget") setEditor(blankBudget());
+              }
+              setIsEditorOpen(true);
+            }
+          }}
+          mode={isEditing ? "edit" : "add"}
+          onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
+          onSave={handleSave}
+          onCancel={() => {
+            if (tab === "Inventory") setEditor(blankInventory());
+            if (tab === "Sponsors") setEditor(blankSponsor());
+            if (tab === "Budget") setEditor(blankBudget());
+            setIsEditorOpen(false);
+          }}
+          fields={tab === "Inventory" ? [
+            { name: "item", label: "Item", full: true },
+            { name: "quantity", label: "Quantity" },
+            { name: "location", label: "Location" },
+            { name: "owner", label: "Owner" },
+            { name: "condition", label: "Condition" },
+            { name: "notes", label: "Notes", type: "textarea", full: true },
+          ] : tab === "Sponsors" ? [
+            { name: "name", label: "Name", full: true },
+            { name: "type", label: "Type", type: "select", options: sponsorTypeOptions },
+            { name: "contact", label: "Contact", full: true },
+            { name: "status", label: "Status", type: "select", options: sponsorStatusOptions },
+            { name: "notes", label: "Notes", type: "textarea", full: true },
+          ] : [
+            { name: "item", label: "Item", full: true },
+            { name: "category", label: "Category" },
+            { name: "cost", label: "Cost", type: "number" },
+            { name: "paid", label: "Paid", type: "checkbox" },
+            { name: "notes", label: "Notes", type: "textarea", full: true },
+          ]}
+        />
+      </SectionCard>
+
       <SectionCard title="Resources" subtitle="Inventory, sponsors, budget. One area, three sane tables.">
         <div className="ops-tabs">
           {resourceTabs.map((item) => (
-            <button key={item} className={`ops-tab ${item === tab ? "is-active" : ""}`} onClick={() => setTab(item)}>
+            <button key={item} type="button" className={`ops-tab ${item === tab ? "is-active" : ""}`} onClick={() => setTab(item)}>
               {item}
             </button>
           ))}
         </div>
 
+        <div className="ops-toolbar">
+          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${tab.toLowerCase()}`} />
+        </div>
+
         {tab === "Inventory" && (
           <EditableTable
-            tableKey="budget"
-            tableKey="sponsors"
             tableKey="inventory"
-            rows={store.inventory}
-            onEdit={(row) => setEditor(row)}
+            rows={inventoryRows}
+            onEdit={openEditor}
             onDelete={(id) => store.removeItem("inventory", id)}
             columns={[
-              { key: "item", label: "Item" },
+              { key: "item", label: "Item", width: 220 },
               { key: "quantity", label: "Qty" },
               { key: "location", label: "Location" },
               { key: "owner", label: "Owner" },
               { key: "condition", label: "Condition" },
-              { key: "notes", label: "Notes" },
+              { key: "notes", label: "Notes", width: 220 },
             ]}
             emptyLabel="No inventory yet."
           />
@@ -85,15 +158,16 @@ export default function ResourcesView() {
 
         {tab === "Sponsors" && (
           <EditableTable
-            rows={store.sponsors}
-            onEdit={(row) => setEditor(row)}
+            tableKey="sponsors"
+            rows={sponsorRows}
+            onEdit={openEditor}
             onDelete={(id) => store.removeItem("sponsors", id)}
             columns={[
-              { key: "name", label: "Name" },
+              { key: "name", label: "Name", width: 220 },
               { key: "type", label: "Type" },
-              { key: "contact", label: "Contact" },
+              { key: "contact", label: "Contact", width: 220 },
               { key: "status", label: "Status", render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span> },
-              { key: "notes", label: "Notes" },
+              { key: "notes", label: "Notes", width: 220 },
             ]}
             emptyLabel="No sponsors yet."
           />
@@ -101,71 +175,18 @@ export default function ResourcesView() {
 
         {tab === "Budget" && (
           <EditableTable
-            rows={store.budget}
-            onEdit={(row) => setEditor(row)}
+            tableKey="budget"
+            rows={budgetRows}
+            onEdit={openEditor}
             onDelete={(id) => store.removeItem("budget", id)}
             columns={[
-              { key: "item", label: "Item" },
+              { key: "item", label: "Item", width: 220 },
               { key: "category", label: "Category" },
               { key: "cost", label: "Cost", render: (value) => (value ? `$${Number(value).toFixed(0)}` : "—") },
               { key: "paid", label: "Paid?", render: (value) => (value ? "Yes" : "No") },
-              { key: "notes", label: "Notes" },
+              { key: "notes", label: "Notes", width: 220 },
             ]}
             emptyLabel="No budget items yet."
-          />
-        )}
-      </SectionCard>
-
-      <SectionCard title={`Add ${tab === "Inventory" ? "inventory item" : tab === "Sponsors" ? "sponsor or vendor" : "budget line"}`}>
-        {tab === "Inventory" && (
-          <RecordEditor
-            title="Inventory editor"
-            value={editor}
-            onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
-            onSave={handleSave}
-            onCancel={() => setEditor(blankInventory())}
-            fields={[
-              { name: "item", label: "Item", full: true },
-              { name: "quantity", label: "Quantity" },
-              { name: "location", label: "Location" },
-              { name: "owner", label: "Owner" },
-              { name: "condition", label: "Condition" },
-              { name: "notes", label: "Notes", type: "textarea", full: true },
-            ]}
-          />
-        )}
-
-        {tab === "Sponsors" && (
-          <RecordEditor
-            title="Sponsor / vendor editor"
-            value={editor}
-            onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
-            onSave={handleSave}
-            onCancel={() => setEditor(blankSponsor())}
-            fields={[
-              { name: "name", label: "Name", full: true },
-              { name: "type", label: "Type", type: "select", options: sponsorTypeOptions },
-              { name: "contact", label: "Contact", full: true },
-              { name: "status", label: "Status", type: "select", options: sponsorStatusOptions },
-              { name: "notes", label: "Notes", type: "textarea", full: true },
-            ]}
-          />
-        )}
-
-        {tab === "Budget" && (
-          <RecordEditor
-            title="Budget editor"
-            value={editor}
-            onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
-            onSave={handleSave}
-            onCancel={() => setEditor(blankBudget())}
-            fields={[
-              { name: "item", label: "Item", full: true },
-              { name: "category", label: "Category" },
-              { name: "cost", label: "Cost", type: "number" },
-              { name: "paid", label: "Paid", type: "checkbox" },
-              { name: "notes", label: "Notes", type: "textarea", full: true },
-            ]}
           />
         )}
       </SectionCard>

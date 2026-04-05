@@ -279,7 +279,7 @@
 
 .ops-table th,
 .ops-table td {
-  padding: 12px 13px;
+  padding: 9px 10px;
   text-align: left;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   vertical-align: top;
@@ -295,8 +295,9 @@
 
 .ops-row-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-wrap: nowrap;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .ops-pill {
@@ -385,8 +386,21 @@
   gap: 16px;
 }
 
+.ops-editor-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
 .ops-editor-header h3 {
   margin: 0;
+}
+
+.ops-editor-kicker {
+  margin: 6px 0 0;
+  color: var(--ops-muted);
+  font-size: 0.88rem;
 }
 
 .ops-form-grid {
@@ -623,6 +637,33 @@
   font-size: 0.88rem;
 }
 
+.ops-table-pagination {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ops-table-pagination-copy {
+  color: var(--ops-muted);
+  font-size: 0.88rem;
+}
+
+.ops-table-pagination-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ops-table-page-pill {
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--ops-border);
+  font-size: 0.88rem;
+}
+
 .ops-column-manager-wrap {
   position: relative;
 }
@@ -653,6 +694,7 @@
 .ops-table-wrap {
   overflow-x: auto;
   overflow-y: auto;
+  max-width: 100%;
 }
 
 .ops-table-spreadsheet {
@@ -665,6 +707,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 0.92rem;
+  line-height: 1.2;
 }
 
 .ops-th-inner {
@@ -697,4 +741,20 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.ops-collapsible-toggle {
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .ops-editor-header,
+  .ops-table-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ops-table-pagination-actions {
+    justify-content: space-between;
+  }
 }

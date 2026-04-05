@@ -332,6 +332,15 @@ function Hero() {
                     <span>performer application</span>
                   </span>
                 </Link>
+                <Link
+                  to="/volunteer-application"
+                  className="inline-flex min-h-14 items-center justify-center rounded-[1.25rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/10 px-4 py-4 text-center text-sm font-black uppercase tracking-[0.08em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/15"
+                >
+                  <span className="flex flex-col items-center gap-2 leading-tight">
+                    <Users className="h-4 w-4 shrink-0" />
+                    <span>volunteer application</span>
+                  </span>
+                </Link>
                 <a
                   href={siteMeta.donateHref}
                   target="_blank"
@@ -699,6 +708,10 @@ function InfoSection() {
                   performer application
                 </Link>
               ) : null}
+              <Link to="/volunteer-application" className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
+                <Users className="mr-2 h-4 w-4 shrink-0" />
+                volunteer application
+              </Link>
               {siteMeta.posterContestHref ? (
                 <Link to={siteMeta.posterContestHref} className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#e3a7a5]/18 bg-black/15 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
                   <Palette className="mr-2 h-4 w-4 shrink-0" />

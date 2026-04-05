@@ -35,13 +35,16 @@ export default function EditableTable({
   onDelete,
   emptyLabel = "Nothing here yet.",
   rowClassName,
+  pageSize = 10,
 }) {
   const widthsKey = `opsTableWidths:${tableKey}`;
   const hiddenKey = `opsTableHidden:${tableKey}`;
   const [widths, setWidths] = React.useState(() => readLocal(widthsKey, {}));
   const [hiddenKeys, setHiddenKeys] = React.useState(() => readLocal(hiddenKey, []));
   const [managerOpen, setManagerOpen] = React.useState(false);
+  const [page, setPage] = React.useState(1);
   const resizeRef = React.useRef(null);
+  const managerRef = React.useRef(null);
 
   React.useEffect(() => writeLocal(widthsKey, widths), [widths, widthsKey]);
   React.useEffect(() => writeLocal(hiddenKey, hiddenKeys), [hiddenKey, hiddenKeys]);
@@ -49,6 +52,18 @@ export default function EditableTable({
   React.useEffect(() => () => {
     if (resizeRef.current?.cleanup) resizeRef.current.cleanup();
   }, []);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [rows.length, tableKey]);
+
+  React.useEffect(() => {
+    const onClick = (event) => {
+      if (!managerRef.current?.contains(event.target)) setManagerOpen(false);
+    };
+    if (managerOpen) window.addEventListener("mousedown", onClick);
+    return () => window.removeEventListener("mousedown", onClick);
+  }, [managerOpen]);
 
   const visibleColumns = columns.filter((column) => !hiddenKeys.includes(column.key));
 
@@ -89,11 +104,15 @@ export default function EditableTable({
     return <div className="ops-empty">{emptyLabel}</div>;
   }
 
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageRows = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
+
   return (
     <div className="ops-table-shell">
       <div className="ops-table-controls">
-        <div className="ops-table-controls-note">Drag header edges to resize. Hide columns you do not need.</div>
-        <div className="ops-column-manager-wrap">
+        <div className="ops-table-controls-note">Resize, hide, and restore columns without losing the whole damn table.</div>
+        <div className="ops-column-manager-wrap" ref={managerRef}>
           <button type="button" className="ops-button ops-button-secondary ops-button-small" onClick={() => setManagerOpen((current) => !current)}>
             Columns
           </button>
@@ -125,13 +144,13 @@ export default function EditableTable({
                   </div>
                 </th>
               ))}
-              <th className="ops-actions-col" style={{ width: 140 }}>
+              <th className="ops-actions-col" style={{ width: 120 }}>
                 <div className="ops-th-inner"><span>Actions</span></div>
               </th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {pageRows.map((row) => (
               <tr key={row.id} className={rowClassName ? rowClassName(row) : ""}>
                 {visibleColumns.map((column) => {
                   const rendered = column.render ? column.render(row[column.key], row) : row[column.key];
@@ -158,6 +177,16 @@ export default function EditableTable({
           </tbody>
         </table>
       </div>
+      {totalPages > 1 ? (
+        <div className="ops-table-pagination">
+          <span className="ops-table-pagination-copy">Showing {(safePage - 1) * pageSize + 1} to {Math.min(safePage * pageSize, rows.length)} of {rows.length}</span>
+          <div className="ops-table-pagination-actions">
+            <button type="button" className="ops-button ops-button-small ops-button-secondary" disabled={safePage === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>Previous</button>
+            <span className="ops-table-page-pill">Page {safePage} of {totalPages}</span>
+            <button type="button" className="ops-button ops-button-small ops-button-secondary" disabled={safePage === totalPages} onClick={() => setPage((current) => Math.min(totalPages, current + 1))}>Next</button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
