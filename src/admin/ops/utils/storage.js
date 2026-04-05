@@ -1,5 +1,5 @@
 
-const STORAGE_KEY = "mayday-ops-console-v2";
+const STORAGE_KEY = "mayday-ops-console-v3";
 
 export function loadOpsState() {
   try {
@@ -34,6 +34,9 @@ export function importOpsState(text) {
   const parsed = JSON.parse(text);
   if (!parsed || typeof parsed !== "object") {
     throw new Error("Import data is not valid.");
+  }
+  if (!Array.isArray(parsed.tasks) || !Array.isArray(parsed.timeline)) {
+    throw new Error("Import data is missing required collections.");
   }
   return parsed;
 }

@@ -57,11 +57,20 @@ export function OpsStoreProvider({ children }) {
       inventory: state.inventory,
       sponsors: state.sponsors,
       budget: state.budget,
+      volunteers: state.volunteers,
+      runOfShow: state.runOfShow,
       addItem,
       updateItem,
       removeItem,
       replaceState,
       resetToWorkbookSeed,
+      toggleVolunteerCheckIn: (id) =>
+        setState((current) => ({
+          ...current,
+          volunteers: current.volunteers.map((item) =>
+            item.id === id ? { ...item, checkedIn: !item.checkedIn } : item
+          ),
+        })),
       setState,
     };
   }, [state]);

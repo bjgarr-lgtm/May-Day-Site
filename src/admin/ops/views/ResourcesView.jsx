@@ -51,7 +51,7 @@ export default function ResourcesView() {
       <div className="ops-stat-grid ops-stat-grid-three">
         <div className="ops-stat-card"><div className="ops-stat-label">Inventory items</div><div className="ops-stat-value">{store.inventory.length}</div></div>
         <div className="ops-stat-card"><div className="ops-stat-label">Sponsors / vendors</div><div className="ops-stat-value">{store.sponsors.length}</div></div>
-        <div className="ops-stat-card"><div className="ops-stat-label">Budget tracked</div><div className="ops-stat-value">${'{'}totalBudget.toFixed(0){'}'}</div></div>
+        <div className="ops-stat-card"><div className="ops-stat-label">Budget tracked</div><div className="ops-stat-value">{`$${totalBudget.toFixed(0)}`}</div></div>
       </div>
 
       <SectionCard title="Resources" subtitle="Inventory, sponsors, budget. One area, three sane tables.">

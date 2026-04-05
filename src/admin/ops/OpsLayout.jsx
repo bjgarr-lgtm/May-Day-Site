@@ -11,6 +11,8 @@ const navItems = [
   { to: "timeline", label: "Timeline" },
   { to: "programming", label: "Programming" },
   { to: "resources", label: "Resources" },
+  { to: "volunteers", label: "Volunteers" },
+  { to: "run-of-show", label: "Run of Show" },
 ];
 
 export default function OpsLayout() {
@@ -99,6 +101,10 @@ export default function OpsLayout() {
             <span>This week</span>
             <strong>{weekCount}</strong>
           </div>
+          <div className="ops-sidebar-stat">
+            <span>Volunteer shifts</span>
+            <strong>{store.volunteers.length}</strong>
+          </div>
         </div>
 
         <div className="ops-sidebar-actions">
@@ -128,7 +134,7 @@ export default function OpsLayout() {
         <header className="ops-topbar">
           <div>
             <h1>May Day Operations</h1>
-            <p>Seeded from your workbook, stripped of credential nonsense, and organized into something usable.</p>
+            <p>Phase three adds volunteers and a printable run of show, because day-of logistics tend to become a knife fight if you do not.</p>
           </div>
           <div className="ops-topbar-note">
             <strong>Import notes</strong>

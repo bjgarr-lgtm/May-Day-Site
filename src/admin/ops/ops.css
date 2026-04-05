@@ -536,3 +536,70 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+.status-needs-assignment,
+.status-no-show {
+  background: rgba(255, 143, 143, 0.16);
+  border-color: rgba(255, 143, 143, 0.2);
+}
+.status-tentative {
+  background: rgba(255, 211, 122, 0.16);
+  border-color: rgba(255, 211, 122, 0.2);
+}
+.status-checked-in {
+  background: rgba(155, 224, 176, 0.16);
+  border-color: rgba(155, 224, 176, 0.2);
+}
+
+.ops-dashboard-grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ops-run-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.ops-run-column h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+@media print {
+  .ops-sidebar,
+  .ops-topbar,
+  .ops-toolbar,
+  .ops-editor-actions,
+  .ops-row-actions {
+    display: none !important;
+  }
+
+  .ops-shell {
+    display: block;
+    background: white;
+    color: black;
+  }
+
+  .ops-main,
+  .ops-section-card,
+  .ops-stat-card {
+    background: white;
+    color: black;
+    box-shadow: none;
+    border-color: #ddd;
+  }
+
+  .ops-list li {
+    background: white;
+    border: 1px solid #ddd;
+  }
+}
+
+@media (max-width: 1100px) {
+  .ops-run-grid,
+  .ops-dashboard-grid-three {
+    grid-template-columns: 1fr;
+  }
+}

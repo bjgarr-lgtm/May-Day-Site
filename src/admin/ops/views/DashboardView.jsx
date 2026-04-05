@@ -19,6 +19,8 @@ export default function DashboardView() {
   const dueThisWeek = store.tasks.filter((task) => task.status !== "Done" && isWithinDays(task.deadline, 7));
   const todayTimeline = store.timeline.filter((item) => isToday(item.date));
   const upcomingTimeline = sliceSorted(store.timeline, (a, b) => new Date(`${a.date || ""} ${a.time || ""}`) - new Date(`${b.date || ""} ${b.time || ""}`), 8);
+  const volunteerOpen = store.volunteers.filter((item) => !item.name?.trim() || item.status === "Needs Assignment");
+  const volunteerCheckedIn = store.volunteers.filter((item) => item.checkedIn).length;
   const criticalPath = (store.state.meta?.criticalPath || [])
     .map((title) => store.tasks.find((task) => task.title === title))
     .filter(Boolean);
@@ -30,9 +32,10 @@ export default function DashboardView() {
         <StatCard label="Overdue" value={overdueTasks.length} tone="danger" sublabel="Needs attention now" />
         <StatCard label="Due this week" value={dueThisWeek.length} tone="warning" sublabel="Next seven days" />
         <StatCard label="Resources" value={store.inventory.length + store.sponsors.length + store.budget.length} sublabel="Inventory, sponsors, budget" />
+        <StatCard label="Volunteer shifts" value={store.volunteers.length} sublabel={`${volunteerCheckedIn} checked in`} />
       </div>
 
-      <div className="ops-dashboard-grid">
+      <div className="ops-dashboard-grid ops-dashboard-grid-three">
         <SectionCard
           title="Today"
           subtitle="What is actually happening today, assuming the universe cooperates."
@@ -108,6 +111,23 @@ export default function DashboardView() {
                 <span>{task.notes || "No notes"}</span>
               </li>
             )) : <li className="ops-list-empty">No blockers right now.</li>}
+          </ul>
+        </SectionCard>
+
+
+        <SectionCard
+          title="Volunteer coverage"
+          subtitle="Blank shifts are future emergencies in disguise."
+          actions={<Link className="ops-button ops-button-small" to="../volunteers">Open volunteers</Link>}
+        >
+          <ul className="ops-list">
+            {volunteerOpen.length ? volunteerOpen.slice(0, 8).map((item) => (
+              <li key={item.id}>
+                <strong>{item.role}</strong>
+                <span>{item.area}</span>
+                <span>{item.shiftDate || "No date"} {item.shiftStart ? `at ${item.shiftStart}` : ""}</span>
+              </li>
+            )) : <li className="ops-list-empty">All volunteer shifts have people assigned.</li>}
           </ul>
         </SectionCard>
 
