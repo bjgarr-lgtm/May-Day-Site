@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
@@ -76,42 +75,7 @@ export default function TasksView() {
 
   return (
     <div className="ops-page">
-      <SectionCard title="Tasks" subtitle="This is the spine. Everything real lives here.">
-        <div className="ops-tabs">
-          {quickViews.map((item) => (
-            <button key={item} className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
-              {item}
-            </button>
-          ))}
-        </div>
-
-        <div className="ops-toolbar">
-          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search tasks" />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option>All</option>
-            {statusOptions.map((item) => <option key={item}>{item}</option>)}
-          </select>
-          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-            <option>All</option>
-            {categoryOptions.map((item) => <option key={item}>{item}</option>)}
-          </select>
-          <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)}>
-            <option>All</option>
-            {ownerOptions.map((item) => <option key={item}>{item}</option>)}
-          </select>
-        </div>
-
-        <EditableTable
-          columns={columns}
-          rows={filteredRows}
-          onEdit={setEditor}
-          onDelete={(id) => store.removeItem("tasks", id)}
-          rowClassName={(row) => isOverdue(row.deadline) && row.status !== "Done" ? "is-overdue" : ""}
-          emptyLabel="No tasks match the current filters."
-        />
-      </SectionCard>
-
-      <SectionCard title={editor.title ? "Edit task" : "Add task"} subtitle="Quick entry, quick cleanup, less spreadsheet necromancy.">
+      <SectionCard title={editor.title ? "Edit task" : "Add task"} subtitle="Add and edit from the top, because scrolling to the bottom of a hundred rows is clown behavior.">
         <RecordEditor
           title={editor.title ? "Task editor" : "New task"}
           value={editor}
@@ -119,14 +83,49 @@ export default function TasksView() {
           onSave={handleSave}
           onCancel={() => setEditor(blankTask())}
           fields={[
-            { name: "title", label: "Task title", full: true },
+            { name: "title", label: "Task", full: true },
             { name: "category", label: "Category", type: "select", options: categoryOptions },
             { name: "owner", label: "Owner" },
             { name: "status", label: "Status", type: "select", options: statusOptions },
             { name: "priority", label: "Priority", type: "select", options: priorityOptions },
             { name: "deadline", label: "Deadline", type: "date" },
-            { name: "notes", label: "Notes", type: "textarea", full: true, rows: 4 },
+            { name: "notes", label: "Notes", type: "textarea", full: true },
           ]}
+        />
+      </SectionCard>
+
+      <SectionCard title="Tasks" subtitle="This is the spine. Everything real lives here.">
+        <div className="ops-tabs ops-tabs-inline">
+          {quickViews.map((item) => (
+            <button key={item} className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
+              {item}
+            </button>
+          ))}
+        </div>
+
+        <div className="ops-toolbar ops-toolbar-stack">
+          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search tasks" />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="All">All statuses</option>
+            {statusOptions.map((option) => <option key={option}>{option}</option>)}
+          </select>
+          <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+            <option value="All">All categories</option>
+            {categoryOptions.map((option) => <option key={option}>{option}</option>)}
+          </select>
+          <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)}>
+            <option value="All">All owners</option>
+            {ownerOptions.map((option) => <option key={option}>{option}</option>)}
+          </select>
+        </div>
+
+        <EditableTable
+          rows={filteredRows}
+          onEdit={setEditor}
+          onDelete={(id) => store.removeItem("tasks", id)}
+          columns={columns}
+          rowClassName={(row) => (isOverdue(row.deadline) && row.status !== "Done" ? "is-overdue" : "")}
+          emptyLabel="No tasks match these filters. Humanity briefly achieved organization."
         />
       </SectionCard>
     </div>

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
@@ -14,14 +13,20 @@ export default function ResourcesView() {
   const store = useOpsStore();
   const [tab, setTab] = React.useState("Inventory");
   const [editor, setEditor] = React.useState(blankInventory());
+  const [query, setQuery] = React.useState("");
 
   React.useEffect(() => {
     if (tab === "Inventory") setEditor(blankInventory());
     if (tab === "Sponsors") setEditor(blankSponsor());
     if (tab === "Budget") setEditor(blankBudget());
+    setQuery("");
   }, [tab]);
 
   const totalBudget = store.budget.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+
+  const inventoryRows = store.inventory.filter((item) => `${item.item} ${item.location} ${item.owner} ${item.condition} ${item.notes}`.toLowerCase().includes(query.toLowerCase()));
+  const sponsorRows = store.sponsors.filter((item) => `${item.name} ${item.type} ${item.contact} ${item.status} ${item.notes}`.toLowerCase().includes(query.toLowerCase()));
+  const budgetRows = store.budget.filter((item) => `${item.item} ${item.category} ${item.cost} ${item.notes}`.toLowerCase().includes(query.toLowerCase()));
 
   const handleSave = () => {
     if (tab === "Inventory") {
@@ -54,8 +59,8 @@ export default function ResourcesView() {
         <div className="ops-stat-card"><div className="ops-stat-label">Budget tracked</div><div className="ops-stat-value">{`$${totalBudget.toFixed(0)}`}</div></div>
       </div>
 
-      <SectionCard title="Resources" subtitle="Inventory, sponsors, budget. One area, three sane tables.">
-        <div className="ops-tabs">
+      <SectionCard title={`Add ${tab === "Inventory" ? "inventory item" : tab === "Sponsors" ? "sponsor or vendor" : "budget line"}`} subtitle="Create or edit from the top where the controls belong.">
+        <div className="ops-tabs ops-tabs-inline">
           {resourceTabs.map((item) => (
             <button key={item} className={`ops-tab ${item === tab ? "is-active" : ""}`} onClick={() => setTab(item)}>
               {item}
@@ -63,57 +68,6 @@ export default function ResourcesView() {
           ))}
         </div>
 
-        {tab === "Inventory" && (
-          <EditableTable
-            rows={store.inventory}
-            onEdit={(row) => setEditor(row)}
-            onDelete={(id) => store.removeItem("inventory", id)}
-            columns={[
-              { key: "item", label: "Item" },
-              { key: "quantity", label: "Qty" },
-              { key: "location", label: "Location" },
-              { key: "owner", label: "Owner" },
-              { key: "condition", label: "Condition" },
-              { key: "notes", label: "Notes" },
-            ]}
-            emptyLabel="No inventory yet."
-          />
-        )}
-
-        {tab === "Sponsors" && (
-          <EditableTable
-            rows={store.sponsors}
-            onEdit={(row) => setEditor(row)}
-            onDelete={(id) => store.removeItem("sponsors", id)}
-            columns={[
-              { key: "name", label: "Name" },
-              { key: "type", label: "Type" },
-              { key: "contact", label: "Contact" },
-              { key: "status", label: "Status", render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span> },
-              { key: "notes", label: "Notes" },
-            ]}
-            emptyLabel="No sponsors yet."
-          />
-        )}
-
-        {tab === "Budget" && (
-          <EditableTable
-            rows={store.budget}
-            onEdit={(row) => setEditor(row)}
-            onDelete={(id) => store.removeItem("budget", id)}
-            columns={[
-              { key: "item", label: "Item" },
-              { key: "category", label: "Category" },
-              { key: "cost", label: "Cost", render: (value) => (value ? `$${Number(value).toFixed(0)}` : "—") },
-              { key: "paid", label: "Paid?", render: (value) => (value ? "Yes" : "No") },
-              { key: "notes", label: "Notes" },
-            ]}
-            emptyLabel="No budget items yet."
-          />
-        )}
-      </SectionCard>
-
-      <SectionCard title={`Add ${tab === "Inventory" ? "inventory item" : tab === "Sponsors" ? "sponsor or vendor" : "budget line"}`}>
         {tab === "Inventory" && (
           <RecordEditor
             title="Inventory editor"
@@ -163,6 +117,61 @@ export default function ResourcesView() {
               { name: "paid", label: "Paid", type: "checkbox" },
               { name: "notes", label: "Notes", type: "textarea", full: true },
             ]}
+          />
+        )}
+      </SectionCard>
+
+      <SectionCard title="Resources" subtitle="Searchable, filtered, and not weirdly huge.">
+        <div className="ops-toolbar ops-toolbar-stack">
+          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${tab.toLowerCase()}`} />
+        </div>
+
+        {tab === "Inventory" && (
+          <EditableTable
+            rows={inventoryRows}
+            onEdit={(row) => setEditor(row)}
+            onDelete={(id) => store.removeItem("inventory", id)}
+            columns={[
+              { key: "item", label: "Item" },
+              { key: "quantity", label: "Qty" },
+              { key: "location", label: "Location" },
+              { key: "owner", label: "Owner" },
+              { key: "condition", label: "Condition" },
+              { key: "notes", label: "Notes" },
+            ]}
+            emptyLabel="No inventory matches this search."
+          />
+        )}
+
+        {tab === "Sponsors" && (
+          <EditableTable
+            rows={sponsorRows}
+            onEdit={(row) => setEditor(row)}
+            onDelete={(id) => store.removeItem("sponsors", id)}
+            columns={[
+              { key: "name", label: "Name" },
+              { key: "type", label: "Type" },
+              { key: "contact", label: "Contact" },
+              { key: "status", label: "Status", render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span> },
+              { key: "notes", label: "Notes" },
+            ]}
+            emptyLabel="No sponsors match this search."
+          />
+        )}
+
+        {tab === "Budget" && (
+          <EditableTable
+            rows={budgetRows}
+            onEdit={(row) => setEditor(row)}
+            onDelete={(id) => store.removeItem("budget", id)}
+            columns={[
+              { key: "item", label: "Item" },
+              { key: "category", label: "Category" },
+              { key: "cost", label: "Cost", render: (value) => (value ? `$${Number(value).toFixed(0)}` : "—") },
+              { key: "paid", label: "Paid?", render: (value) => (value ? "Yes" : "No") },
+              { key: "notes", label: "Notes" },
+            ]}
+            emptyLabel="No budget items match this search."
           />
         )}
       </SectionCard>
