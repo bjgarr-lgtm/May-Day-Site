@@ -116,7 +116,56 @@ export default function PosterArtContestPage() {
             poster art contest
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[#f7f1e8]/84">
-            New this year: we’re opening the poster to local artists. We want May Day on the Harbor to look like the Harbor. Submit your art for a chance to become this year’s official poster. We’ll choose a winning piece and announce it on event day.
+            New this year: we’re opening the poster to local artists. We want May Day on the Harbor to look like the Harbor. Submit your art for a chance to become this year’s official poster. We’ll choose a winning piece and announce it on event day. Our visual identity draws from ornate, symbolic, and narrative-driven illustration, similar to historical labor prints, woodcuts, and art nouveau compositions.
+
+              Core Themes
+              Solidarity and collective action
+              Labor and working-class power
+              Mutual aid and community care
+              Growth, resistance, and transformation
+              Land, harbor, and regionally rooted identity
+              Visual Direction
+
+              We are especially drawn to artwork that includes:
+
+              Human figures in motion or collaboration (workers, organizers, community members)
+              Symbolic elements (plants, tools, banners, fire, water, roots, etc.)
+              Flowing composition (ribbons, text banners, circular or vertical movement)
+              Ornate or structured borders
+              Dense, detailed storytelling imagery
+
+              Styles that resonate:
+
+              Woodcut / linocut aesthetics
+              Engraving-style linework
+              Art nouveau composition and framing
+              High-contrast illustration (black and white or limited palette)
+              Tone
+              Bold but not corporate
+              Radical but not sterile
+              Mythic, grounded, and human
+              Serious, but alive
+
+              Avoid:
+
+              Generic protest graphics
+              Clip-art style or overly digital/flat design
+              Minimalist logos as the primary focus
+              Color
+              Black & white strongly encouraged
+              Limited color palettes welcome
+              Should remain legible when printed
+              Text (optional)
+
+              Artists may include:
+
+              “May Day on the Harbor”
+              Date/location (optional depending on use case)
+              Banners or embedded text elements in the illustration
+              Format Requirements
+              Vertical poster format preferred
+              High resolution (print-ready)
+              Must scale well for web and print
           </p>
 
           <div className="mt-6 rounded-[1.5rem] border border-[#e3a7a5]/18 bg-[#e3a7a5]/8 p-5 text-sm leading-7 text-[#f7f1e8]/82">
