@@ -41,7 +41,6 @@ export function blankProgramming() {
   return {
     id: makeId("prog"),
     activity: "",
-    category: "General",
     location: "",
     time: "",
     lead: "",

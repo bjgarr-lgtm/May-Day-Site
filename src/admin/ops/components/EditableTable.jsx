@@ -32,10 +32,11 @@ export default function EditableTable({
                 </td>
               ))}
               <td className="ops-row-actions">
-                <button className="ops-button ops-button-small" onClick={() => onEdit(row)}>
+                <button type="button" className="ops-button ops-button-small" onClick={() => onEdit(row)}>
                   Edit
                 </button>
                 <button
+                  type="button"
                   className="ops-button ops-button-small ops-button-danger"
                   onClick={() => onDelete(row.id)}
                 >

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { useOpsStore } from "../hooks/useOpsStore";
@@ -7,10 +8,6 @@ import { formatDateTime, isOverdue, isToday, isWithinDays } from "../utils/date"
 
 function sliceSorted(items, sorter, count = 8) {
   return [...items].sort(sorter).slice(0, count);
-}
-
-function ensureCategory(item) {
-  return item.category || "General";
 }
 
 export default function DashboardView() {
@@ -27,10 +24,6 @@ export default function DashboardView() {
   const criticalPath = (store.state.meta?.criticalPath || [])
     .map((title) => store.tasks.find((task) => task.title === title))
     .filter(Boolean);
-  const outstandingNeeds = store.programming
-    .filter((item) => item.needs && item.needs.trim())
-    .map((item) => ({ ...item, category: ensureCategory(item) }))
-    .slice(0, 10);
 
   return (
     <div className="ops-page">
@@ -40,11 +33,14 @@ export default function DashboardView() {
         <StatCard label="Due this week" value={dueThisWeek.length} tone="warning" sublabel="Next seven days" />
         <StatCard label="Resources" value={store.inventory.length + store.sponsors.length + store.budget.length} sublabel="Inventory, sponsors, budget" />
         <StatCard label="Volunteer shifts" value={store.volunteers.length} sublabel={`${volunteerCheckedIn} checked in`} />
-        <StatCard label="Outstanding needs" value={outstandingNeeds.length} sublabel="Pulled from programming" />
       </div>
 
       <div className="ops-dashboard-grid ops-dashboard-grid-three">
-        <SectionCard title="Today" subtitle="What is actually happening today, assuming the universe cooperates." actions={<Link className="ops-button ops-button-small" to="../timeline">Open timeline</Link>}>
+        <SectionCard
+          title="Today"
+          subtitle="What is actually happening today, assuming the universe cooperates."
+          actions={<Link className="ops-button ops-button-small" to="../timeline">Open timeline</Link>}
+        >
           <ul className="ops-list">
             {todayTimeline.length ? todayTimeline.map((item) => (
               <li key={item.id}>
@@ -56,7 +52,11 @@ export default function DashboardView() {
           </ul>
         </SectionCard>
 
-        <SectionCard title="Critical path" subtitle="The workbook implied these are the load-bearing tasks." actions={<Link className="ops-button ops-button-small" to="../tasks">Open tasks</Link>}>
+        <SectionCard
+          title="Critical path"
+          subtitle="The workbook implied these are the load-bearing tasks."
+          actions={<Link className="ops-button ops-button-small" to="../tasks">Open tasks</Link>}
+        >
           <ul className="ops-list">
             {criticalPath.length ? criticalPath.map((task) => (
               <li key={task.id}>
@@ -68,7 +68,11 @@ export default function DashboardView() {
           </ul>
         </SectionCard>
 
-        <SectionCard title="Overdue tasks" subtitle="Things already late and pretending otherwise." actions={<Link className="ops-button ops-button-small" to="../tasks">Open tasks</Link>}>
+        <SectionCard
+          title="Overdue tasks"
+          subtitle="Things already late and pretending otherwise."
+          actions={<Link className="ops-button ops-button-small" to="../tasks">Open tasks</Link>}
+        >
           <ul className="ops-list">
             {overdueTasks.length ? overdueTasks.map((task) => (
               <li key={task.id}>
@@ -80,19 +84,11 @@ export default function DashboardView() {
           </ul>
         </SectionCard>
 
-        <SectionCard title="Outstanding needs" subtitle="Programming entries still asking for stuff, because plans without materials are just lies." actions={<Link className="ops-button ops-button-small" to="../programming">Open programming</Link>}>
-          <ul className="ops-list">
-            {outstandingNeeds.length ? outstandingNeeds.map((item) => (
-              <li key={item.id}>
-                <strong>{item.activity}</strong>
-                <span>{item.category}</span>
-                <span>{item.needs}</span>
-              </li>
-            )) : <li className="ops-list-empty">No outstanding needs listed in programming.</li>}
-          </ul>
-        </SectionCard>
-
-        <SectionCard title="Unowned tasks" subtitle="If nobody owns it, nobody is doing it." actions={<Link className="ops-button ops-button-small" to="../tasks">Assign owners</Link>}>
+        <SectionCard
+          title="Unowned tasks"
+          subtitle="If nobody owns it, nobody is doing it."
+          actions={<Link className="ops-button ops-button-small" to="../tasks">Assign owners</Link>}
+        >
           <ul className="ops-list">
             {unownedTasks.length ? unownedTasks.map((task) => (
               <li key={task.id}>
@@ -103,7 +99,11 @@ export default function DashboardView() {
           </ul>
         </SectionCard>
 
-        <SectionCard title="Blocked tasks" subtitle="Things stuck on dependency hell." actions={<Link className="ops-button ops-button-small" to="../tasks">Review blockers</Link>}>
+        <SectionCard
+          title="Blocked tasks"
+          subtitle="Things stuck on dependency hell."
+          actions={<Link className="ops-button ops-button-small" to="../tasks">Review blockers</Link>}
+        >
           <ul className="ops-list">
             {blockedTasks.length ? blockedTasks.map((task) => (
               <li key={task.id}>
@@ -114,7 +114,12 @@ export default function DashboardView() {
           </ul>
         </SectionCard>
 
-        <SectionCard title="Volunteer coverage" subtitle="Blank shifts are future emergencies in disguise." actions={<Link className="ops-button ops-button-small" to="../volunteers">Open volunteers</Link>}>
+
+        <SectionCard
+          title="Volunteer coverage"
+          subtitle="Blank shifts are future emergencies in disguise."
+          actions={<Link className="ops-button ops-button-small" to="../volunteers">Open volunteers</Link>}
+        >
           <ul className="ops-list">
             {volunteerOpen.length ? volunteerOpen.slice(0, 8).map((item) => (
               <li key={item.id}>
@@ -126,7 +131,11 @@ export default function DashboardView() {
           </ul>
         </SectionCard>
 
-        <SectionCard title="Upcoming timeline" subtitle="Next key moments across setup and event flow." actions={<Link className="ops-button ops-button-small" to="../timeline">Open timeline</Link>}>
+        <SectionCard
+          title="Upcoming timeline"
+          subtitle="Next key moments across setup and event flow."
+          actions={<Link className="ops-button ops-button-small" to="../timeline">Open timeline</Link>}
+        >
           <ul className="ops-list">
             {upcomingTimeline.length ? upcomingTimeline.map((item) => (
               <li key={item.id}>

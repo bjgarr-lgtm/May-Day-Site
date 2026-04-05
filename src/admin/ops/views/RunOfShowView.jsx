@@ -2,8 +2,8 @@ import React from "react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import RecordEditor from "../components/RecordEditor";
+import { blankTask, blankTimeline, blankVolunteer } from "../seedData";
 import { formatDate, formatDateTime, isToday } from "../utils/date";
-import { blankTimeline, blankTask, blankVolunteer } from "../seedData";
 
 function sortByDateTime(items) {
   return [...items].sort((a, b) => new Date(`${a.date || a.shiftDate || ""} ${a.time || a.shiftStart || ""}`) - new Date(`${b.date || b.shiftDate || ""} ${b.time || b.shiftStart || ""}`));
@@ -11,9 +11,6 @@ function sortByDateTime(items) {
 
 export default function RunOfShowView() {
   const store = useOpsStore();
-  const [editorType, setEditorType] = React.useState("timeline");
-  const [editor, setEditor] = React.useState(blankTimeline());
-
   const timeline = sortByDateTime(store.timeline);
   const todayTimeline = timeline.filter((item) => isToday(item.date));
   const openTasks = store.tasks.filter((task) => task.status !== "Done");
@@ -21,65 +18,83 @@ export default function RunOfShowView() {
   const volunteerShifts = sortByDateTime(store.volunteers);
   const unassignedVolunteers = volunteerShifts.filter((item) => !item.name?.trim());
 
-  const startEdit = (type, value) => {
+  const [editorType, setEditorType] = React.useState("timeline");
+  const [editor, setEditor] = React.useState(blankTimeline());
+  const [focusToken, setFocusToken] = React.useState(0);
+  const editorRef = React.useRef(null);
+
+  const activateEditor = React.useCallback((type, item) => {
     setEditorType(type);
-    setEditor(value);
-  };
+    setEditor(item);
+    setFocusToken((current) => current + 1);
+    window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, []);
 
-  const resetEditor = () => {
-    if (editorType === "task") setEditor(blankTask());
-    else if (editorType === "volunteer") setEditor(blankVolunteer());
-    else setEditor(blankTimeline());
-  };
+  const handleCancel = React.useCallback(() => {
+    if (editorType === "task") activateEditor("task", blankTask());
+    else if (editorType === "volunteer") activateEditor("volunteer", blankVolunteer());
+    else activateEditor("timeline", blankTimeline());
+  }, [activateEditor, editorType]);
 
-  const saveEditor = () => {
+  const handleSave = () => {
+    if (editorType === "timeline") {
+      if (!editor.activity?.trim()) return window.alert("Timeline activity is required.");
+      const exists = store.timeline.some((item) => item.id === editor.id);
+      exists ? store.updateItem("timeline", editor.id, editor) : store.addItem("timeline", editor);
+      activateEditor("timeline", blankTimeline());
+      return;
+    }
     if (editorType === "task") {
       if (!editor.title?.trim()) return window.alert("Task title is required.");
-      store.updateItem("tasks", editor.id, editor);
-      return resetEditor();
+      const exists = store.tasks.some((item) => item.id === editor.id);
+      exists ? store.updateItem("tasks", editor.id, editor) : store.addItem("tasks", editor);
+      activateEditor("task", blankTask());
+      return;
     }
-    if (editorType === "volunteer") {
-      if (!editor.role?.trim()) return window.alert("Volunteer role is required.");
-      store.updateItem("volunteers", editor.id, editor);
-      return resetEditor();
-    }
-    if (!editor.activity?.trim()) return window.alert("Timeline activity is required.");
-    store.updateItem("timeline", editor.id, editor);
-    resetEditor();
+    if (!editor.role?.trim()) return window.alert("Volunteer role is required.");
+    const exists = store.volunteers.some((item) => item.id === editor.id);
+    exists ? store.updateItem("volunteers", editor.id, editor) : store.addItem("volunteers", editor);
+    activateEditor("volunteer", blankVolunteer());
   };
 
-  const timelineEditorFields = [
-    { name: "date", label: "Date", type: "date" },
-    { name: "time", label: "Time", type: "time" },
-    { name: "activity", label: "Activity", full: true },
-    { name: "location", label: "Location" },
-    { name: "lead", label: "Lead" },
-    { name: "dependencies", label: "Dependencies", full: true },
-    { name: "notes", label: "Notes", type: "textarea", full: true },
-  ];
-  const taskEditorFields = [
-    { name: "title", label: "Task", full: true },
-    { name: "owner", label: "Owner" },
-    { name: "status", label: "Status" },
-    { name: "priority", label: "Priority" },
-    { name: "deadline", label: "Deadline", type: "date" },
-    { name: "notes", label: "Notes", type: "textarea", full: true },
-  ];
-  const volunteerEditorFields = [
-    { name: "role", label: "Role", full: true },
-    { name: "name", label: "Assigned volunteer" },
-    { name: "area", label: "Area" },
-    { name: "shiftDate", label: "Date", type: "date" },
-    { name: "shiftStart", label: "Start", type: "time" },
-    { name: "shiftEnd", label: "End", type: "time" },
-    { name: "status", label: "Status" },
-    { name: "notes", label: "Notes", type: "textarea", full: true },
-  ];
+  const editorFields = editorType === "timeline"
+    ? [
+        { name: "date", label: "Date", type: "date" },
+        { name: "time", label: "Time", type: "time" },
+        { name: "activity", label: "Activity", full: true },
+        { name: "location", label: "Location" },
+        { name: "lead", label: "Lead" },
+        { name: "dependencies", label: "Dependencies", full: true },
+        { name: "notes", label: "Notes", type: "textarea", full: true },
+      ]
+    : editorType === "task"
+      ? [
+          { name: "title", label: "Task title", full: true },
+          { name: "category", label: "Category" },
+          { name: "owner", label: "Owner" },
+          { name: "status", label: "Status" },
+          { name: "priority", label: "Priority" },
+          { name: "deadline", label: "Deadline", type: "date" },
+          { name: "notes", label: "Notes", type: "textarea", full: true },
+        ]
+      : [
+          { name: "name", label: "Volunteer name" },
+          { name: "role", label: "Role" },
+          { name: "area", label: "Area" },
+          { name: "shiftDate", label: "Shift date", type: "date" },
+          { name: "shiftStart", label: "Start", type: "time" },
+          { name: "shiftEnd", label: "End", type: "time" },
+          { name: "contact", label: "Contact", full: true },
+          { name: "status", label: "Status" },
+          { name: "notes", label: "Notes", type: "textarea", full: true },
+        ];
+
+  const editingLabel = editorType === "timeline" ? editor.activity : editorType === "task" ? editor.title : editor.role;
 
   return (
     <div className="ops-page">
       <div className="ops-toolbar">
-        <button className="ops-button" onClick={() => window.print()}>Print run of show</button>
+        <button type="button" className="ops-button" onClick={() => window.print()}>Print run of show</button>
       </div>
 
       <div className="ops-stat-grid ops-stat-grid-three">
@@ -88,19 +103,24 @@ export default function RunOfShowView() {
         <div className="ops-stat-card"><div className="ops-stat-label">Unassigned shifts</div><div className="ops-stat-value">{unassignedVolunteers.length}</div></div>
       </div>
 
-      <SectionCard title="Run of show editor" subtitle="Edit the day-of cards from up top instead of screaming at static lists.">
-        <div className="ops-tabs ops-tabs-inline">
-          <button className={`ops-tab ${editorType === "timeline" ? "is-active" : ""}`} onClick={() => startEdit("timeline", blankTimeline())}>Timeline</button>
-          <button className={`ops-tab ${editorType === "task" ? "is-active" : ""}`} onClick={() => startEdit("task", blankTask())}>Critical task</button>
-          <button className={`ops-tab ${editorType === "volunteer" ? "is-active" : ""}`} onClick={() => startEdit("volunteer", blankVolunteer())}>Volunteer shift</button>
+      <SectionCard title="Run of show editor" subtitle="Now the edit buttons do something visible instead of gaslighting you.">
+        <div className="ops-tabs">
+          {["timeline", "task", "volunteer"].map((type) => (
+            <button type="button" key={type} className={`ops-tab ${editorType === type ? "is-active" : ""}`} onClick={() => activateEditor(type, type === "timeline" ? blankTimeline() : type === "task" ? blankTask() : blankVolunteer())}>
+              {type === "task" ? "Critical task" : type === "volunteer" ? "Volunteer shift" : "Timeline item"}
+            </button>
+          ))}
         </div>
         <RecordEditor
-          title={editorType === "timeline" ? "Timeline card editor" : editorType === "task" ? "Critical task editor" : "Volunteer shift editor"}
+          title={editorType === "timeline" ? "Timeline editor" : editorType === "task" ? "Critical task editor" : "Volunteer shift editor"}
           value={editor}
           onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
-          onSave={saveEditor}
-          onCancel={resetEditor}
-          fields={editorType === "timeline" ? timelineEditorFields : editorType === "task" ? taskEditorFields : volunteerEditorFields}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          editorRef={editorRef}
+          autoFocusToken={focusToken}
+          editingLabel={editingLabel || ""}
+          fields={editorFields}
         />
       </SectionCard>
 
@@ -115,7 +135,7 @@ export default function RunOfShowView() {
                   <span>{formatDateTime(item.date, item.time)}</span>
                   <span>{item.location || "No location"}</span>
                   <span>{item.lead ? `Lead: ${item.lead}` : "No lead assigned"}</span>
-                  <button className="ops-button ops-button-small" onClick={() => startEdit("timeline", item)}>Edit</button>
+                  <button type="button" className="ops-button ops-button-small" onClick={() => activateEditor("timeline", item)}>Edit</button>
                 </li>
               )) : <li className="ops-list-empty">Timeline is empty.</li>}
             </ul>
@@ -130,7 +150,7 @@ export default function RunOfShowView() {
                   <span>{task.deadline ? formatDate(task.deadline) : "Verify date"}</span>
                   <span>{task.owner || "Unassigned"}</span>
                   <span>{task.status}</span>
-                  <button className="ops-button ops-button-small" onClick={() => startEdit("task", task)}>Edit</button>
+                  <button type="button" className="ops-button ops-button-small" onClick={() => activateEditor("task", task)}>Edit</button>
                 </li>
               )) : <li className="ops-list-empty">No critical tasks are open.</li>}
             </ul>
@@ -145,7 +165,7 @@ export default function RunOfShowView() {
                   <span>{item.name || "Unassigned"}</span>
                   <span>{formatDateTime(item.shiftDate, item.shiftStart)}{item.shiftEnd ? ` to ${item.shiftEnd}` : ""}</span>
                   <span>{item.area}</span>
-                  <button className="ops-button ops-button-small" onClick={() => startEdit("volunteer", item)}>Edit</button>
+                  <button type="button" className="ops-button ops-button-small" onClick={() => activateEditor("volunteer", item)}>Edit</button>
                 </li>
               )) : <li className="ops-list-empty">Volunteer board is empty.</li>}
             </ul>

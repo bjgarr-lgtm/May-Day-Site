@@ -18,12 +18,22 @@ export default function TasksView() {
   const [categoryFilter, setCategoryFilter] = React.useState("All");
   const [quickView, setQuickView] = React.useState("All");
   const [editor, setEditor] = React.useState(blankTask());
+  const [focusToken, setFocusToken] = React.useState(0);
+  const editorRef = React.useRef(null);
 
   const ownerOptions = React.useMemo(() => {
     const items = Array.from(new Set(store.tasks.map((task) => task.owner).filter(Boolean)));
     return items.sort();
   }, [store.tasks]);
   const [ownerFilter, setOwnerFilter] = React.useState("All");
+
+  const activateEditor = React.useCallback((next) => {
+    setEditor(next);
+    setFocusToken((current) => current + 1);
+    window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
 
   const filteredRows = store.tasks
     .filter((task) => {
@@ -56,76 +66,77 @@ export default function TasksView() {
     } else {
       store.addItem("tasks", editor);
     }
-    setEditor(blankTask());
+    activateEditor(blankTask());
   };
-
-  const columns = [
-    { key: "title", label: "Task" },
-    { key: "category", label: "Category" },
-    { key: "owner", label: "Owner" },
-    { key: "status", label: "Status", render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span> },
-    { key: "priority", label: "Priority", render: (value) => <span className={`ops-pill priority-${slug(value)}`}>{value}</span> },
-    {
-      key: "deadline",
-      label: "Deadline",
-      render: (value, row) => <span className={isOverdue(row.deadline) && row.status !== "Done" ? "ops-text-danger" : ""}>{formatDate(value)}</span>,
-    },
-    { key: "notes", label: "Notes" },
-  ];
 
   return (
     <div className="ops-page">
-      <SectionCard title={editor.title ? "Edit task" : "Add task"} subtitle="Add and edit from the top, because scrolling to the bottom of a hundred rows is clown behavior.">
+      <SectionCard title={editor.title ? "Edit task" : "Add task"} subtitle="Click edit and it actually goes somewhere now. Humanity advances.">
         <RecordEditor
           title={editor.title ? "Task editor" : "New task"}
           value={editor}
           onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
           onSave={handleSave}
-          onCancel={() => setEditor(blankTask())}
+          onCancel={() => activateEditor(blankTask())}
+          editorRef={editorRef}
+          autoFocusToken={focusToken}
+          editingLabel={editor.title || ""}
           fields={[
-            { name: "title", label: "Task", full: true },
+            { name: "title", label: "Task title", full: true },
             { name: "category", label: "Category", type: "select", options: categoryOptions },
             { name: "owner", label: "Owner" },
             { name: "status", label: "Status", type: "select", options: statusOptions },
             { name: "priority", label: "Priority", type: "select", options: priorityOptions },
             { name: "deadline", label: "Deadline", type: "date" },
-            { name: "notes", label: "Notes", type: "textarea", full: true },
+            { name: "notes", label: "Notes", type: "textarea", full: true, rows: 4 },
           ]}
         />
       </SectionCard>
 
       <SectionCard title="Tasks" subtitle="This is the spine. Everything real lives here.">
-        <div className="ops-tabs ops-tabs-inline">
+        <div className="ops-tabs">
           {quickViews.map((item) => (
-            <button key={item} className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
+            <button type="button" key={item} className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
               {item}
             </button>
           ))}
         </div>
 
-        <div className="ops-toolbar ops-toolbar-stack">
+        <div className="ops-toolbar">
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search tasks" />
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="All">All statuses</option>
-            {statusOptions.map((option) => <option key={option}>{option}</option>)}
+            <option>All</option>
+            {statusOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-            <option value="All">All categories</option>
-            {categoryOptions.map((option) => <option key={option}>{option}</option>)}
+            <option>All</option>
+            {categoryOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
           <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)}>
-            <option value="All">All owners</option>
-            {ownerOptions.map((option) => <option key={option}>{option}</option>)}
+            <option>All</option>
+            {ownerOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
         </div>
 
         <EditableTable
+          columns={[
+            { key: "title", label: "Task" },
+            { key: "category", label: "Category" },
+            { key: "owner", label: "Owner" },
+            { key: "status", label: "Status", render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span> },
+            { key: "priority", label: "Priority", render: (value) => <span className={`ops-pill priority-${slug(value)}`}>{value}</span> },
+            {
+              key: "deadline",
+              label: "Deadline",
+              render: (value, row) => <span className={isOverdue(row.deadline) && row.status !== "Done" ? "ops-text-danger" : ""}>{formatDate(value)}</span>,
+            },
+            { key: "notes", label: "Notes" },
+          ]}
           rows={filteredRows}
-          onEdit={setEditor}
+          onEdit={activateEditor}
           onDelete={(id) => store.removeItem("tasks", id)}
-          columns={columns}
-          rowClassName={(row) => (isOverdue(row.deadline) && row.status !== "Done" ? "is-overdue" : "")}
-          emptyLabel="No tasks match these filters. Humanity briefly achieved organization."
+          rowClassName={(row) => isOverdue(row.deadline) && row.status !== "Done" ? "is-overdue" : ""}
+          emptyLabel="No tasks match the current filters."
         />
       </SectionCard>
     </div>
