@@ -3,10 +3,10 @@
   --ops-panel: rgba(255, 255, 255, 0.08);
   --ops-panel-strong: rgba(255, 255, 255, 0.12);
   --ops-border: rgba(255, 255, 255, 0.14);
-  --ops-text: #f7f4ef;
-  --ops-muted: rgba(247, 244, 239, 0.74);
-  --ops-accent: #e3a7a5;
-  --ops-accent-2: #f2d8d6;
+  --ops-text: #000000;
+  --ops-muted: rgba(202, 106, 106, 0.811);
+  --ops-accent: #f3928f;
+  --ops-accent-2: #e8b1ad;
   --ops-danger: #ff8f8f;
   --ops-warning: #ffd37a;
   --ops-success: #9be0b0;
