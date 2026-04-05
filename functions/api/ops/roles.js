@@ -8,21 +8,57 @@ function json(data, status = 200) {
   })
 }
 
-const OPS_STATE_KEY = 'ops_state'
+function deriveRolesFromState(state) {
+  const volunteers = Array.isArray(state?.volunteers) ? state.volunteers : []
+  const grouped = new Map()
+
+  volunteers.forEach((item) => {
+    const role = (item.role || '').trim()
+    if (!role) return
+    const key = `${role}__${item.area || ''}`
+    const current = grouped.get(key) || {
+      role,
+      area: item.area || 'General',
+      shiftDate: item.shiftDate || '',
+      shiftStart: item.shiftStart || '',
+      shiftEnd: item.shiftEnd || '',
+      openSlots: 0,
+      notes: item.notes || '',
+    }
+    if (!item.name || item.status === 'Needs Assignment') current.openSlots += 1
+    grouped.set(key, current)
+  })
+
+  return Array.from(grouped.values()).sort((a, b) => {
+    const aKey = `${a.shiftDate} ${a.shiftStart} ${a.role}`
+    const bKey = `${b.shiftDate} ${b.shiftStart} ${b.role}`
+    return aKey.localeCompare(bKey)
+  })
+}
 
 export async function onRequestGet(context) {
   try {
     const db = context.env.MAYDAY_DB
-    if (!db) return json({ error: 'MAYDAY_DB binding is missing.' }, 500)
-    const row = await db.prepare('SELECT value_json FROM site_runtime_state WHERE key = ?').bind(OPS_STATE_KEY).first()
-    if (!row?.value_json) return json({ roles: [] })
+    if (!db) return json({ roles: [] })
+
+    const row = await db
+      .prepare('SELECT value_json FROM site_runtime_state WHERE key = ?')
+      .bind('ops_state')
+      .first()
+
+    if (!row?.value_json) {
+      return json({ roles: [] })
+    }
+
     let state = null
-    try { state = JSON.parse(row.value_json) } catch { state = null }
-    const roles = Array.isArray(state?.volunteers)
-      ? state.volunteers.filter((item) => item && item.role).filter((item) => !item.name || item.status === 'Needs Assignment' || item.status === 'Tentative').map((item) => ({ id: item.id, role: item.role, area: item.area || 'General', shiftDate: item.shiftDate || '', shiftStart: item.shiftStart || '', shiftEnd: item.shiftEnd || '', notes: item.notes || '' }))
-      : []
-    return json({ roles })
+    try {
+      state = JSON.parse(row.value_json)
+    } catch {
+      state = null
+    }
+
+    return json({ roles: deriveRolesFromState(state) })
   } catch (error) {
-    return json({ error: error?.message || 'Could not load volunteer roles.' }, 500)
+    return json({ roles: [], error: error?.message || 'Could not load roles.' }, 500)
   }
 }

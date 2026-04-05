@@ -44,6 +44,10 @@ function getDb(env) {
   return env.MAYDAY_DB
 }
 
+function normalizeType(type) {
+  return ['vendor', 'performer', 'volunteer'].includes(type) ? type : ''
+}
+
 export async function onRequestGet(context) {
   try {
     const db = getDb(context.env)
@@ -61,7 +65,7 @@ export async function onRequestGet(context) {
     if (authError) return authError
 
     const url = new URL(context.request.url)
-    const type = (url.searchParams.get('type') || '').trim()
+    const type = normalizeType((url.searchParams.get('type') || '').trim())
 
     let query = `
       SELECT
@@ -77,7 +81,7 @@ export async function onRequestGet(context) {
     `
     const bindings = []
 
-    if (type === 'vendor' || type === 'performer' || type === 'volunteer') {
+    if (type) {
       query += ' WHERE submission_type = ?'
       bindings.push(type)
     }

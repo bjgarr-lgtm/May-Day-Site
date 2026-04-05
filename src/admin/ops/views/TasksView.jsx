@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
@@ -13,13 +14,11 @@ const quickViews = ["All", "Overdue", "This Week", "Unowned", "Critical"];
 
 export default function TasksView() {
   const store = useOpsStore();
-  const editorRef = React.useRef(null);
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("All");
   const [categoryFilter, setCategoryFilter] = React.useState("All");
   const [quickView, setQuickView] = React.useState("All");
   const [editor, setEditor] = React.useState(blankTask());
-  const [showEditor, setShowEditor] = React.useState(false);
 
   const ownerOptions = React.useMemo(() => {
     const items = Array.from(new Set(store.tasks.map((task) => task.owner).filter(Boolean)));
@@ -47,21 +46,18 @@ export default function TasksView() {
       return new Date(a.deadline) - new Date(b.deadline);
     });
 
-  const openEditor = (next) => {
-    setEditor(next);
-    setShowEditor(true);
-    requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
-  };
-
   const handleSave = () => {
     if (!editor.title.trim()) {
       window.alert("Task title is required.");
       return;
     }
     const exists = store.tasks.some((item) => item.id === editor.id);
-    exists ? store.updateItem("tasks", editor.id, editor) : store.addItem("tasks", editor);
+    if (exists) {
+      store.updateItem("tasks", editor.id, editor);
+    } else {
+      store.addItem("tasks", editor);
+    }
     setEditor(blankTask());
-    setShowEditor(false);
   };
 
   const columns = [
@@ -80,14 +76,10 @@ export default function TasksView() {
 
   return (
     <div className="ops-page">
-      <SectionCard
-        title="Tasks"
-        subtitle="This is the spine. Everything real lives here."
-        actions={<button type="button" className="ops-button ops-button-small" onClick={() => openEditor(blankTask())}>{showEditor ? "Add another" : "Add task"}</button>}
-      >
-        <div className="ops-tabs ops-tabs-wrap">
+      <SectionCard title="Tasks" subtitle="This is the spine. Everything real lives here.">
+        <div className="ops-tabs">
           {quickViews.map((item) => (
-            <button type="button" key={item} className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
+            <button key={item} className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
               {item}
             </button>
           ))}
@@ -109,38 +101,33 @@ export default function TasksView() {
           </select>
         </div>
 
-        {showEditor && (
-          <div ref={editorRef} className="ops-editor-shell">
-            <RecordEditor
-              title={editor.title ? "Task editor" : "New task"}
-              editingLabel={editor.title || ""}
-              value={editor}
-              onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
-              onSave={handleSave}
-              onCancel={() => {
-                setEditor(blankTask());
-                setShowEditor(false);
-              }}
-              fields={[
-                { name: "title", label: "Task title", full: true },
-                { name: "category", label: "Category", type: "select", options: categoryOptions },
-                { name: "owner", label: "Owner" },
-                { name: "status", label: "Status", type: "select", options: statusOptions },
-                { name: "priority", label: "Priority", type: "select", options: priorityOptions },
-                { name: "deadline", label: "Deadline", type: "date" },
-                { name: "notes", label: "Notes", type: "textarea", full: true, rows: 4 },
-              ]}
-            />
-          </div>
-        )}
-
         <EditableTable
+          tableKey="tasks"
           columns={columns}
           rows={filteredRows}
-          onEdit={openEditor}
+          onEdit={setEditor}
           onDelete={(id) => store.removeItem("tasks", id)}
           rowClassName={(row) => isOverdue(row.deadline) && row.status !== "Done" ? "is-overdue" : ""}
           emptyLabel="No tasks match the current filters."
+        />
+      </SectionCard>
+
+      <SectionCard title={editor.title ? "Edit task" : "Add task"} subtitle="Quick entry, quick cleanup, less spreadsheet necromancy.">
+        <RecordEditor
+          title={editor.title ? "Task editor" : "New task"}
+          value={editor}
+          onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
+          onSave={handleSave}
+          onCancel={() => setEditor(blankTask())}
+          fields={[
+            { name: "title", label: "Task title", full: true },
+            { name: "category", label: "Category", type: "select", options: categoryOptions },
+            { name: "owner", label: "Owner" },
+            { name: "status", label: "Status", type: "select", options: statusOptions },
+            { name: "priority", label: "Priority", type: "select", options: priorityOptions },
+            { name: "deadline", label: "Deadline", type: "date" },
+            { name: "notes", label: "Notes", type: "textarea", full: true, rows: 4 },
+          ]}
         />
       </SectionCard>
     </div>

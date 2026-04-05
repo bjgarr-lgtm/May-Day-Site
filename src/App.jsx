@@ -10,7 +10,7 @@ import PerformerApplicationPage from './pages/PerformerApplicationPage'
 import VolunteerApplicationPage from './pages/VolunteerApplicationPage'
 import PosterArtContestPage from './pages/PosterArtContestPage'
 import ApplicationsDashboardPage from './pages/ApplicationsDashboardPage'
-import OpsApp from "./admin/ops";
+import OpsApp from './admin/ops'
 
 export default function App() {
   return (

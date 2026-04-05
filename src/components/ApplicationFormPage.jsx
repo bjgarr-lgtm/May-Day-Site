@@ -21,6 +21,19 @@ function normalizePayload(type, form) {
     }
   }
 
+  if (type === 'volunteer') {
+    return {
+      type,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      preferred_role: form.preferredRole.trim(),
+      backup_role: form.backupRole.trim(),
+      availability: form.availability.trim(),
+      notes: form.notes.trim(),
+    }
+  }
+
   return {
     type,
     name: form.name.trim(),
@@ -59,18 +72,28 @@ export default function ApplicationFormPage({
           needs: '',
           notes: '',
         }
-      : {
-          name: '',
-          email: '',
-          phone: '',
-          artistName: '',
-          location: '',
-          genre: '',
-          links: '',
-          description: '',
-          techNeeds: '',
-          notes: '',
-        }
+      : type === 'volunteer'
+        ? {
+            name: '',
+            email: '',
+            phone: '',
+            preferredRole: '',
+            backupRole: '',
+            availability: '',
+            notes: '',
+          }
+        : {
+            name: '',
+            email: '',
+            phone: '',
+            artistName: '',
+            location: '',
+            genre: '',
+            links: '',
+            description: '',
+            techNeeds: '',
+            notes: '',
+          }
   )
 
   const endpoint = useMemo(() => `/api/forms/${type}`, [type])
@@ -141,65 +164,35 @@ export default function ApplicationFormPage({
             <form onSubmit={onSubmit} className="mt-8 space-y-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                    contact name
-                  </span>
-                  <input
-                    className={baseFieldClasses}
-                    value={form.name}
-                    onChange={(e) => updateField('name', e.target.value)}
-                    required
-                  />
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">contact name</span>
+                  <input className={baseFieldClasses} value={form.name} onChange={(e) => updateField('name', e.target.value)} required />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                    email
-                  </span>
-                  <input
-                    type="email"
-                    className={baseFieldClasses}
-                    value={form.email}
-                    onChange={(e) => updateField('email', e.target.value)}
-                    required
-                  />
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">email</span>
+                  <input type="email" className={baseFieldClasses} value={form.email} onChange={(e) => updateField('email', e.target.value)} required />
                 </label>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                    phone
-                  </span>
-                  <input
-                    className={baseFieldClasses}
-                    value={form.phone}
-                    onChange={(e) => updateField('phone', e.target.value)}
-                  />
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">phone</span>
+                  <input className={baseFieldClasses} value={form.phone} onChange={(e) => updateField('phone', e.target.value)} />
                 </label>
 
                 {type === 'vendor' ? (
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                      vendor or organization name
-                    </span>
-                    <input
-                      className={baseFieldClasses}
-                      value={form.organizationName}
-                      onChange={(e) => updateField('organizationName', e.target.value)}
-                      required
-                    />
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">vendor or organization name</span>
+                    <input className={baseFieldClasses} value={form.organizationName} onChange={(e) => updateField('organizationName', e.target.value)} required />
+                  </label>
+                ) : type === 'volunteer' ? (
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">preferred role</span>
+                    <input className={baseFieldClasses} value={form.preferredRole} onChange={(e) => updateField('preferredRole', e.target.value)} required placeholder="welcome table, food support, art center, cleanup..." />
                   </label>
                 ) : (
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                      artist or band name
-                    </span>
-                    <input
-                      className={baseFieldClasses}
-                      value={form.artistName}
-                      onChange={(e) => updateField('artistName', e.target.value)}
-                      required
-                    />
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">artist or band name</span>
+                    <input className={baseFieldClasses} value={form.artistName} onChange={(e) => updateField('artistName', e.target.value)} required />
                   </label>
                 )}
               </div>
@@ -207,136 +200,78 @@ export default function ApplicationFormPage({
               {type === 'vendor' ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                      website
-                    </span>
-                    <input
-                      className={baseFieldClasses}
-                      value={form.website}
-                      onChange={(e) => updateField('website', e.target.value)}
-                    />
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">website</span>
+                    <input className={baseFieldClasses} value={form.website} onChange={(e) => updateField('website', e.target.value)} />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                      social links
-                    </span>
-                    <input
-                      className={baseFieldClasses}
-                      value={form.socialLinks}
-                      onChange={(e) => updateField('socialLinks', e.target.value)}
-                    />
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">social links</span>
+                    <input className={baseFieldClasses} value={form.socialLinks} onChange={(e) => updateField('socialLinks', e.target.value)} />
+                  </label>
+                </div>
+              ) : type === 'volunteer' ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">backup role</span>
+                    <input className={baseFieldClasses} value={form.backupRole} onChange={(e) => updateField('backupRole', e.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">availability</span>
+                    <input className={baseFieldClasses} value={form.availability} onChange={(e) => updateField('availability', e.target.value)} required placeholder="May 1, 9am to 2pm or all day" />
                   </label>
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                      location
-                    </span>
-                    <input
-                      className={baseFieldClasses}
-                      value={form.location}
-                      onChange={(e) => updateField('location', e.target.value)}
-                    />
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">location</span>
+                    <input className={baseFieldClasses} value={form.location} onChange={(e) => updateField('location', e.target.value)} />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                      genre or style
-                    </span>
-                    <input
-                      className={baseFieldClasses}
-                      value={form.genre}
-                      onChange={(e) => updateField('genre', e.target.value)}
-                    />
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">genre or style</span>
+                    <input className={baseFieldClasses} value={form.genre} onChange={(e) => updateField('genre', e.target.value)} />
                   </label>
                 </div>
               )}
 
-              <label className="block">
-                <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                  {type === 'vendor' ? 'what are you bringing' : 'links to music or media'}
-                </span>
-                <textarea
-                  rows={4}
-                  className={baseFieldClasses}
-                  value={type === 'vendor' ? form.description : form.links}
-                  onChange={(e) =>
-                    updateField(type === 'vendor' ? 'description' : 'links', e.target.value)
-                  }
-                  required
-                />
-              </label>
-
               {type === 'vendor' ? (
-                <label className="block">
-                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                    setup needs
-                  </span>
-                  <textarea
-                    rows={3}
-                    className={baseFieldClasses}
-                    value={form.needs}
-                    onChange={(e) => updateField('needs', e.target.value)}
-                  />
-                </label>
-              ) : (
                 <>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                      short description
-                    </span>
-                    <textarea
-                      rows={4}
-                      className={baseFieldClasses}
-                      value={form.description}
-                      onChange={(e) => updateField('description', e.target.value)}
-                      required
-                    />
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">what are you bringing</span>
+                    <textarea rows={4} className={baseFieldClasses} value={form.description} onChange={(e) => updateField('description', e.target.value)} required />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                      tech needs
-                    </span>
-                    <textarea
-                      rows={3}
-                      className={baseFieldClasses}
-                      value={form.techNeeds}
-                      onChange={(e) => updateField('techNeeds', e.target.value)}
-                    />
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">setup needs</span>
+                    <textarea rows={3} className={baseFieldClasses} value={form.needs} onChange={(e) => updateField('needs', e.target.value)} />
+                  </label>
+                </>
+              ) : type === 'volunteer' ? null : (
+                <>
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">links to music or media</span>
+                    <textarea rows={4} className={baseFieldClasses} value={form.links} onChange={(e) => updateField('links', e.target.value)} required />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">short description</span>
+                    <textarea rows={4} className={baseFieldClasses} value={form.description} onChange={(e) => updateField('description', e.target.value)} required />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">tech needs</span>
+                    <textarea rows={3} className={baseFieldClasses} value={form.techNeeds} onChange={(e) => updateField('techNeeds', e.target.value)} />
                   </label>
                 </>
               )}
 
               <label className="block">
-                <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">
-                  anything else
-                </span>
-                <textarea
-                  rows={3}
-                  className={baseFieldClasses}
-                  value={form.notes}
-                  onChange={(e) => updateField('notes', e.target.value)}
-                />
+                <span className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[#e3a7a5]/82">anything else</span>
+                <textarea rows={3} className={baseFieldClasses} value={form.notes} onChange={(e) => updateField('notes', e.target.value)} />
               </label>
 
-              {error ? (
-                <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-                  {error}
-                </div>
-              ) : null}
+              {error ? <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">{error}</div> : null}
 
               <div className="flex flex-wrap gap-3">
-                <button
-                  type="submit"
-                  disabled={status === 'submitting'}
-                  className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9] disabled:cursor-not-allowed disabled:opacity-70"
-                >
+                <button type="submit" disabled={status === 'submitting'} className="inline-flex min-h-12 items-center rounded-full bg-[#e3a7a5] px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#264636] transition hover:bg-[#efbbb9] disabled:cursor-not-allowed disabled:opacity-70">
                   {status === 'submitting' ? 'submitting...' : 'submit application'}
                 </button>
-                <Link
-                  to="/"
-                  className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10"
-                >
+                <Link to="/" className="inline-flex min-h-12 items-center rounded-full border border-[#e3a7a5]/18 bg-black/20 px-6 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#f7f1e8] transition hover:bg-[#e3a7a5]/10">
                   cancel
                 </Link>
               </div>
