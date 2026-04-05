@@ -1,14 +1,16 @@
+
 import React, { useMemo, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useOpsStore } from "./hooks/useOpsStore";
 import { exportOpsState, importOpsState } from "./utils/storage";
+import { isOverdue, isWithinDays, isToday } from "./utils/date";
 
 const navItems = [
-  { to: "/admin/ops/dashboard", label: "Dashboard" },
-  { to: "/admin/ops/tasks", label: "Tasks" },
-  { to: "/admin/ops/timeline", label: "Timeline" },
-  { to: "/admin/ops/programming", label: "Programming" },
-  { to: "/admin/ops/resources", label: "Resources" },
+  { to: "dashboard", label: "Dashboard" },
+  { to: "tasks", label: "Tasks" },
+  { to: "timeline", label: "Timeline" },
+  { to: "programming", label: "Programming" },
+  { to: "resources", label: "Resources" },
 ];
 
 export default function OpsLayout() {
@@ -17,14 +19,16 @@ export default function OpsLayout() {
   const [showImport, setShowImport] = useState(false);
 
   const overdueCount = useMemo(
-    () =>
-      store.tasks.filter((task) => {
-        if (!task.deadline || task.status === "Done") return false;
-        const endOfDay = new Date(task.deadline);
-        endOfDay.setHours(23, 59, 59, 999);
-        return endOfDay < new Date();
-      }).length,
+    () => store.tasks.filter((task) => task.status !== "Done" && isOverdue(task.deadline)).length,
     [store.tasks]
+  );
+  const weekCount = useMemo(
+    () => store.timeline.filter((item) => isWithinDays(item.date, 7)).length,
+    [store.timeline]
+  );
+  const todayCount = useMemo(
+    () => store.timeline.filter((item) => isToday(item.date)).length,
+    [store.timeline]
   );
 
   const handleExport = () => {
@@ -48,6 +52,12 @@ export default function OpsLayout() {
     }
   };
 
+  const handleReset = () => {
+    if (window.confirm("Replace your local edits with the workbook-seeded data?")) {
+      store.resetToWorkbookSeed();
+    }
+  };
+
   return (
     <div className="ops-shell">
       <aside className="ops-sidebar">
@@ -55,7 +65,7 @@ export default function OpsLayout() {
           <div className="ops-brand-mark">✶</div>
           <div>
             <div className="ops-brand-title">May Day Ops Console</div>
-            <div className="ops-brand-subtitle">Internal organizing backend</div>
+            <div className="ops-brand-subtitle">Private organizing backend</div>
           </div>
         </div>
 
@@ -64,9 +74,8 @@ export default function OpsLayout() {
             <NavLink
               key={item.to}
               to={item.to}
-              className={({ isActive }) =>
-                `ops-nav-link ${isActive ? "is-active" : ""}`
-              }
+              end={item.to === "dashboard"}
+              className={({ isActive }) => `ops-nav-link ${isActive ? "is-active" : ""}`}
             >
               {item.label}
             </NavLink>
@@ -83,17 +92,22 @@ export default function OpsLayout() {
             <strong>{overdueCount}</strong>
           </div>
           <div className="ops-sidebar-stat">
+            <span>Today</span>
+            <strong>{todayCount}</strong>
+          </div>
+          <div className="ops-sidebar-stat">
             <span>This week</span>
-            <strong>{store.timeline.length}</strong>
+            <strong>{weekCount}</strong>
           </div>
         </div>
 
         <div className="ops-sidebar-actions">
-          <button className="ops-button" onClick={handleExport}>
-            Export JSON
-          </button>
+          <button className="ops-button" onClick={handleExport}>Export JSON</button>
           <button className="ops-button ops-button-secondary" onClick={() => setShowImport((v) => !v)}>
             {showImport ? "Close Import" : "Import JSON"}
+          </button>
+          <button className="ops-button ops-button-ghost" onClick={handleReset}>
+            Reset to workbook seed
           </button>
         </div>
 
@@ -105,9 +119,7 @@ export default function OpsLayout() {
               placeholder="Paste exported JSON here"
               rows={8}
             />
-            <button className="ops-button" onClick={handleImport}>
-              Replace current data
-            </button>
+            <button className="ops-button" onClick={handleImport}>Replace current data</button>
           </div>
         )}
       </aside>
@@ -116,9 +128,13 @@ export default function OpsLayout() {
         <header className="ops-topbar">
           <div>
             <h1>May Day Operations</h1>
-            <p>
-              Structured replacement for the spreadsheet. Less chaos, fewer mystery tabs.
-            </p>
+            <p>Seeded from your workbook, stripped of credential nonsense, and organized into something usable.</p>
+          </div>
+          <div className="ops-topbar-note">
+            <strong>Import notes</strong>
+            <ul>
+              {(store.state.meta?.notes || []).map((note) => <li key={note}>{note}</li>)}
+            </ul>
           </div>
         </header>
         <Outlet />

@@ -1,30 +1,30 @@
+
 import React from "react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
 import RecordEditor from "../components/RecordEditor";
 import { blankTask } from "../seedData";
-import { formatDate, isOverdue } from "../utils/date";
+import { formatDate, isOverdue, isWithinDays } from "../utils/date";
 
 const statusOptions = ["Not Started", "In Progress", "Blocked", "Done"];
 const priorityOptions = ["Low", "Medium", "High", "Critical"];
-const categoryOptions = [
-  "Operations",
-  "Publicity",
-  "Food",
-  "Programming",
-  "Printing",
-  "Sponsors",
-  "Volunteers",
-  "Finance",
-];
+const categoryOptions = ["Operations", "Publicity", "Food", "Programming", "Printing", "Sponsors", "Volunteers", "Finance"];
+const quickViews = ["All", "Overdue", "This Week", "Unowned", "Critical"];
 
 export default function TasksView() {
   const store = useOpsStore();
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("All");
   const [categoryFilter, setCategoryFilter] = React.useState("All");
+  const [quickView, setQuickView] = React.useState("All");
   const [editor, setEditor] = React.useState(blankTask());
+
+  const ownerOptions = React.useMemo(() => {
+    const items = Array.from(new Set(store.tasks.map((task) => task.owner).filter(Boolean)));
+    return items.sort();
+  }, [store.tasks]);
+  const [ownerFilter, setOwnerFilter] = React.useState("All");
 
   const filteredRows = store.tasks
     .filter((task) => {
@@ -32,7 +32,13 @@ export default function TasksView() {
       const matchesQuery = !query || haystack.includes(query.toLowerCase());
       const matchesStatus = statusFilter === "All" || task.status === statusFilter;
       const matchesCategory = categoryFilter === "All" || task.category === categoryFilter;
-      return matchesQuery && matchesStatus && matchesCategory;
+      const matchesOwner = ownerFilter === "All" || task.owner === ownerFilter;
+      let matchesQuick = true;
+      if (quickView === "Overdue") matchesQuick = task.status !== "Done" && isOverdue(task.deadline);
+      if (quickView === "This Week") matchesQuick = task.status !== "Done" && isWithinDays(task.deadline, 7);
+      if (quickView === "Unowned") matchesQuick = !task.owner?.trim();
+      if (quickView === "Critical") matchesQuick = task.priority === "Critical" || task.priority === "High";
+      return matchesQuery && matchesStatus && matchesCategory && matchesOwner && matchesQuick;
     })
     .sort((a, b) => {
       if (!a.deadline) return 1;
@@ -45,7 +51,6 @@ export default function TasksView() {
       window.alert("Task title is required.");
       return;
     }
-
     const exists = store.tasks.some((item) => item.id === editor.id);
     if (exists) {
       store.updateItem("tasks", editor.id, editor);
@@ -59,24 +64,12 @@ export default function TasksView() {
     { key: "title", label: "Task" },
     { key: "category", label: "Category" },
     { key: "owner", label: "Owner" },
-    {
-      key: "status",
-      label: "Status",
-      render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span>,
-    },
-    {
-      key: "priority",
-      label: "Priority",
-      render: (value) => <span className={`ops-pill priority-${slug(value)}`}>{value}</span>,
-    },
+    { key: "status", label: "Status", render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span> },
+    { key: "priority", label: "Priority", render: (value) => <span className={`ops-pill priority-${slug(value)}`}>{value}</span> },
     {
       key: "deadline",
       label: "Deadline",
-      render: (value, row) => (
-        <span className={isOverdue(row.deadline) && row.status !== "Done" ? "ops-text-danger" : ""}>
-          {formatDate(value)}
-        </span>
-      ),
+      render: (value, row) => <span className={isOverdue(row.deadline) && row.status !== "Done" ? "ops-text-danger" : ""}>{formatDate(value)}</span>,
     },
     { key: "notes", label: "Notes" },
   ];
@@ -84,13 +77,16 @@ export default function TasksView() {
   return (
     <div className="ops-page">
       <SectionCard title="Tasks" subtitle="This is the spine. Everything real lives here.">
+        <div className="ops-tabs">
+          {quickViews.map((item) => (
+            <button key={item} className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
+              {item}
+            </button>
+          ))}
+        </div>
+
         <div className="ops-toolbar">
-          <input
-            className="ops-search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tasks"
-          />
+          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search tasks" />
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option>All</option>
             {statusOptions.map((item) => <option key={item}>{item}</option>)}
@@ -98,6 +94,10 @@ export default function TasksView() {
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
             <option>All</option>
             {categoryOptions.map((item) => <option key={item}>{item}</option>)}
+          </select>
+          <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)}>
+            <option>All</option>
+            {ownerOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
         </div>
 
@@ -107,6 +107,7 @@ export default function TasksView() {
           onEdit={setEditor}
           onDelete={(id) => store.removeItem("tasks", id)}
           rowClassName={(row) => isOverdue(row.deadline) && row.status !== "Done" ? "is-overdue" : ""}
+          emptyLabel="No tasks match the current filters."
         />
       </SectionCard>
 

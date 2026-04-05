@@ -1,6 +1,7 @@
+
 import React from "react";
 import { createInitialOpsState, normalizeOpsState } from "../seedData";
-import { loadOpsState, saveOpsState } from "../utils/storage";
+import { loadOpsState, saveOpsState, clearOpsState } from "../utils/storage";
 
 const OpsStoreContext = React.createContext(null);
 
@@ -43,6 +44,10 @@ export function OpsStoreProvider({ children }) {
     };
 
     const replaceState = (nextState) => setState(normalizeOpsState(nextState));
+    const resetToWorkbookSeed = () => {
+      clearOpsState();
+      setState(createInitialOpsState());
+    };
 
     return {
       state,
@@ -56,6 +61,7 @@ export function OpsStoreProvider({ children }) {
       updateItem,
       removeItem,
       replaceState,
+      resetToWorkbookSeed,
       setState,
     };
   }, [state]);

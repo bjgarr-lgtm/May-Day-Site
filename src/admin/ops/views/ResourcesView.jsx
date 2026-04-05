@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
@@ -6,7 +7,7 @@ import RecordEditor from "../components/RecordEditor";
 import { blankBudget, blankInventory, blankSponsor } from "../seedData";
 
 const sponsorStatusOptions = ["Pending", "Confirmed", "Declined", "Dead"];
-const sponsorTypeOptions = ["Sponsor", "Vendor", "Partner", "Food", "Printing"];
+const sponsorTypeOptions = ["Sponsor", "Vendor", "Partner", "Food", "Printing", "Priority Sponsor", "Vendor/Sponsor"];
 const resourceTabs = ["Inventory", "Sponsors", "Budget"];
 
 export default function ResourcesView() {
@@ -19,6 +20,8 @@ export default function ResourcesView() {
     if (tab === "Sponsors") setEditor(blankSponsor());
     if (tab === "Budget") setEditor(blankBudget());
   }, [tab]);
+
+  const totalBudget = store.budget.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
 
   const handleSave = () => {
     if (tab === "Inventory") {
@@ -45,14 +48,16 @@ export default function ResourcesView() {
 
   return (
     <div className="ops-page">
+      <div className="ops-stat-grid ops-stat-grid-three">
+        <div className="ops-stat-card"><div className="ops-stat-label">Inventory items</div><div className="ops-stat-value">{store.inventory.length}</div></div>
+        <div className="ops-stat-card"><div className="ops-stat-label">Sponsors / vendors</div><div className="ops-stat-value">{store.sponsors.length}</div></div>
+        <div className="ops-stat-card"><div className="ops-stat-label">Budget tracked</div><div className="ops-stat-value">${'{'}totalBudget.toFixed(0){'}'}</div></div>
+      </div>
+
       <SectionCard title="Resources" subtitle="Inventory, sponsors, budget. One area, three sane tables.">
         <div className="ops-tabs">
           {resourceTabs.map((item) => (
-            <button
-              key={item}
-              className={`ops-tab ${item === tab ? "is-active" : ""}`}
-              onClick={() => setTab(item)}
-            >
+            <button key={item} className={`ops-tab ${item === tab ? "is-active" : ""}`} onClick={() => setTab(item)}>
               {item}
             </button>
           ))}
@@ -84,11 +89,7 @@ export default function ResourcesView() {
               { key: "name", label: "Name" },
               { key: "type", label: "Type" },
               { key: "contact", label: "Contact" },
-              {
-                key: "status",
-                label: "Status",
-                render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span>,
-              },
+              { key: "status", label: "Status", render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span> },
               { key: "notes", label: "Notes" },
             ]}
             emptyLabel="No sponsors yet."
@@ -103,12 +104,8 @@ export default function ResourcesView() {
             columns={[
               { key: "item", label: "Item" },
               { key: "category", label: "Category" },
-              { key: "cost", label: "Cost" },
-              {
-                key: "paid",
-                label: "Paid?",
-                render: (value) => (value ? "Yes" : "No"),
-              },
+              { key: "cost", label: "Cost", render: (value) => (value ? `$${Number(value).toFixed(0)}` : "—") },
+              { key: "paid", label: "Paid?", render: (value) => (value ? "Yes" : "No") },
               { key: "notes", label: "Notes" },
             ]}
             emptyLabel="No budget items yet."
@@ -116,7 +113,7 @@ export default function ResourcesView() {
         )}
       </SectionCard>
 
-      <SectionCard title={`Add ${tab.slice(0, -1) || tab}`}>
+      <SectionCard title={`Add ${tab === "Inventory" ? "inventory item" : tab === "Sponsors" ? "sponsor or vendor" : "budget line"}`}>
         {tab === "Inventory" && (
           <RecordEditor
             title="Inventory editor"
@@ -162,7 +159,7 @@ export default function ResourcesView() {
             fields={[
               { name: "item", label: "Item", full: true },
               { name: "category", label: "Category" },
-              { name: "cost", label: "Cost" },
+              { name: "cost", label: "Cost", type: "number" },
               { name: "paid", label: "Paid", type: "checkbox" },
               { name: "notes", label: "Notes", type: "textarea", full: true },
             ]}

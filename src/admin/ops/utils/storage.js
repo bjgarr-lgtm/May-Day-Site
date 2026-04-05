@@ -1,4 +1,5 @@
-const STORAGE_KEY = "mayday-ops-console-v1";
+
+const STORAGE_KEY = "mayday-ops-console-v2";
 
 export function loadOpsState() {
   try {
@@ -12,6 +13,14 @@ export function loadOpsState() {
 export function saveOpsState(state) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // fail quietly
+  }
+}
+
+export function clearOpsState() {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
   } catch {
     // fail quietly
   }

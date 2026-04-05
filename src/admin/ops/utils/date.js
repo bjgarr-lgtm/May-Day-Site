@@ -1,15 +1,30 @@
-export function isOverdue(dateValue) {
-  if (!dateValue) return false;
-  const d = new Date(dateValue);
-  d.setHours(23, 59, 59, 999);
-  return d < new Date();
+
+export function isOverdue(value) {
+  if (!value) return false;
+  const endOfDay = new Date(value);
+  if (Number.isNaN(endOfDay.getTime())) return false;
+  endOfDay.setHours(23, 59, 59, 999);
+  return endOfDay < new Date();
 }
 
-export function toDateInput(value) {
-  if (!value) return "";
+export function isToday(value) {
+  if (!value) return false;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+}
+
+export function isWithinDays(value, days = 7) {
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  const max = new Date();
+  max.setDate(now.getDate() + days);
+  return date >= startOfToday() && date <= max;
 }
 
 export function formatDate(value) {

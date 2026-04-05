@@ -1,10 +1,11 @@
+
 import React from "react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
 import RecordEditor from "../components/RecordEditor";
 import { blankTimeline } from "../seedData";
-import { formatDateTime } from "../utils/date";
+import { formatDateTime, isToday, isWithinDays } from "../utils/date";
 
 export default function TimelineView() {
   const store = useOpsStore();
@@ -14,6 +15,9 @@ export default function TimelineView() {
     const bDate = `${b.date || ""} ${b.time || ""}`;
     return new Date(aDate) - new Date(bDate);
   });
+
+  const todayCount = rows.filter((row) => isToday(row.date)).length;
+  const weekCount = rows.filter((row) => isWithinDays(row.date, 7)).length;
 
   const handleSave = () => {
     if (!editor.activity.trim()) {
@@ -31,17 +35,18 @@ export default function TimelineView() {
 
   return (
     <div className="ops-page">
+      <div className="ops-stat-grid ops-stat-grid-two">
+        <div className="ops-stat-card"><div className="ops-stat-label">Today</div><div className="ops-stat-value">{todayCount}</div></div>
+        <div className="ops-stat-card"><div className="ops-stat-label">This week</div><div className="ops-stat-value">{weekCount}</div></div>
+      </div>
+
       <SectionCard title="Timeline" subtitle="Schedule is its own thing. Your spreadsheet kept pretending otherwise.">
         <EditableTable
           rows={rows}
           onEdit={setEditor}
           onDelete={(id) => store.removeItem("timeline", id)}
           columns={[
-            {
-              key: "date",
-              label: "When",
-              render: (_, row) => formatDateTime(row.date, row.time),
-            },
+            { key: "date", label: "When", render: (_, row) => formatDateTime(row.date, row.time) },
             { key: "activity", label: "What happens" },
             { key: "location", label: "Location" },
             { key: "lead", label: "Lead" },
