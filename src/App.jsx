@@ -9,6 +9,7 @@ import VendorApplicationPage from './pages/VendorApplicationPage'
 import PerformerApplicationPage from './pages/PerformerApplicationPage'
 import PosterArtContestPage from './pages/PosterArtContestPage'
 import ApplicationsDashboardPage from './pages/ApplicationsDashboardPage'
+import MayDayOpsApp from "./admin/ops";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/admin" element={<ApplicationsDashboardPage />} />
         <Route path="/applications" element={<Navigate to="/admin" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/ops-test" element={<MayDayOpsApp />} />
       </Routes>
     </>
   )
