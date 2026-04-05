@@ -77,7 +77,7 @@ export async function onRequestGet(context) {
     `
     const bindings = []
 
-    if (type === 'vendor' || type === 'performer') {
+    if (type === 'vendor' || type === 'performer' || type === 'volunteer') {
       query += ' WHERE submission_type = ?'
       bindings.push(type)
     }

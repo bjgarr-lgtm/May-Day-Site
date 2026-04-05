@@ -117,12 +117,6 @@ export default function ApplicationFormPage({
           </Link>
         </div>
 
-        <Link to="/admin/ops" style={{ textDecoration: "none" }}>
-          <button type="button">
-            May Day Ops Console
-          </button>
-        </Link>
-
         <div className="rounded-[2rem] border border-[#e3a7a5]/18 bg-black/20 p-6 sm:p-8">
           <p className="text-xs uppercase tracking-[0.24em] text-[#e3a7a5]/80">
             application
