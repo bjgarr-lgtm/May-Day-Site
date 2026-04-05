@@ -21,7 +21,7 @@ export function blankTask() {
     priority: DEFAULT_PRIORITY,
     deadline: "",
     notes: "",
-  };
+  });
 }
 
 export function blankTimeline() {
@@ -3606,7 +3606,7 @@ export function createInitialOpsState() {
 ],
     volunteers: buildVolunteerSeed(),
     runOfShow: deriveRunOfShowChecklist([], []),
-  });
+  };
 }
 
 export function normalizeOpsState(input) {
