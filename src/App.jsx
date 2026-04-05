@@ -7,6 +7,7 @@ import HuntStopPage from './pages/HuntStopPage'
 import LaborHistoryPage from './pages/LaborHistoryPage'
 import VendorApplicationPage from './pages/VendorApplicationPage'
 import PerformerApplicationPage from './pages/PerformerApplicationPage'
+import VolunteerApplicationPage from './pages/VolunteerApplicationPage'
 import PosterArtContestPage from './pages/PosterArtContestPage'
 import ApplicationsDashboardPage from './pages/ApplicationsDashboardPage'
 import OpsApp from "./admin/ops";
@@ -22,11 +23,12 @@ export default function App() {
         <Route path="/labor-history" element={<LaborHistoryPage />} />
         <Route path="/vendor-application" element={<VendorApplicationPage />} />
         <Route path="/performer-application" element={<PerformerApplicationPage />} />
+        <Route path="/volunteer-application" element={<VolunteerApplicationPage />} />
         <Route path="/poster-art-contest" element={<PosterArtContestPage />} />
         <Route path="/admin" element={<ApplicationsDashboardPage />} />
         <Route path="/applications" element={<Navigate to="/admin" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/admin/ops/*" element={<OpsApp />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   )

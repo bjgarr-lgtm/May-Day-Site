@@ -16,14 +16,15 @@ export default function ResourcesView() {
   const [query, setQuery] = React.useState("");
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editor, setEditor] = React.useState(blankInventory());
+  const [syncing, setSyncing] = React.useState(false);
 
   const inventoryRows = store.inventory.filter((row) => `${row.item} ${row.location} ${row.owner} ${row.condition} ${row.notes}`.toLowerCase().includes(query.toLowerCase()));
   const sponsorRows = store.sponsors.filter((row) => `${row.name} ${row.type} ${row.contact} ${row.status} ${row.notes}`.toLowerCase().includes(query.toLowerCase()));
   const budgetRows = store.budget.filter((row) => `${row.item} ${row.category} ${row.notes}`.toLowerCase().includes(query.toLowerCase()));
 
-  const inventoryColumns = [{ key: "item", label: "Item" },{ key: "quantity", label: "Qty" },{ key: "location", label: "Location" },{ key: "owner", label: "Owner" },{ key: "condition", label: "Condition" },{ key: "notes", label: "Notes" }];
-  const sponsorColumns = [{ key: "name", label: "Name" },{ key: "type", label: "Type" },{ key: "contact", label: "Contact" },{ key: "status", label: "Status", render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span>, exportValue: (value) => value },{ key: "notes", label: "Notes" }];
-  const budgetColumns = [{ key: "item", label: "Item" },{ key: "category", label: "Category" },{ key: "cost", label: "Cost", render: (value) => value ? `$${Number(value).toFixed(0)}` : "—", exportValue: (value) => value || "" },{ key: "paid", label: "Paid?", render: (value) => (value ? "Yes" : "No"), exportValue: (value) => value ? 'Yes' : 'No' },{ key: "notes", label: "Notes" }];
+  const inventoryColumns = [{ key: "item", label: "Item" },{ key: "quantity", label: "Qty", width: 90 },{ key: "location", label: "Location" },{ key: "owner", label: "Owner" },{ key: "condition", label: "Condition", width: 120 },{ key: "notes", label: "Notes", width: 220 }];
+  const sponsorColumns = [{ key: "name", label: "Name" },{ key: "type", label: "Type", width: 140 },{ key: "contact", label: "Contact", width: 220 },{ key: "status", label: "Status", width: 120, render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span>, exportValue: (value) => value },{ key: "notes", label: "Notes", width: 240 }];
+  const budgetColumns = [{ key: "item", label: "Item" },{ key: "category", label: "Category", width: 120 },{ key: "cost", label: "Cost", width: 100, render: (value) => value ? `$${Number(value).toFixed(0)}` : "—", exportValue: (value) => value || "" },{ key: "paid", label: "Paid?", width: 90, render: (value) => (value ? "Yes" : "No"), exportValue: (value) => value ? 'Yes' : 'No' },{ key: "notes", label: "Notes", width: 220 }];
 
   const handleSave = () => {
     if (tab === "Inventory") {
@@ -51,6 +52,17 @@ export default function ResourcesView() {
   const handleEdit = (row) => { setEditor(row); setEditorOpen(true); window.requestAnimationFrame(() => document.querySelector('.ops-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' })); };
   const currentRows = tab === 'Inventory' ? inventoryRows : tab === 'Sponsors' ? sponsorRows : budgetRows;
   const currentColumns = tab === 'Inventory' ? inventoryColumns : tab === 'Sponsors' ? sponsorColumns : budgetColumns;
+  const syncVendors = async () => {
+    try {
+      setSyncing(true);
+      const count = await store.syncVendorsFromForms();
+      window.alert(`Synced ${count} vendor submissions into resources.`);
+    } catch (error) {
+      window.alert(error?.message || 'Could not sync vendors.');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <div className="ops-page">
@@ -59,11 +71,12 @@ export default function ResourcesView() {
         <div className="ops-toolbar">
           <button type="button" className="ops-button ops-button-small" onClick={() => exportRowsAsCsv(`${tab.toLowerCase()}.csv`, currentColumns, currentRows)}>Export CSV</button>
           <button type="button" className="ops-button ops-button-small ops-button-secondary" onClick={() => window.print()}>Print</button>
+          {tab === 'Sponsors' ? <button type="button" className="ops-button ops-button-small ops-button-secondary" onClick={syncVendors} disabled={syncing}>{syncing ? 'Syncing…' : 'Sync vendors'}</button> : null}
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${tab.toLowerCase()}`} />
         </div>
-        {tab === "Inventory" && <EditableTable rows={inventoryRows} onEdit={handleEdit} onDelete={(id) => store.removeItem("inventory", id)} columns={inventoryColumns} emptyLabel="No inventory yet." />}
-        {tab === "Sponsors" && <EditableTable rows={sponsorRows} onEdit={handleEdit} onDelete={(id) => store.removeItem("sponsors", id)} columns={sponsorColumns} emptyLabel="No sponsors yet." />}
-        {tab === "Budget" && <EditableTable rows={budgetRows} onEdit={handleEdit} onDelete={(id) => store.removeItem("budget", id)} columns={budgetColumns} emptyLabel="No budget items yet." />}
+        {tab === "Inventory" && <EditableTable tableKey="inventory" rows={inventoryRows} onEdit={handleEdit} onDelete={(id) => store.removeItem("inventory", id)} columns={inventoryColumns} emptyLabel="No inventory yet." />}
+        {tab === "Sponsors" && <EditableTable tableKey="sponsors" rows={sponsorRows} onEdit={handleEdit} onDelete={(id) => store.removeItem("sponsors", id)} columns={sponsorColumns} emptyLabel="No sponsors yet." />}
+        {tab === "Budget" && <EditableTable tableKey="budget" rows={budgetRows} onEdit={handleEdit} onDelete={(id) => store.removeItem("budget", id)} columns={budgetColumns} emptyLabel="No budget items yet." />}
       </SectionCard>
       <SectionCard title={`${editor.id ? 'Edit' : 'Add'} ${tab === 'Inventory' ? 'inventory item' : tab === 'Sponsors' ? 'sponsor or vendor' : 'budget line'}`}>
         {tab === "Inventory" && <RecordEditor title="Inventory editor" value={editor} isOpen={editorOpen} onToggle={() => setEditorOpen((v) => !v)} mode={editor.id ? 'edit' : 'add'} onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))} onSave={handleSave} onCancel={() => { setEditor(blankInventory()); setEditorOpen(false); }} fields={[{ name: "item", label: "Item", full: true },{ name: "quantity", label: "Quantity" },{ name: "location", label: "Location" },{ name: "owner", label: "Owner" },{ name: "condition", label: "Condition" },{ name: "notes", label: "Notes", type: "textarea", full: true }]} />}

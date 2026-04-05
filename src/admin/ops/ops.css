@@ -46,8 +46,8 @@
   border-radius: var(--ops-radius);
 }
 .ops-sidebar-card { margin-top:24px; padding:14px; display:grid; gap:10px; }
-.ops-sidebar-stat { display:flex; justify-content:space-between; gap:12px; color:rgba(255,255,255,0.82); }
-.ops-sidebar-stat strong { color:#fff; }
+.ops-sidebar-stat { display:flex; justify-content:space-between; gap:12px; color:rgba(41, 41, 41, 0.973); }
+.ops-sidebar-stat strong { color:#000000; }
 .ops-sidebar-actions { display:grid; gap:10px; margin-top:18px; }
 
 .ops-button {
@@ -161,3 +161,16 @@ select option { color: #111; background: #fff; }
   .ops-sidebar { border-right:0; border-bottom:1px solid rgba(255,255,255,0.14); }
   .ops-stat-grid,.ops-dashboard-grid,.ops-form-grid,.ops-run-grid { grid-template-columns:1fr; }
 }
+
+.ops-th-inner { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+.ops-col-resize {
+  width:10px;
+  min-width:10px;
+  height:18px;
+  border:0;
+  cursor:col-resize;
+  background:linear-gradient(90deg, transparent 0, transparent 40%, rgba(38,70,54,0.34) 40%, rgba(38,70,54,0.34) 60%, transparent 60%, transparent 100%);
+  border-radius:999px;
+  padding:0;
+}
+.ops-col-resize:hover { background:linear-gradient(90deg, transparent 0, transparent 35%, rgba(38,70,54,0.64) 35%, rgba(38,70,54,0.64) 65%, transparent 65%, transparent 100%); }
