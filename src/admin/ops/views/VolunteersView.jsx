@@ -16,18 +16,12 @@ function statusSlug(value = "") {
 
 export default function VolunteersView() {
   const store = useOpsStore();
+  const editorRef = React.useRef(null);
   const [editor, setEditor] = React.useState(blankVolunteer());
+  const [showEditor, setShowEditor] = React.useState(false);
   const [quickView, setQuickView] = React.useState("All");
   const [areaFilter, setAreaFilter] = React.useState("All");
   const [query, setQuery] = React.useState("");
-  const [focusToken, setFocusToken] = React.useState(0);
-  const editorRef = React.useRef(null);
-
-  const activateEditor = React.useCallback((next) => {
-    setEditor(next);
-    setFocusToken((current) => current + 1);
-    window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
-  }, []);
 
   const rows = store.volunteers
     .filter((item) => {
@@ -53,7 +47,14 @@ export default function VolunteersView() {
     };
     const exists = store.volunteers.some((item) => item.id === next.id);
     exists ? store.updateItem("volunteers", next.id, next) : store.addItem("volunteers", next);
-    activateEditor(blankVolunteer());
+    setEditor(blankVolunteer());
+    setShowEditor(false);
+  };
+
+  const openEditor = (next) => {
+    setEditor(next);
+    setShowEditor(true);
+    requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   };
 
   const openCount = store.volunteers.filter((item) => !item.name?.trim() || item.status === "Needs Assignment").length;
@@ -67,33 +68,8 @@ export default function VolunteersView() {
         <div className="ops-stat-card"><div className="ops-stat-label">Checked in</div><div className="ops-stat-value">{checkedInCount}</div></div>
       </div>
 
-      <SectionCard title={editor.role ? "Edit volunteer shift" : "Add volunteer shift"} subtitle="Now the edit button actually takes you here instead of silently doing witchcraft.">
-        <RecordEditor
-          title="Volunteer editor"
-          value={editor}
-          onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
-          onSave={handleSave}
-          onCancel={() => activateEditor(blankVolunteer())}
-          editorRef={editorRef}
-          autoFocusToken={focusToken}
-          editingLabel={editor.role || editor.name || ""}
-          fields={[
-            { name: "name", label: "Volunteer name" },
-            { name: "role", label: "Role" },
-            { name: "area", label: "Area", type: "select", options: areas },
-            { name: "contact", label: "Contact", full: true },
-            { name: "shiftDate", label: "Shift date", type: "date" },
-            { name: "shiftStart", label: "Start", type: "time" },
-            { name: "shiftEnd", label: "End", type: "time" },
-            { name: "status", label: "Status", type: "select", options: volunteerStatuses },
-            { name: "checkedIn", label: "Checked in", type: "checkbox" },
-            { name: "notes", label: "Notes", type: "textarea", full: true, rows: 4 },
-          ]}
-        />
-      </SectionCard>
-
-      <SectionCard title="Volunteer board" subtitle="Day-of staffing without turning your brain into powder.">
-        <div className="ops-tabs">
+      <SectionCard title="Volunteer board" subtitle="Day-of staffing without turning your brain into powder." actions={<button type="button" className="ops-button ops-button-small" onClick={() => openEditor(blankVolunteer())}>{showEditor ? "Add another" : "Add volunteer shift"}</button>}>
+        <div className="ops-tabs ops-tabs-wrap">
           {quickViews.map((item) => (
             <button type="button" key={item} className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
               {item}
@@ -109,9 +85,37 @@ export default function VolunteersView() {
           </select>
         </div>
 
+        {showEditor && (
+          <div ref={editorRef} className="ops-editor-shell">
+            <RecordEditor
+              title="Volunteer editor"
+              editingLabel={editor.role || editor.name || ""}
+              value={editor}
+              onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
+              onSave={handleSave}
+              onCancel={() => {
+                setEditor(blankVolunteer());
+                setShowEditor(false);
+              }}
+              fields={[
+                { name: "name", label: "Volunteer name" },
+                { name: "role", label: "Role" },
+                { name: "area", label: "Area", type: "select", options: areas },
+                { name: "contact", label: "Contact", full: true },
+                { name: "shiftDate", label: "Shift date", type: "date" },
+                { name: "shiftStart", label: "Start", type: "time" },
+                { name: "shiftEnd", label: "End", type: "time" },
+                { name: "status", label: "Status", type: "select", options: volunteerStatuses },
+                { name: "checkedIn", label: "Checked in", type: "checkbox" },
+                { name: "notes", label: "Notes", type: "textarea", full: true, rows: 4 },
+              ]}
+            />
+          </div>
+        )}
+
         <EditableTable
           rows={rows}
-          onEdit={activateEditor}
+          onEdit={openEditor}
           onDelete={(id) => store.removeItem("volunteers", id)}
           columns={[
             { key: "name", label: "Volunteer", render: (value) => value || "Unassigned" },

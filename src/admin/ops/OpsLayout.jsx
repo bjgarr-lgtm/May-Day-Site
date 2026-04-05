@@ -1,8 +1,6 @@
-
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useOpsStore } from "./hooks/useOpsStore";
-import { exportOpsState, importOpsState } from "./utils/storage";
 import { isOverdue, isWithinDays, isToday } from "./utils/date";
 
 const navItems = [
@@ -17,8 +15,6 @@ const navItems = [
 
 export default function OpsLayout() {
   const store = useOpsStore();
-  const [importText, setImportText] = useState("");
-  const [showImport, setShowImport] = useState(false);
 
   const overdueCount = useMemo(
     () => store.tasks.filter((task) => task.status !== "Done" && isOverdue(task.deadline)).length,
@@ -32,33 +28,6 @@ export default function OpsLayout() {
     () => store.timeline.filter((item) => isToday(item.date)).length,
     [store.timeline]
   );
-
-  const handleExport = () => {
-    const blob = new Blob([exportOpsState(store.state)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "mayday-ops-console-export.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImport = () => {
-    try {
-      const parsed = importOpsState(importText);
-      store.replaceState(parsed);
-      setImportText("");
-      setShowImport(false);
-    } catch (error) {
-      window.alert(error.message || "Import failed.");
-    }
-  };
-
-  const handleReset = () => {
-    if (window.confirm("Replace your local edits with the workbook-seeded data?")) {
-      store.resetToWorkbookSeed();
-    }
-  };
 
   return (
     <div className="ops-shell">
@@ -107,42 +76,16 @@ export default function OpsLayout() {
           </div>
         </div>
 
-        <div className="ops-sidebar-actions">
-          <button className="ops-button" onClick={handleExport}>Export JSON</button>
-          <button className="ops-button ops-button-secondary" onClick={() => setShowImport((v) => !v)}>
-            {showImport ? "Close Import" : "Import JSON"}
-          </button>
-          <button className="ops-button ops-button-ghost" onClick={handleReset}>
-            Reset to workbook seed
-          </button>
+        <div className="ops-sidebar-help">
+          <p>Use Run of Show when you want a printable day-of page. Browser print already gives you PDF output without dragging JSON around like a cursed backup ritual.</p>
         </div>
-
-        {showImport && (
-          <div className="ops-import-panel">
-            <textarea
-              value={importText}
-              onChange={(e) => setImportText(e.target.value)}
-              placeholder="Paste exported JSON here"
-              rows={8}
-            />
-            <button className="ops-button" onClick={handleImport}>Replace current data</button>
-          </div>
-        )}
       </aside>
 
       <main className="ops-main">
-        <header className="ops-topbar">
-          <div>
-            <h1>May Day Operations</h1>
-            <p>Phase three adds volunteers and a printable run of show, because day-of logistics tend to become a knife fight if you do not.</p>
-          </div>
-          <div className="ops-topbar-note">
-            <strong>Import notes</strong>
-            <ul>
-              {(store.state.meta?.notes || []).map((note) => <li key={note}>{note}</li>)}
-            </ul>
-          </div>
-        </header>
+        <div className="ops-topbar">
+          <h1>Operations Backend</h1>
+          <p>Fast read, fast edits, less scrolling, zero sideways nonsense.</p>
+        </div>
         <Outlet />
       </main>
     </div>
