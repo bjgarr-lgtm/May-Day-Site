@@ -222,146 +222,6 @@ function computeTaskDependencies(tasks) {
   }));
 }
 
-
-function volunteerCandidatePool(volunteers) {
-  const seen = new Set();
-  return volunteers
-    .filter((item) => normalizeText(item.name))
-    .map((item) => ({
-      name: item.name,
-      role: item.role || "",
-      area: item.area || "",
-      contact: item.contact || "",
-      status: item.status || "",
-      shiftDate: item.shiftDate || "",
-      shiftStart: item.shiftStart || "",
-      shiftEnd: item.shiftEnd || "",
-    }))
-    .filter((candidate) => {
-      const key = `${slugify(candidate.name)}|${slugify(candidate.contact)}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-}
-
-function scoreVolunteerSuggestion(shift, candidate, volunteers) {
-  let score = 0;
-  const reasons = [];
-
-  if (slugify(shift.role) && slugify(candidate.role) && (slugify(shift.role).includes(slugify(candidate.role)) || slugify(candidate.role).includes(slugify(shift.role)))) {
-    score += 5;
-    reasons.push("role match");
-  }
-
-  if (slugify(shift.area) && slugify(candidate.area) && (slugify(shift.area).includes(slugify(candidate.area)) || slugify(candidate.area).includes(slugify(shift.area)))) {
-    score += 3;
-    reasons.push("area match");
-  }
-
-  const priorAssignments = volunteers.filter((item) => slugify(item.name) === slugify(candidate.name)).length;
-  if (priorAssignments === 0) {
-    score += 2;
-    reasons.push("currently unassigned");
-  } else if (priorAssignments < 2) {
-    score += 1;
-    reasons.push("light load");
-  } else {
-    score -= priorAssignments;
-  }
-
-  const sameDayAssignments = volunteers.filter(
-    (item) =>
-      slugify(item.name) === slugify(candidate.name) &&
-      sameDay(item.shiftDate, shift.shiftDate)
-  );
-
-  const shiftRange = {
-    start: parseClockToMinutes(shift.shiftStart),
-    end: parseClockToMinutes(shift.shiftEnd || shift.shiftStart),
-  };
-  if (shiftRange.start != null && shiftRange.end != null && shiftRange.end <= shiftRange.start) shiftRange.end += 60;
-
-  let conflicting = false;
-  sameDayAssignments.forEach((item) => {
-    const range = {
-      start: parseClockToMinutes(item.shiftStart),
-      end: parseClockToMinutes(item.shiftEnd || item.shiftStart),
-    };
-    if (range.start != null && range.end != null && range.end <= range.start) range.end += 60;
-    if (rangesOverlap(shiftRange, range)) conflicting = true;
-  });
-
-  if (conflicting) {
-    score -= 100;
-    reasons.push("conflicts with existing shift");
-  } else if (sameDayAssignments.length) {
-    score += 1;
-    reasons.push("available same day");
-  }
-
-  return { score, reasons };
-}
-
-function computeVolunteerSuggestions(volunteers) {
-  const shifts = volunteers.filter((item) => !normalizeText(item.name) || item.status === "Needs Assignment");
-  const candidates = volunteerCandidatePool(volunteers);
-
-  return shifts.map((shift) => {
-    const ranked = candidates
-      .map((candidate) => {
-        const scored = scoreVolunteerSuggestion(shift, candidate, volunteers);
-        return {
-          name: candidate.name,
-          contact: candidate.contact,
-          role: candidate.role,
-          area: candidate.area,
-          score: scored.score,
-          reasons: scored.reasons,
-        };
-      })
-      .filter((candidate) => candidate.score > -50)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3);
-
-    return {
-      shiftId: shift.id,
-      role: shift.role,
-      area: shift.area,
-      shiftDate: shift.shiftDate,
-      shiftStart: shift.shiftStart,
-      shiftEnd: shift.shiftEnd,
-      candidates: ranked,
-    };
-  }).filter((item) => item.candidates.length);
-}
-
-function computeDayOfView(state) {
-  const today = new Date().toISOString().slice(0, 10);
-  const timelineToday = state.timeline
-    .filter((item) => !item.date || sameDay(item.date, today))
-    .sort((a, b) => {
-      const left = parseClockToMinutes(a.time);
-      const right = parseClockToMinutes(b.time);
-      return (left ?? 9999) - (right ?? 9999);
-    });
-
-  const programmingToday = state.programming
-    .filter((item) => !item.date || sameDay(item.date, today))
-    .sort((a, b) => {
-      const left = parseClockToMinutes(parseRangeText(a.time).label || a.time);
-      const right = parseClockToMinutes(parseRangeText(b.time).label || b.time);
-      return (left ?? 9999) - (right ?? 9999);
-    });
-
-  return {
-    today,
-    nowLabel: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-    timelineToday,
-    programmingToday,
-  };
-}
-
 function computeIntelligence(state) {
   const overdueTasks = state.tasks.filter((task) => task.status !== "Done" && isOverdue(task.deadline));
   const dueSoonTasks = state.tasks.filter((task) => task.status !== "Done" && isWithinDays(task.deadline, 3));
@@ -370,8 +230,6 @@ function computeIntelligence(state) {
   const programmingConflicts = computeProgrammingConflicts(state.programming);
   const volunteerConflicts = computeVolunteerConflicts(state.volunteers);
   const resourceIssues = computeResourceIssues(state.programming, state.inventory);
-  const volunteerSuggestions = computeVolunteerSuggestions(state.volunteers);
-  const dayOfView = computeDayOfView(state);
 
   return {
     overdueTasks,
@@ -384,25 +242,6 @@ function computeIntelligence(state) {
     volunteerConflictsById: volunteerConflicts.byItem,
     resourceIssues: resourceIssues.issues,
     resourceIssuesByProgrammingId: resourceIssues.byProgramming,
-    volunteerSuggestions,
-    dayOfView,
-  };
-}
-
-function applyVolunteerSuggestionToState(current, shiftId, candidateName) {
-  const source = current.volunteers.find((item) => slugify(item.name) === slugify(candidateName));
-  return {
-    ...current,
-    volunteers: current.volunteers.map((item) =>
-      item.id === shiftId
-        ? {
-            ...item,
-            name: source?.name || candidateName,
-            contact: source?.contact || item.contact,
-            status: "Assigned",
-          }
-        : item
-    ),
   };
 }
 
@@ -522,8 +361,6 @@ export function OpsStoreProvider({ children }) {
             item.id === id ? { ...item, checkedIn: !item.checkedIn } : item
           ),
         })),
-      applyVolunteerSuggestion: (shiftId, candidateName) =>
-        setState((current) => applyVolunteerSuggestionToState(current, shiftId, candidateName)),
       setState,
     };
   }, [state, remoteStatus, intelligence]);
