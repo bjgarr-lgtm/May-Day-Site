@@ -20,6 +20,9 @@ function sourceLabel(row) {
 
 export default function VolunteersView() {
   const store = useOpsStore();
+  const volunteers = Array.isArray(store?.volunteers) ? store.volunteers : [];
+  const syncStatus = store?.syncStatus?.volunteers || "idle";
+
   const [editor, setEditor] = React.useState(blankVolunteer());
   const [isEditorOpen, setIsEditorOpen] = React.useState(false);
   const [quickView, setQuickView] = React.useState("All");
@@ -30,33 +33,48 @@ export default function VolunteersView() {
   const openEditor = React.useCallback((next) => {
     setEditor(next);
     setIsEditorOpen(true);
-    requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }, []);
 
-  const rows = store.volunteers
+  const rows = volunteers
     .filter((item) => {
       const matchesArea = areaFilter === "All" || item.area === areaFilter;
       const haystack = `${item.name} ${item.role} ${item.area} ${item.contact} ${item.notes} ${item.syncStatus}`.toLowerCase();
       const matchesQuery = !query || haystack.includes(query.toLowerCase());
+
       let matchesQuick = true;
       if (quickView === "Open") matchesQuick = !item.name?.trim() || item.status === "Needs Assignment";
       if (quickView === "Today") matchesQuick = isToday(item.shiftDate);
       if (quickView === "Checked In") matchesQuick = item.checkedIn;
+
       return matchesArea && matchesQuery && matchesQuick;
     })
-    .sort((a, b) => new Date(`${a.shiftDate || ""} ${a.shiftStart || ""}`) - new Date(`${b.shiftDate || ""} ${b.shiftStart || ""}`));
+    .sort((a, b) => {
+      const left = new Date(`${a.shiftDate || ""} ${a.shiftStart || ""}`).getTime();
+      const right = new Date(`${b.shiftDate || ""} ${b.shiftStart || ""}`).getTime();
+      return left - right;
+    });
 
   const handleSave = () => {
     if (!editor.role.trim()) {
       window.alert("Volunteer role is required.");
       return;
     }
+
     const next = {
       ...editor,
       status: editor.checkedIn ? "Checked In" : editor.status,
     };
-    const exists = store.volunteers.some((item) => item.id === next.id);
-    exists ? store.updateItem("volunteers", next.id, next) : store.addItem("volunteers", next);
+
+    const exists = volunteers.some((item) => item.id === next.id);
+    if (exists) {
+      store.updateItem("volunteers", next.id, next);
+    } else {
+      store.addItem("volunteers", next);
+    }
+
     setEditor(blankVolunteer());
     setIsEditorOpen(false);
   };
@@ -70,31 +88,45 @@ export default function VolunteersView() {
     }
   };
 
-  const openCount = store.volunteers.filter((item) => !item.name?.trim() || item.status === "Needs Assignment").length;
-  const checkedInCount = store.volunteers.filter((item) => item.checkedIn).length;
+  const openCount = volunteers.filter((item) => !item.name?.trim() || item.status === "Needs Assignment").length;
+  const checkedInCount = volunteers.filter((item) => item.checkedIn).length;
+  const editingExisting = volunteers.some((item) => item.id === editor.id);
 
   return (
     <div className="ops-page">
       <div className="ops-stat-grid ops-stat-grid-three">
-        <div className="ops-stat-card"><div className="ops-stat-label">Volunteer shifts</div><div className="ops-stat-value">{store.volunteers.length}</div></div>
-        <div className="ops-stat-card"><div className="ops-stat-label">Open shifts</div><div className="ops-stat-value">{openCount}</div></div>
-        <div className="ops-stat-card"><div className="ops-stat-label">Checked in</div><div className="ops-stat-value">{checkedInCount}</div></div>
+        <div className="ops-stat-card">
+          <div className="ops-stat-label">Volunteer shifts</div>
+          <div className="ops-stat-value">{volunteers.length}</div>
+        </div>
+        <div className="ops-stat-card">
+          <div className="ops-stat-label">Open shifts</div>
+          <div className="ops-stat-value">{openCount}</div>
+        </div>
+        <div className="ops-stat-card">
+          <div className="ops-stat-label">Checked in</div>
+          <div className="ops-stat-value">{checkedInCount}</div>
+        </div>
       </div>
 
-      <SectionCard title={store.volunteers.some((item) => item.id === editor.id) ? "Edit volunteer shift" : "Add volunteer shift"} subtitle="Linked submissions stay linked. Miraculous, I know.">
+      <SectionCard
+        title={editingExisting ? "Edit volunteer shift" : "Add volunteer shift"}
+        subtitle="Linked submissions stay linked. Miraculous, I know."
+      >
         <RecordEditor
           editorRef={editorRef}
           title="Volunteer editor"
           value={editor}
           isOpen={isEditorOpen}
           onToggle={() => {
-            if (isEditorOpen) setIsEditorOpen(false);
-            else {
-              if (!store.volunteers.some((item) => item.id === editor.id) && !editor.role) setEditor(blankVolunteer());
+            if (isEditorOpen) {
+              setIsEditorOpen(false);
+            } else {
+              if (!editingExisting && !editor.role) setEditor(blankVolunteer());
               setIsEditorOpen(true);
             }
           }}
-          mode={store.volunteers.some((item) => item.id === editor.id) ? "edit" : "add"}
+          mode={editingExisting ? "edit" : "add"}
           onChange={(key, value) => setEditor((current) => ({ ...current, [key]: value }))}
           onSave={handleSave}
           onCancel={() => {
@@ -119,20 +151,37 @@ export default function VolunteersView() {
       <SectionCard title="Volunteer board" subtitle="Shifts, people, and sync state all in one place.">
         <div className="ops-tabs">
           {quickViews.map((item) => (
-            <button key={item} type="button" className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
+            <button
+              key={item}
+              type="button"
+              className={`ops-tab ${quickView === item ? "is-active" : ""}`}
+              onClick={() => setQuickView(item)}
+            >
               {item}
             </button>
           ))}
         </div>
 
         <div className="ops-toolbar">
-          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search volunteers or roles" />
+          <input
+            className="ops-search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search volunteers or roles"
+          />
           <select value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)}>
             <option>All</option>
-            {areas.map((item) => <option key={item}>{item}</option>)}
+            {areas.map((item) => (
+              <option key={item}>{item}</option>
+            ))}
           </select>
-          <button type="button" className="ops-button ops-button-secondary" onClick={handleSync} disabled={store.syncStatus.volunteers === "loading"}>
-            {store.syncStatus.volunteers === "loading" ? "Syncing…" : store.syncStatus.volunteers === "saved" ? "Synced" : "Sync volunteers"}
+          <button
+            type="button"
+            className="ops-button ops-button-secondary"
+            onClick={handleSync}
+            disabled={syncStatus === "loading"}
+          >
+            {syncStatus === "loading" ? "Syncing…" : syncStatus === "saved" ? "Synced" : "Sync volunteers"}
           </button>
         </div>
 
@@ -145,9 +194,23 @@ export default function VolunteersView() {
             { key: "name", label: "Volunteer", width: 220, render: (value) => value || "Unassigned" },
             { key: "role", label: "Role", width: 220 },
             { key: "area", label: "Area" },
-            { key: "shiftDate", label: "Shift", width: 220, render: (_, row) => formatDateTime(row.shiftDate, row.shiftStart) + (row.shiftEnd ? ` to ${row.shiftEnd}` : "") },
+            {
+              key: "shiftDate",
+              label: "Shift",
+              width: 220,
+              render: (_, row) =>
+                formatDateTime(row.shiftDate, row.shiftStart) + (row.shiftEnd ? ` to ${row.shiftEnd}` : ""),
+            },
             { key: "contact", label: "Contact", width: 220 },
-            { key: "status", label: "Status", render: (value, row) => <span className={`ops-pill status-${statusSlug(row.checkedIn ? "Checked In" : value)}`}>{row.checkedIn ? "Checked In" : value}</span> },
+            {
+              key: "status",
+              label: "Status",
+              render: (value, row) => (
+                <span className={`ops-pill status-${statusSlug(row.checkedIn ? "Checked In" : value)}`}>
+                  {row.checkedIn ? "Checked In" : value}
+                </span>
+              ),
+            },
             { key: "sourceType", label: "Source", render: (_, row) => sourceLabel(row) },
             { key: "syncStatus", label: "Sync", render: (value) => value || "local" },
             { key: "notes", label: "Notes", width: 220 },
