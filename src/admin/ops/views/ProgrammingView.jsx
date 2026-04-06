@@ -15,6 +15,7 @@ export default function ProgrammingView() {
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("All");
   const [categoryFilter, setCategoryFilter] = React.useState("All");
+  const [issueFilter, setIssueFilter] = React.useState("All");
   const editorRef = React.useRef(null);
 
   const openEditor = React.useCallback((next) => {
@@ -29,7 +30,10 @@ export default function ProgrammingView() {
       const matchesQuery = !query || haystack.includes(query.toLowerCase());
       const matchesStatus = statusFilter === "All" || item.status === statusFilter;
       const matchesCategory = categoryFilter === "All" || (item.category || inferProgrammingCategory(item)) === categoryFilter;
-      return matchesQuery && matchesStatus && matchesCategory;
+      const hasConflict = Boolean(store.programmingConflictsById?.[item.id]?.length);
+      const hasResourceIssue = Boolean(store.resourceIssuesByProgrammingId?.[item.id]?.length);
+      const matchesIssue = issueFilter === "All" || (issueFilter === "Conflicts" && hasConflict) || (issueFilter === "Resource issues" && hasResourceIssue) || (issueFilter === "Clean" && !hasConflict && !hasResourceIssue);
+      return matchesQuery && matchesStatus && matchesCategory && matchesIssue;
     })
     .sort((a, b) => `${a.time || ""}`.localeCompare(`${b.time || ""}`));
 
@@ -99,7 +103,7 @@ export default function ProgrammingView() {
         />
       </SectionCard>
 
-      <SectionCard title="Programming" subtitle="Activities, rooms, leads, needs. Not vibes.">
+      <SectionCard title="Programming" subtitle="Activities, rooms, leads, needs. Now with actual warning flags.">
         <div className="ops-toolbar">
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search programming" />
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
@@ -110,7 +114,20 @@ export default function ProgrammingView() {
             <option>All</option>
             {statusOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
+          <select value={issueFilter} onChange={(e) => setIssueFilter(e.target.value)}>
+            <option>All</option>
+            <option>Conflicts</option>
+            <option>Resource issues</option>
+            <option>Clean</option>
+          </select>
         </div>
+
+        {store.programmingConflicts.length > 0 && (
+          <div className="ops-warning-banner">
+            <strong>{store.programmingConflicts.length}</strong> programming conflict{store.programmingConflicts.length === 1 ? "" : "s"} detected.
+          </div>
+        )}
+
         <EditableTable
           tableKey="programming"
           rows={rows}
@@ -123,6 +140,17 @@ export default function ProgrammingView() {
             { key: "time", label: "Time" },
             { key: "lead", label: "Lead" },
             { key: "needs", label: "Needs", width: 220 },
+            {
+              key: "issues",
+              label: "Issues",
+              width: 260,
+              render: (_, row) => {
+                const problems = [];
+                if (store.programmingConflictsById?.[row.id]?.length) problems.push(`${store.programmingConflictsById[row.id].length} conflict`);
+                if (store.resourceIssuesByProgrammingId?.[row.id]?.length) problems.push(`${store.resourceIssuesByProgrammingId[row.id].length} resource issue`);
+                return problems.length ? <span className="ops-pill status-at-risk">{problems.join(" • ")}</span> : "—";
+              },
+            },
             { key: "cost", label: "Cost", render: (value) => value ? `$${Number(value).toFixed(0)}` : "—" },
             {
               key: "status",

@@ -4,23 +4,18 @@ import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
 import RecordEditor from "../components/RecordEditor";
 import { blankVolunteer } from "../seedData";
-import { formatDateTime, isToday } from "../utils/date";
 
-const volunteerStatuses = ["Needs Assignment", "Confirmed", "Tentative", "Checked In", "No Show"];
-const areas = ["General", "Ops", "Front of House", "Food", "Programming", "Activities", "Safety", "Cleanup"];
-const quickViews = ["All", "Open", "Today", "Checked In"];
-
-function statusSlug(value = "") {
-  return value.toLowerCase().replace(/\s+/g, "-");
-}
+const statusOptions = ["Needs Assignment", "Assigned", "Confirmed", "Backup", "No Show"];
+const areaOptions = ["General", "Safety", "Front of House", "Route", "Art Center", "Kitchen", "Clean Up"];
 
 export default function VolunteersView() {
   const store = useOpsStore();
   const [editor, setEditor] = React.useState(blankVolunteer());
   const [isEditorOpen, setIsEditorOpen] = React.useState(false);
-  const [quickView, setQuickView] = React.useState("All");
-  const [areaFilter, setAreaFilter] = React.useState("All");
   const [query, setQuery] = React.useState("");
+  const [areaFilter, setAreaFilter] = React.useState("All");
+  const [statusFilter, setStatusFilter] = React.useState("All");
+  const [issueFilter, setIssueFilter] = React.useState("All");
   const editorRef = React.useRef(null);
 
   const openEditor = React.useCallback((next) => {
@@ -31,47 +26,41 @@ export default function VolunteersView() {
 
   const rows = store.volunteers
     .filter((item) => {
-      const matchesArea = areaFilter === "All" || item.area === areaFilter;
-      const haystack = `${item.name} ${item.role} ${item.area} ${item.contact} ${item.notes}`.toLowerCase();
+      const haystack = `${item.name} ${item.role} ${item.area} ${item.contact} ${item.status} ${item.notes}`.toLowerCase();
       const matchesQuery = !query || haystack.includes(query.toLowerCase());
-      let matchesQuick = true;
-      if (quickView === "Open") matchesQuick = !item.name?.trim() || item.status === "Needs Assignment";
-      if (quickView === "Today") matchesQuick = isToday(item.shiftDate);
-      if (quickView === "Checked In") matchesQuick = item.checkedIn;
-      return matchesArea && matchesQuery && matchesQuick;
+      const matchesArea = areaFilter === "All" || item.area === areaFilter;
+      const matchesStatus = statusFilter === "All" || item.status === statusFilter;
+      const hasConflict = Boolean(store.volunteerConflictsById?.[item.id]?.length);
+      const isUncovered = !item.name?.trim() || item.status === "Needs Assignment";
+      const matchesIssue = issueFilter === "All" || (issueFilter === "Conflicts" && hasConflict) || (issueFilter === "Uncovered" && isUncovered) || (issueFilter === "Clean" && !hasConflict && !isUncovered);
+      return matchesQuery && matchesArea && matchesStatus && matchesIssue;
     })
-    .sort((a, b) => new Date(`${a.shiftDate || ""} ${a.shiftStart || ""}`) - new Date(`${b.shiftDate || ""} ${b.shiftStart || ""}`));
+    .sort((a, b) => `${a.shiftDate || ""} ${a.shiftStart || ""}`.localeCompare(`${b.shiftDate || ""} ${b.shiftStart || ""}`));
 
   const handleSave = () => {
     if (!editor.role.trim()) {
-      window.alert("Volunteer role is required.");
+      window.alert("Role is required.");
       return;
     }
-    const next = {
-      ...editor,
-      status: editor.checkedIn ? "Checked In" : editor.status,
-    };
-    const exists = store.volunteers.some((item) => item.id === next.id);
-    exists ? store.updateItem("volunteers", next.id, next) : store.addItem("volunteers", next);
+    const exists = store.volunteers.some((item) => item.id === editor.id);
+    if (exists) store.updateItem("volunteers", editor.id, editor);
+    else store.addItem("volunteers", editor);
     setEditor(blankVolunteer());
     setIsEditorOpen(false);
   };
-
-  const openCount = store.volunteers.filter((item) => !item.name?.trim() || item.status === "Needs Assignment").length;
-  const checkedInCount = store.volunteers.filter((item) => item.checkedIn).length;
 
   return (
     <div className="ops-page">
       <div className="ops-stat-grid ops-stat-grid-three">
         <div className="ops-stat-card"><div className="ops-stat-label">Volunteer shifts</div><div className="ops-stat-value">{store.volunteers.length}</div></div>
-        <div className="ops-stat-card"><div className="ops-stat-label">Open shifts</div><div className="ops-stat-value">{openCount}</div></div>
-        <div className="ops-stat-card"><div className="ops-stat-label">Checked in</div><div className="ops-stat-value">{checkedInCount}</div></div>
+        <div className="ops-stat-card"><div className="ops-stat-label">Uncovered shifts</div><div className="ops-stat-value">{store.uncoveredVolunteerShifts.length}</div></div>
+        <div className="ops-stat-card"><div className="ops-stat-label">Double-bookings</div><div className="ops-stat-value">{store.volunteerConflicts.length}</div></div>
       </div>
 
-      <SectionCard title={store.volunteers.some((item) => item.id === editor.id) ? "Edit volunteer shift" : "Add volunteer shift"} subtitle="Shifts and people up top, not buried at the bottom.">
+      <SectionCard title={store.volunteers.some((item) => item.id === editor.id) ? "Edit volunteer shift" : "Add volunteer shift"}>
         <RecordEditor
           editorRef={editorRef}
-          title="Volunteer editor"
+          title={store.volunteers.some((item) => item.id === editor.id) ? "Volunteer editor" : "New volunteer shift"}
           value={editor}
           isOpen={isEditorOpen}
           onToggle={() => {
@@ -89,36 +78,46 @@ export default function VolunteersView() {
             setIsEditorOpen(false);
           }}
           fields={[
-            { name: "name", label: "Volunteer name" },
-            { name: "role", label: "Role" },
-            { name: "area", label: "Area", type: "select", options: areas },
-            { name: "contact", label: "Contact", full: true },
-            { name: "shiftDate", label: "Shift date", type: "date" },
+            { name: "name", label: "Volunteer" },
+            { name: "role", label: "Role", full: true },
+            { name: "area", label: "Area", type: "select", options: areaOptions },
+            { name: "shiftDate", label: "Date", type: "date" },
             { name: "shiftStart", label: "Start", type: "time" },
             { name: "shiftEnd", label: "End", type: "time" },
-            { name: "status", label: "Status", type: "select", options: volunteerStatuses },
+            { name: "contact", label: "Contact", full: true },
+            { name: "status", label: "Status", type: "select", options: statusOptions },
             { name: "checkedIn", label: "Checked in", type: "checkbox" },
-            { name: "notes", label: "Notes", type: "textarea", full: true, rows: 4 },
+            { name: "notes", label: "Notes", type: "textarea", full: true },
           ]}
         />
       </SectionCard>
 
-      <SectionCard title="Volunteer board" subtitle="Day-of staffing without turning your brain into powder.">
-        <div className="ops-tabs">
-          {quickViews.map((item) => (
-            <button key={item} type="button" className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
-              {item}
-            </button>
-          ))}
-        </div>
-
+      <SectionCard title="Volunteer board" subtitle="Coverage, check-ins, role fit, and where the holes still are.">
         <div className="ops-toolbar">
-          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search volunteers or roles" />
+          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search volunteers" />
           <select value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)}>
             <option>All</option>
-            {areas.map((item) => <option key={item}>{item}</option>)}
+            {areaOptions.map((item) => <option key={item}>{item}</option>)}
+          </select>
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option>All</option>
+            {statusOptions.map((item) => <option key={item}>{item}</option>)}
+          </select>
+          <select value={issueFilter} onChange={(e) => setIssueFilter(e.target.value)}>
+            <option>All</option>
+            <option>Conflicts</option>
+            <option>Uncovered</option>
+            <option>Clean</option>
           </select>
         </div>
+
+        {(store.uncoveredVolunteerShifts.length > 0 || store.volunteerConflicts.length > 0) && (
+          <div className="ops-warning-banner">
+            {store.uncoveredVolunteerShifts.length > 0 && <span>{store.uncoveredVolunteerShifts.length} uncovered shift{store.uncoveredVolunteerShifts.length === 1 ? "" : "s"}</span>}
+            {store.uncoveredVolunteerShifts.length > 0 && store.volunteerConflicts.length > 0 && <span> • </span>}
+            {store.volunteerConflicts.length > 0 && <span>{store.volunteerConflicts.length} volunteer conflict{store.volunteerConflicts.length === 1 ? "" : "s"}</span>}
+          </div>
+        )}
 
         <EditableTable
           tableKey="volunteers"
@@ -126,18 +125,35 @@ export default function VolunteersView() {
           onEdit={openEditor}
           onDelete={(id) => store.removeItem("volunteers", id)}
           columns={[
-            { key: "name", label: "Volunteer", width: 220, render: (value) => value || "Unassigned" },
+            { key: "name", label: "Volunteer", width: 180, render: (value) => value || "Unassigned" },
             { key: "role", label: "Role", width: 220 },
             { key: "area", label: "Area" },
-            { key: "shiftDate", label: "Shift", width: 220, render: (_, row) => formatDateTime(row.shiftDate, row.shiftStart) + (row.shiftEnd ? ` to ${row.shiftEnd}` : "") },
-            { key: "contact", label: "Contact", width: 220 },
+            { key: "shiftDate", label: "Date" },
+            { key: "shiftStart", label: "Start" },
+            { key: "shiftEnd", label: "End" },
+            {
+              key: "issues",
+              label: "Issues",
+              width: 220,
+              render: (_, row) => {
+                const issues = [];
+                if (!row.name?.trim() || row.status === "Needs Assignment") issues.push("uncovered");
+                if (store.volunteerConflictsById?.[row.id]?.length) issues.push("double-booked");
+                return issues.length ? <span className="ops-pill status-at-risk">{issues.join(" • ")}</span> : "—";
+              },
+            },
+            { key: "contact", label: "Contact", width: 200 },
             { key: "status", label: "Status", render: (value, row) => <span className={`ops-pill status-${statusSlug(row.checkedIn ? "Checked In" : value)}`}>{row.checkedIn ? "Checked In" : value}</span> },
             { key: "notes", label: "Notes", width: 220 },
           ]}
-          rowClassName={(row) => (!row.name?.trim() ? "is-overdue" : "")}
+          rowClassName={(row) => (store.volunteerConflictsById?.[row.id]?.length ? "is-overdue" : "")}
           emptyLabel="No volunteer shifts match the current filters."
         />
       </SectionCard>
     </div>
   );
+}
+
+function statusSlug(value = "") {
+  return value.toLowerCase().replace(/\s+/g, "-");
 }
