@@ -311,6 +311,54 @@ function performerSubmissionToProgramming(submission) {
   }, "form_submission");
 }
 
+// === Zip 2 additions: programming propagation ===
+
+function upsertById(list, item) {
+  const idx = list.findIndex((i) => i.id === item.id);
+  if (idx >= 0) {
+    const copy = [...list];
+    copy[idx] = { ...copy[idx], ...item };
+    return copy;
+  }
+  return [...list, item];
+}
+
+function propagateProgrammingToTimeline(programming, timeline) {
+  let next = [...timeline];
+  programming.forEach((p) => {
+    if (!p.date || !p.time) return;
+    const id = `prog_timeline_${p.id}`;
+    next = upsertById(next, {
+      id,
+      date: p.date,
+      time: p.time,
+      activity: p.activity,
+      location: p.location,
+      lead: p.lead,
+      sourceType: "programming",
+      sourceId: p.id,
+    });
+  });
+  return next;
+}
+
+function propagateProgrammingToBudget(programming, budget) {
+  let next = [...budget];
+  programming.forEach((p) => {
+    if (!p.cost) return;
+    const id = `prog_budget_${p.id}`;
+    next = upsertById(next, {
+      id,
+      item: p.activity,
+      cost: p.cost,
+      sourceType: "programming",
+      sourceId: p.id,
+    });
+  });
+  return next;
+}
+
+
 function vendorSubmissionToSponsor(submission) {
   const payload = submission.payload || {};
   const notes = [

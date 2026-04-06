@@ -15,6 +15,16 @@ function syncLabel(status) {
   return "Sync performers";
 }
 
+// === Zip 2 additions: trigger propagation on save ===
+
+// after saving programming state, ensure:
+setState((current) => ({
+  ...current,
+  timeline: propagateProgrammingToTimeline(current.programming, current.timeline),
+  budget: propagateProgrammingToBudget(current.programming, current.budget),
+}));
+
+
 function siteImportLabel(status) {
   if (status === "loading") return "Importing…";
   if (status === "saved") return "Imported";
