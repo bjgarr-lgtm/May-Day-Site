@@ -20,6 +20,7 @@ function sourceLabel(row) {
 
 export default function VolunteersView() {
   const store = useOpsStore();
+
   const volunteers = Array.isArray(store?.volunteers) ? store.volunteers : [];
   const syncStatus = store?.syncStatus?.volunteers || "idle";
 
@@ -29,6 +30,8 @@ export default function VolunteersView() {
   const [areaFilter, setAreaFilter] = React.useState("All");
   const [query, setQuery] = React.useState("");
   const editorRef = React.useRef(null);
+
+  const editingExisting = volunteers.some((item) => item.id === editor.id);
 
   const openEditor = React.useCallback((next) => {
     setEditor(next);
@@ -41,13 +44,13 @@ export default function VolunteersView() {
   const rows = volunteers
     .filter((item) => {
       const matchesArea = areaFilter === "All" || item.area === areaFilter;
-      const haystack = `${item.name} ${item.role} ${item.area} ${item.contact} ${item.notes} ${item.syncStatus}`.toLowerCase();
+      const haystack = `${item.name || ""} ${item.role || ""} ${item.area || ""} ${item.contact || ""} ${item.notes || ""} ${item.syncStatus || ""}`.toLowerCase();
       const matchesQuery = !query || haystack.includes(query.toLowerCase());
 
       let matchesQuick = true;
       if (quickView === "Open") matchesQuick = !item.name?.trim() || item.status === "Needs Assignment";
       if (quickView === "Today") matchesQuick = isToday(item.shiftDate);
-      if (quickView === "Checked In") matchesQuick = item.checkedIn;
+      if (quickView === "Checked In") matchesQuick = Boolean(item.checkedIn);
 
       return matchesArea && matchesQuery && matchesQuick;
     })
@@ -58,7 +61,7 @@ export default function VolunteersView() {
     });
 
   const handleSave = () => {
-    if (!editor.role.trim()) {
+    if (!editor.role?.trim()) {
       window.alert("Volunteer role is required.");
       return;
     }
@@ -68,8 +71,7 @@ export default function VolunteersView() {
       status: editor.checkedIn ? "Checked In" : editor.status,
     };
 
-    const exists = volunteers.some((item) => item.id === next.id);
-    if (exists) {
+    if (editingExisting) {
       store.updateItem("volunteers", next.id, next);
     } else {
       store.addItem("volunteers", next);
@@ -80,6 +82,8 @@ export default function VolunteersView() {
   };
 
   const handleSync = async () => {
+    if (!store?.syncVolunteers) return;
+
     try {
       const count = await store.syncVolunteers();
       window.alert(`Synced ${count} volunteer submission${count === 1 ? "" : "s"}.`);
@@ -90,7 +94,6 @@ export default function VolunteersView() {
 
   const openCount = volunteers.filter((item) => !item.name?.trim() || item.status === "Needs Assignment").length;
   const checkedInCount = volunteers.filter((item) => item.checkedIn).length;
-  const editingExisting = volunteers.some((item) => item.id === editor.id);
 
   return (
     <div className="ops-page">
