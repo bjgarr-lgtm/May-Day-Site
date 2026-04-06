@@ -1,0 +1,67 @@
+[
+  {
+    "activity": "Open Mic + Jam Session",
+    "lead": "The Harbor Squallers",
+    "category": "Performance",
+    "time": "daytime",
+    "location": "main stage",
+    "needs": "pa, mics"
+  },
+  {
+    "activity": "mk zariel",
+    "lead": "",
+    "category": "Performance",
+    "time": "daytime",
+    "location": "main stage",
+    "needs": "pa, mics",
+    "notes": "spoken word poetry"
+  },
+  {
+    "activity": "Jawbone Puppet Theater",
+    "lead": "",
+    "category": "Performance",
+    "time": "daytime",
+    "location": "main stage",
+    "needs": "small stage"
+  },
+  {
+    "activity": "Toxic Tears",
+    "lead": "",
+    "category": "Performance",
+    "time": "night",
+    "location": "main stage",
+    "needs": "pa, mics"
+  },
+  {
+    "activity": "Stinky Slem",
+    "lead": "",
+    "category": "Performance",
+    "time": "night",
+    "location": "main stage",
+    "needs": "pa, mics"
+  },
+  {
+    "activity": "The Moray",
+    "lead": "",
+    "category": "Performance",
+    "time": "night",
+    "location": "main stage",
+    "needs": "pa, mics"
+  },
+  {
+    "activity": "Job Smashing Window Creator",
+    "lead": "",
+    "category": "Performance",
+    "time": "night",
+    "location": "main stage",
+    "needs": "pa, mics"
+  },
+  {
+    "activity": "Stink Animal and the Bad Smells",
+    "lead": "",
+    "category": "Performance",
+    "time": "night",
+    "location": "main stage",
+    "needs": "pa, mics"
+  }
+]
