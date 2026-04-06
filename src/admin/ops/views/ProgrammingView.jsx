@@ -15,6 +15,12 @@ function syncLabel(status) {
   return "Sync performers";
 }
 
+function siteImportLabel(status) {
+  if (status === "loading") return "Importing…";
+  if (status === "saved") return "Imported";
+  return "Import website schedule";
+}
+
 function sourceLabel(row) {
   return row.sourceType === "form_submission" ? "Form" : "Local";
 }
@@ -26,6 +32,7 @@ export default function ProgrammingView() {
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("All");
   const [categoryFilter, setCategoryFilter] = React.useState("All");
+  const [siteImportStatus, setSiteImportStatus] = React.useState("idle");
   const editorRef = React.useRef(null);
 
   const openEditor = React.useCallback((next) => {
@@ -33,6 +40,9 @@ export default function ProgrammingView() {
     setIsEditorOpen(true);
     requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }, []);
+
+  const websiteRows = store.programming.filter((item) => item.sourceType === "website_schedule");
+  const conflictCount = (store.programmingConflicts || []).length;
 
   const rows = store.programming
     .filter((item) => {
@@ -87,6 +97,18 @@ export default function ProgrammingView() {
     }
   };
 
+  const handleWebsiteImport = async () => {
+    try {
+      setSiteImportStatus("loading");
+      const counts = await store.importWebsiteSchedule();
+      setSiteImportStatus("saved");
+      window.alert(`Imported ${counts.programming} programming item${counts.programming === 1 ? "" : "s"} and ${counts.timeline} timeline item${counts.timeline === 1 ? "" : "s"} from the website schedule.`);
+    } catch (error) {
+      setSiteImportStatus("error");
+      window.alert(error?.message || "Could not import the website schedule.");
+    }
+  };
+
   return (
     <div className="ops-page">
       <SectionCard title={store.programming.some((item) => item.id === editor.id) ? "Edit programming item" : "Add programming item"}>
@@ -125,6 +147,7 @@ export default function ProgrammingView() {
 
       <SectionCard title="Programming" subtitle="Activities, rooms, leads, needs, and a real source link instead of duplicated folklore.">
         <div className="ops-toolbar">
+          <div className="ops-toolbar-meta">{websiteRows.length} website-sourced item{websiteRows.length === 1 ? "" : "s"} · {conflictCount} conflict{conflictCount === 1 ? "" : "s"}</div>
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search programming" />
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
             <option>All</option>
@@ -136,6 +159,9 @@ export default function ProgrammingView() {
           </select>
           <button type="button" className="ops-button ops-button-secondary" onClick={handleSync} disabled={store.syncStatus.performers === "loading"}>
             {syncLabel(store.syncStatus.performers)}
+          </button>
+          <button type="button" className="ops-button" onClick={handleWebsiteImport} disabled={siteImportStatus === "loading"}>
+            {siteImportLabel(siteImportStatus)}
           </button>
         </div>
         <EditableTable
@@ -152,6 +178,12 @@ export default function ProgrammingView() {
             { key: "needs", label: "Needs", width: 220 },
             { key: "cost", label: "Cost", render: (value) => value ? `$${Number(value).toFixed(0)}` : "—" },
             { key: "status", label: "Status" },
+            { key: "issues", label: "Issues", width: 220, render: (_, row) => {
+              const issues = (store.programmingConflicts || []).filter((item) => item.leftId === row.id || item.rightId === row.id).map((item) => item.sameLocation ? "location conflict" : "lead conflict");
+              const resource = (store.resourceIssues || []).filter((item) => item.programmingId === row.id).map((item) => item.need);
+              const labels = Array.from(new Set([...issues, ...resource.map((item) => `needs ${item}`)]));
+              return labels.length ? labels.join(", ") : "—";
+            } },
             { key: "sourceType", label: "Source", render: (_, row) => sourceLabel(row) },
             { key: "syncStatus", label: "Sync", render: (value) => value || "local" },
           ]}

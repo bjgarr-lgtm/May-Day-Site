@@ -1,6 +1,7 @@
 import React from "react";
 import { createInitialOpsState, normalizeOpsState } from "../seedData";
 import { loadOpsState, saveOpsState } from "../utils/storage";
+import { buildWebsiteProgrammingRows, buildWebsiteTimelineRows } from "../utils/siteScheduleImport";
 
 const OpsStoreContext = React.createContext(null);
 const PASSWORD_STORAGE_KEY = "maydayApplicationsPassword";
@@ -45,6 +46,202 @@ function parseResponse(response) {
 function cleanText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
+
+
+function slugify(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function parseClockToMinutes(value) {
+  const raw = cleanText(value).toLowerCase();
+  if (!raw) return null;
+  const match = raw.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (!match) return null;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2] || 0);
+  const meridiem = match[3];
+  if (meridiem === "pm" && hours !== 12) hours += 12;
+  if (meridiem === "am" && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+}
+
+function parseRange(rawValue) {
+  const raw = cleanText(rawValue).toLowerCase();
+  if (!raw) return { start: null, end: null };
+  if (raw.includes(" to ")) {
+    const [left, right] = raw.split(/\s+to\s+/i);
+    const start = parseClockToMinutes(left);
+    let end = parseClockToMinutes(right);
+    if (start != null && end != null && end <= start) end += 12 * 60;
+    return { start, end };
+  }
+  const start = parseClockToMinutes(raw);
+  return { start, end: start != null ? start + 60 : null };
+}
+
+function sameDay(left, right) {
+  return cleanText(left) && cleanText(right) && cleanText(left) === cleanText(right);
+}
+
+function rangesOverlap(a, b) {
+  if (a.start == null || a.end == null || b.start == null || b.end == null) return false;
+  return a.start < b.end && b.start < a.end;
+}
+
+function buildResourceNeedList(value) {
+  return cleanText(value)
+    .split(/[;,\n]/)
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function computeProgrammingConflicts(programming) {
+  const conflicts = [];
+  const items = Array.isArray(programming) ? programming : [];
+  for (let i = 0; i < items.length; i += 1) {
+    for (let j = i + 1; j < items.length; j += 1) {
+      const left = items[i];
+      const right = items[j];
+      const sameDate = !cleanText(left.date) || !cleanText(right.date) || sameDay(left.date, right.date);
+      if (!sameDate) continue;
+
+      const leftRange = parseRange(left.timeStart && left.timeEnd ? `${left.timeStart} to ${left.timeEnd}` : left.time);
+      const rightRange = parseRange(right.timeStart && right.timeEnd ? `${right.timeStart} to ${right.timeEnd}` : right.time);
+      const overlap = rangesOverlap(leftRange, rightRange) || (cleanText(left.time) && cleanText(left.time) === cleanText(right.time));
+
+      if (!overlap) continue;
+
+      const sameLocation = cleanText(left.location) && slugify(left.location) === slugify(right.location);
+      const sameLead = cleanText(left.lead) && slugify(left.lead) === slugify(right.lead);
+      if (!sameLocation && !sameLead) continue;
+
+      conflicts.push({
+        id: `conflict_${left.id}_${right.id}`,
+        leftId: left.id,
+        rightId: right.id,
+        leftLabel: left.activity,
+        rightLabel: right.activity,
+        summary: `${left.activity} conflicts with ${right.activity}${sameLocation ? ` at ${left.location}` : ""}${sameLead ? ` with lead ${left.lead}` : ""}`,
+        sameLocation,
+        sameLead,
+      });
+    }
+  }
+  return conflicts;
+}
+
+function computeVolunteerConflicts(volunteers) {
+  const conflicts = [];
+  const items = (Array.isArray(volunteers) ? volunteers : []).filter((item) => cleanText(item.name));
+  for (let i = 0; i < items.length; i += 1) {
+    for (let j = i + 1; j < items.length; j += 1) {
+      const left = items[i];
+      const right = items[j];
+      if (slugify(left.name) !== slugify(right.name)) continue;
+      if (!sameDay(left.shiftDate, right.shiftDate)) continue;
+      const overlap = rangesOverlap(
+        { start: parseClockToMinutes(left.shiftStart), end: parseClockToMinutes(left.shiftEnd) || (parseClockToMinutes(left.shiftStart) != null ? parseClockToMinutes(left.shiftStart) + 60 : null) },
+        { start: parseClockToMinutes(right.shiftStart), end: parseClockToMinutes(right.shiftEnd) || (parseClockToMinutes(right.shiftStart) != null ? parseClockToMinutes(right.shiftStart) + 60 : null) }
+      );
+      if (!overlap) continue;
+      conflicts.push({
+        id: `vol_conflict_${left.id}_${right.id}`,
+        summary: `${left.name} is double booked for ${left.role} and ${right.role}`,
+        volunteer: left.name,
+        leftId: left.id,
+        rightId: right.id,
+      });
+    }
+  }
+  return conflicts;
+}
+
+function computeUncoveredVolunteerShifts(volunteers) {
+  return (Array.isArray(volunteers) ? volunteers : []).filter((item) => !cleanText(item.name) || item.status === "Needs Assignment");
+}
+
+function computeResourceIssues(programming, inventory) {
+  const stock = Array.isArray(inventory) ? inventory : [];
+  const issues = [];
+  (Array.isArray(programming) ? programming : []).forEach((item) => {
+    buildResourceNeedList(item.needs).forEach((need) => {
+      const match = stock.find((resource) => slugify(resource.item || resource.name) === slugify(need));
+      if (!match) {
+        issues.push({
+          id: `resource_${item.id}_${need}`,
+          programmingId: item.id,
+          summary: `${item.activity} needs ${need} but inventory does not list it`,
+          need,
+        });
+      }
+    });
+  });
+  return issues;
+}
+
+function computeBlockedTasks(tasks) {
+  const list = Array.isArray(tasks) ? tasks : [];
+  const titleMap = new Map(list.map((item) => [slugify(item.title), item]));
+  return list.filter((task) => {
+    if (task.status === "Blocked") return true;
+    const dependencies = cleanText(task.dependencies || task.notes)
+      .split(/[;,\n]/)
+      .map((item) => slugify(item))
+      .filter(Boolean);
+    if (!dependencies.length) return false;
+    return dependencies.some((dep) => {
+      const linked = titleMap.get(dep);
+      return linked && linked.status !== "Done";
+    });
+  });
+}
+
+function computeDueSoonTasks(tasks, days = 7) {
+  const now = Date.now();
+  const limit = now + days * 24 * 60 * 60 * 1000;
+  return (Array.isArray(tasks) ? tasks : []).filter((task) => {
+    if (task.status === "Done" || !task.deadline) return false;
+    const stamp = new Date(task.deadline).getTime();
+    return Number.isFinite(stamp) && stamp >= now && stamp <= limit;
+  });
+}
+
+function computeOverdueTasks(tasks) {
+  const now = Date.now();
+  return (Array.isArray(tasks) ? tasks : []).filter((task) => {
+    if (task.status === "Done" || !task.deadline) return false;
+    const stamp = new Date(task.deadline).getTime();
+    return Number.isFinite(stamp) && stamp < now;
+  });
+}
+
+function computeReadiness(overdueTasks, blockedTasks, programmingConflicts, volunteerConflicts, uncoveredVolunteerShifts, resourceIssues) {
+  const penalty = (
+    overdueTasks.length * 5 +
+    blockedTasks.length * 4 +
+    programmingConflicts.length * 8 +
+    volunteerConflicts.length * 6 +
+    uncoveredVolunteerShifts.length * 3 +
+    resourceIssues.length * 4
+  );
+  const score = Math.max(0, 100 - penalty);
+  return {
+    score,
+    breakdown: {
+      overdue: overdueTasks.length,
+      blocked: blockedTasks.length,
+      programmingConflicts: programmingConflicts.length,
+      volunteerConflicts: volunteerConflicts.length,
+      uncoveredVolunteerShifts: uncoveredVolunteerShifts.length,
+      resourceIssues: resourceIssues.length,
+    },
+  };
+}
+
 
 function makeRoleSlug(value) {
   return cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -353,6 +550,20 @@ export function OpsStoreProvider({ children }) {
       return items.length;
     };
 
+    const importWebsiteSchedule = () => {
+      const incomingProgramming = buildWebsiteProgrammingRows();
+      const incomingTimeline = buildWebsiteTimelineRows();
+      setState((current) => ({
+        ...current,
+        programming: applyCollectionMerge(current.programming, incomingProgramming),
+        timeline: applyCollectionMerge(current.timeline, incomingTimeline),
+      }));
+      return {
+        programming: incomingProgramming.length,
+        timeline: incomingTimeline.length,
+      };
+    };
+
     const markRecordSynced = (collectionName, id) => {
       setState((current) => ({
         ...current,
@@ -361,6 +572,22 @@ export function OpsStoreProvider({ children }) {
         ),
       }));
     };
+
+    const overdueTasks = computeOverdueTasks(state.tasks);
+    const dueSoonTasks = computeDueSoonTasks(state.tasks);
+    const blockedTasks = computeBlockedTasks(state.tasks);
+    const programmingConflicts = computeProgrammingConflicts(state.programming);
+    const volunteerConflicts = computeVolunteerConflicts(state.volunteers);
+    const uncoveredVolunteerShifts = computeUncoveredVolunteerShifts(state.volunteers);
+    const resourceIssues = computeResourceIssues(state.programming, state.inventory);
+    const readiness = computeReadiness(
+      overdueTasks,
+      blockedTasks,
+      programmingConflicts,
+      volunteerConflicts,
+      uncoveredVolunteerShifts,
+      resourceIssues
+    );
 
     return {
       state,
@@ -388,7 +615,17 @@ export function OpsStoreProvider({ children }) {
       syncPerformers: () => syncFromSubmissions("performer"),
       syncVendors: () => syncFromSubmissions("vendor"),
       syncVolunteers: () => syncFromSubmissions("volunteer"),
+      importWebsiteSchedule,
       markRecordSynced,
+      overdueTasks,
+      dueSoonTasks,
+      blockedTasks,
+      programmingConflicts,
+      volunteerConflicts,
+      uncoveredVolunteerShifts,
+      resourceIssues,
+      readinessScore: readiness.score,
+      readinessBreakdown: readiness.breakdown,
       setState,
     };
   }, [state, remoteStatus, syncStatus]);

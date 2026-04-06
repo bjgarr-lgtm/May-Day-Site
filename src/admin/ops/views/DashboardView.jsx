@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import StatCard from "../components/StatCard";
-import { formatDateTime, isOverdue, isToday, isWithinDays } from "../utils/date";
+import { formatDateTime, isToday } from "../utils/date";
 
 function sliceSorted(items, sorter, count = 5) { return [...items].sort(sorter).slice(0, count); }
 function PreviewList({ items, renderItem, empty }) {
@@ -19,16 +19,21 @@ function PreviewList({ items, renderItem, empty }) {
 
 export default function DashboardView() {
   const store = useOpsStore();
-  const overdueTasks = store.tasks.filter((task) => task.status !== "Done" && isOverdue(task.deadline));
-  const blockedTasks = store.tasks.filter((task) => task.status === "Blocked");
+  const overdueTasks = store.overdueTasks || [];
+  const blockedTasks = store.blockedTasks || [];
   const unownedTasks = store.tasks.filter((task) => !task.owner?.trim());
-  const dueThisWeek = store.tasks.filter((task) => task.status !== "Done" && isWithinDays(task.deadline, 7));
+  const dueThisWeek = store.dueSoonTasks || [];
   const todayTimeline = store.timeline.filter((item) => isToday(item.date));
   const upcomingTimeline = sliceSorted(store.timeline, (a, b) => new Date(`${a.date || ""} ${a.time || ""}`) - new Date(`${b.date || ""} ${b.time || ""}`), 8);
   const volunteerOpen = store.volunteers.filter((item) => !item.name?.trim() || item.status === "Needs Assignment");
   const volunteerCheckedIn = store.volunteers.filter((item) => item.checkedIn).length;
   const criticalPath = (store.state.meta?.criticalPath || []).map((title) => store.tasks.find((task) => task.title === title)).filter(Boolean);
   const outstandingNeeds = store.programming.filter((item) => item.needs && String(item.needs).trim());
+  const readinessScore = store.readinessScore ?? 0;
+  const programmingConflicts = store.programmingConflicts || [];
+  const volunteerConflicts = store.volunteerConflicts || [];
+  const resourceIssues = store.resourceIssues || [];
+  const uncoveredVolunteerShifts = store.uncoveredVolunteerShifts || [];
 
   return (
     <div className="ops-page">
@@ -38,8 +43,23 @@ export default function DashboardView() {
         <StatCard label="Due this week" value={dueThisWeek.length} sublabel="Next seven days" />
         <StatCard label="Outstanding needs" value={outstandingNeeds.length} sublabel="Pulled from programming" />
         <StatCard label="Volunteer shifts" value={store.volunteers.length} sublabel={`${volunteerCheckedIn} checked in`} />
+        <StatCard label="Readiness" value={`${readinessScore}%`} tone={readinessScore < 60 ? "danger" : readinessScore < 80 ? "warning" : "default"} sublabel="Weighted from blockers and conflicts" />
       </div>
       <div className="ops-dashboard-grid ops-dashboard-grid-three">
+
+        <SectionCard title="Problems to fix first" subtitle="Actual operational issues, not just big feelings." actions={<Link className="ops-button ops-button-small" to="../programming">Open programming</Link>}>
+          <PreviewList
+            items={[
+              ...programmingConflicts.map((item) => ({ kind: "programming", id: item.id, label: item.summary })),
+              ...volunteerConflicts.map((item) => ({ kind: "volunteer", id: item.id, label: item.summary })),
+              ...resourceIssues.map((item) => ({ kind: "resource", id: item.id, label: item.summary })),
+              ...uncoveredVolunteerShifts.map((item) => ({ kind: "coverage", id: item.id, label: `${item.role} still needs coverage` })),
+            ]}
+            empty="No major conflicts are surfacing right now."
+            renderItem={(item) => <div className="ops-preview-item" key={item.id}><strong>{item.kind}</strong><span>{item.label}</span></div>}
+          />
+        </SectionCard>
+
         <SectionCard title="Today" subtitle="Quick glance" actions={<Link className="ops-button ops-button-small" to="../timeline">Open timeline</Link>}>
           <PreviewList items={todayTimeline} empty="Nothing specifically tagged for today yet." renderItem={(item) => <div className="ops-preview-item" key={item.id}><strong>{item.activity}</strong><span>{formatDateTime(item.date, item.time)}</span><span>{item.location || "No location"}</span></div>} />
         </SectionCard>
