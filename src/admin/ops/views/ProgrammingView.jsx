@@ -1,5 +1,4 @@
 import React from "react";
-import { RefreshCw } from "lucide-react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
@@ -8,6 +7,17 @@ import { blankProgramming, inferProgrammingCategory } from "../seedData";
 
 const statusOptions = ["Planned", "Confirmed", "Needs Supplies", "At Risk", "Done"];
 const categoryOptions = ["General", "Performance", "Food", "Operations", "Activity"];
+
+function syncLabel(status) {
+  if (status === "loading") return "Syncing…";
+  if (status === "saved") return "Synced";
+  if (status === "error") return "Retry sync";
+  return "Sync performers";
+}
+
+function sourceLabel(row) {
+  return row.sourceType === "form_submission" ? "Form" : "Local";
+}
 
 export default function ProgrammingView() {
   const store = useOpsStore();
@@ -26,7 +36,7 @@ export default function ProgrammingView() {
 
   const rows = store.programming
     .filter((item) => {
-      const haystack = `${item.activity} ${item.location} ${item.time} ${item.lead} ${item.needs} ${item.notes} ${item.category}`.toLowerCase();
+      const haystack = `${item.activity} ${item.location} ${item.time} ${item.lead} ${item.needs} ${item.notes} ${item.category} ${item.syncStatus}`.toLowerCase();
       const matchesQuery = !query || haystack.includes(query.toLowerCase());
       const matchesStatus = statusFilter === "All" || item.status === statusFilter;
       const matchesCategory = categoryFilter === "All" || (item.category || inferProgrammingCategory(item)) === categoryFilter;
@@ -37,7 +47,7 @@ export default function ProgrammingView() {
   const syncBudget = (programItem) => {
     const label = programItem.activity.trim();
     if (!label || !programItem.cost) return;
-    const existing = store.budget.find((item) => item.item === label && item.category === "Programming");
+    const existing = store.budget.find((item) => item.sourceType === "programming" && item.sourceId === programItem.id);
     const budgetRow = {
       id: existing?.id || `budget_prog_${programItem.id}`,
       item: label,
@@ -45,6 +55,10 @@ export default function ProgrammingView() {
       cost: programItem.cost,
       paid: existing?.paid || false,
       notes: existing?.notes || "",
+      sourceType: "programming",
+      sourceId: programItem.id,
+      syncStatus: programItem.syncStatus === "modified" ? "modified" : "synced",
+      linkedAt: existing?.linkedAt || new Date().toISOString(),
     };
     if (existing) store.updateItem("budget", existing.id, budgetRow);
     else store.addItem("budget", budgetRow);
@@ -62,6 +76,15 @@ export default function ProgrammingView() {
     syncBudget(next);
     setEditor(blankProgramming());
     setIsEditorOpen(false);
+  };
+
+  const handleSync = async () => {
+    try {
+      const count = await store.syncPerformers();
+      window.alert(`Synced ${count} performer submission${count === 1 ? "" : "s"}.`);
+    } catch (error) {
+      window.alert(error?.message || "Could not sync performers.");
+    }
   };
 
   return (
@@ -100,22 +123,8 @@ export default function ProgrammingView() {
         />
       </SectionCard>
 
-      <SectionCard title="Programming" subtitle="Activities, rooms, leads, needs. Not vibes.">
+      <SectionCard title="Programming" subtitle="Activities, rooms, leads, needs, and a real source link instead of duplicated folklore.">
         <div className="ops-toolbar">
-          <button
-            type="button"
-            className="ops-button ops-button-secondary ops-button-small"
-            onClick={async () => {
-              try {
-                const count = await store.syncPerformers();
-                window.alert(`Synced ${count} performer submissions into programming.`);
-              } catch (error) {
-                window.alert(error?.message || "Could not sync performers.");
-              }
-            }}
-          >
-            <RefreshCw className="h-4 w-4" /> Sync performers
-          </button>
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search programming" />
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
             <option>All</option>
@@ -125,6 +134,9 @@ export default function ProgrammingView() {
             <option>All</option>
             {statusOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
+          <button type="button" className="ops-button ops-button-secondary" onClick={handleSync} disabled={store.syncStatus.performers === "loading"}>
+            {syncLabel(store.syncStatus.performers)}
+          </button>
         </div>
         <EditableTable
           tableKey="programming"
@@ -139,20 +151,13 @@ export default function ProgrammingView() {
             { key: "lead", label: "Lead" },
             { key: "needs", label: "Needs", width: 220 },
             { key: "cost", label: "Cost", render: (value) => value ? `$${Number(value).toFixed(0)}` : "—" },
-            {
-              key: "status",
-              label: "Status",
-              render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span>,
-            },
-            { key: "notes", label: "Notes", width: 220 },
+            { key: "status", label: "Status" },
+            { key: "sourceType", label: "Source", render: (_, row) => sourceLabel(row) },
+            { key: "syncStatus", label: "Sync", render: (value) => value || "local" },
           ]}
-          emptyLabel="No programming items yet."
+          emptyLabel="No programming matches the current filters."
         />
       </SectionCard>
     </div>
   );
-}
-
-function slug(value = "") {
-  return value.toLowerCase().replace(/\s+/g, "-");
 }

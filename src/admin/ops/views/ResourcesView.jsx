@@ -1,5 +1,4 @@
 import React from "react";
-import { RefreshCw } from "lucide-react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
@@ -9,6 +8,16 @@ import { blankBudget, blankInventory, blankSponsor } from "../seedData";
 const sponsorStatusOptions = ["Pending", "Confirmed", "Declined", "Dead"];
 const sponsorTypeOptions = ["Sponsor", "Vendor", "Partner", "Food", "Printing", "Priority Sponsor", "Vendor/Sponsor"];
 const resourceTabs = ["Inventory", "Sponsors", "Budget"];
+
+function slug(value = "") {
+  return value.toLowerCase().replace(/\s+/g, "-");
+}
+
+function sourceLabel(row) {
+  if (row.sourceType === "form_submission") return "Form";
+  if (row.sourceType === "programming") return "Programming";
+  return "Local";
+}
 
 export default function ResourcesView() {
   const store = useOpsStore();
@@ -35,8 +44,8 @@ export default function ResourcesView() {
   }, []);
 
   const inventoryRows = store.inventory.filter((item) => (`${item.item} ${item.location} ${item.owner} ${item.condition} ${item.notes}`).toLowerCase().includes(query.toLowerCase()));
-  const sponsorRows = store.sponsors.filter((item) => (`${item.name} ${item.type} ${item.contact} ${item.status} ${item.notes}`).toLowerCase().includes(query.toLowerCase()));
-  const budgetRows = store.budget.filter((item) => (`${item.item} ${item.category} ${item.cost} ${item.notes}`).toLowerCase().includes(query.toLowerCase()));
+  const sponsorRows = store.sponsors.filter((item) => (`${item.name} ${item.type} ${item.contact} ${item.status} ${item.notes} ${item.syncStatus}`).toLowerCase().includes(query.toLowerCase()));
+  const budgetRows = store.budget.filter((item) => (`${item.item} ${item.category} ${item.cost} ${item.notes} ${item.syncStatus}`).toLowerCase().includes(query.toLowerCase()));
 
   const handleSave = () => {
     if (tab === "Inventory") {
@@ -62,6 +71,15 @@ export default function ResourcesView() {
     exists ? store.updateItem("budget", editor.id, editor) : store.addItem("budget", editor);
     setEditor(blankBudget());
     setIsEditorOpen(false);
+  };
+
+  const handleSync = async () => {
+    try {
+      const count = await store.syncVendors();
+      window.alert(`Synced ${count} vendor submission${count === 1 ? "" : "s"}.`);
+    } catch (error) {
+      window.alert(error?.message || "Could not sync vendors.");
+    }
   };
 
   const editorTitle = tab === "Inventory" ? "Inventory editor" : tab === "Sponsors" ? "Sponsor or vendor editor" : "Budget editor";
@@ -126,7 +144,7 @@ export default function ResourcesView() {
         />
       </SectionCard>
 
-      <SectionCard title="Resources" subtitle="Inventory, sponsors, budget. One area, three sane tables.">
+      <SectionCard title="Resources" subtitle="Inventory, sponsors, and budget lines with actual source linkage instead of mystery copies.">
         <div className="ops-tabs">
           {resourceTabs.map((item) => (
             <button key={item} type="button" className={`ops-tab ${item === tab ? "is-active" : ""}`} onClick={() => setTab(item)}>
@@ -136,23 +154,12 @@ export default function ResourcesView() {
         </div>
 
         <div className="ops-toolbar">
-          {tab === "Sponsors" && (
-            <button
-              type="button"
-              className="ops-button ops-button-secondary ops-button-small"
-              onClick={async () => {
-                try {
-                  const count = await store.syncVendors();
-                  window.alert(`Synced ${count} vendor submissions into sponsors and vendors.`);
-                } catch (error) {
-                  window.alert(error?.message || "Could not sync vendors.");
-                }
-              }}
-            >
-              <RefreshCw className="h-4 w-4" /> Sync vendors
-            </button>
-          )}
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${tab.toLowerCase()}`} />
+          {tab === "Sponsors" ? (
+            <button type="button" className="ops-button ops-button-secondary" onClick={handleSync} disabled={store.syncStatus.vendors === "loading"}>
+              {store.syncStatus.vendors === "loading" ? "Syncing…" : store.syncStatus.vendors === "saved" ? "Synced" : "Sync vendors"}
+            </button>
+          ) : null}
         </div>
 
         {tab === "Inventory" && (
@@ -184,6 +191,8 @@ export default function ResourcesView() {
               { key: "type", label: "Type" },
               { key: "contact", label: "Contact", width: 220 },
               { key: "status", label: "Status", render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span> },
+              { key: "sourceType", label: "Source", render: (_, row) => sourceLabel(row) },
+              { key: "syncStatus", label: "Sync", render: (value) => value || "local" },
               { key: "notes", label: "Notes", width: 220 },
             ]}
             emptyLabel="No sponsors yet."
@@ -201,6 +210,8 @@ export default function ResourcesView() {
               { key: "category", label: "Category" },
               { key: "cost", label: "Cost", render: (value) => (value ? `$${Number(value).toFixed(0)}` : "—") },
               { key: "paid", label: "Paid?", render: (value) => (value ? "Yes" : "No") },
+              { key: "sourceType", label: "Source", render: (_, row) => sourceLabel(row) },
+              { key: "syncStatus", label: "Sync", render: (value) => value || "local" },
               { key: "notes", label: "Notes", width: 220 },
             ]}
             emptyLabel="No budget items yet."
@@ -209,8 +220,4 @@ export default function ResourcesView() {
       </SectionCard>
     </div>
   );
-}
-
-function slug(value = "") {
-  return value.toLowerCase().replace(/\s+/g, "-");
 }

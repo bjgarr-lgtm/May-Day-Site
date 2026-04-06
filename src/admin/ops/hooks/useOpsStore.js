@@ -1,9 +1,10 @@
 import React from "react";
-import { createInitialOpsState, normalizeOpsState, inferProgrammingCategory } from "../seedData";
+import { createInitialOpsState, normalizeOpsState } from "../seedData";
 import { loadOpsState, saveOpsState } from "../utils/storage";
 
 const OpsStoreContext = React.createContext(null);
 const PASSWORD_STORAGE_KEY = "maydayApplicationsPassword";
+const LINKED_COLLECTIONS = ["tasks", "timeline", "programming", "inventory", "sponsors", "budget", "volunteers", "runOfShow"];
 
 function getPassword() {
   try {
@@ -13,146 +14,209 @@ function getPassword() {
   }
 }
 
-function textIncludes(a = "", b = "") {
-  const aa = String(a).trim().toLowerCase();
-  const bb = String(b).trim().toLowerCase();
-  return !!aa && !!bb && (aa.includes(bb) || bb.includes(aa));
+function nowIso() {
+  return new Date().toISOString();
 }
 
-function makeSourceKey(item = {}) {
-  return `${item.sourceType || ""}::${item.sourceId || ""}`;
+function normalizeLinkedItem(item, fallbackType = "local") {
+  const linked = item && typeof item === "object" ? item : {};
+  return {
+    ...linked,
+    sourceType: linked.sourceType || fallbackType,
+    sourceId: linked.sourceId || "",
+    syncStatus: linked.syncStatus || (linked.sourceId ? "synced" : "local"),
+    linkedAt: linked.linkedAt || (linked.sourceId ? linked.updatedAt || nowIso() : ""),
+    updatedAt: linked.updatedAt || "",
+  };
 }
 
-function upsertBySource(collection = [], incoming = []) {
-  const existingBySource = new Map();
-  const existingById = new Map();
-  collection.forEach((item) => {
-    existingById.set(item.id, item);
-    if (item.sourceType && item.sourceId) existingBySource.set(makeSourceKey(item), item);
-  });
+function normalizeLinkedState(state) {
+  const next = normalizeOpsState(state || createInitialOpsState());
+  for (const key of LINKED_COLLECTIONS) {
+    next[key] = Array.isArray(next[key]) ? next[key].map((item) => normalizeLinkedItem(item)) : [];
+  }
+  return next;
+}
 
-  const next = [...collection];
-  incoming.forEach((item) => {
-    const sourceKey = makeSourceKey(item);
-    const existing = (item.sourceType && item.sourceId && existingBySource.get(sourceKey)) || existingById.get(item.id);
-    if (existing) {
-      Object.assign(existing, { ...existing, ...item });
-    } else {
-      next.unshift(item);
+function parseResponse(response) {
+  return response.json().catch(() => ({})).then((data) => ({ ok: response.ok, data }));
+}
+
+function cleanText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function makeRoleSlug(value) {
+  return cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function chooseVolunteerArea(role) {
+  const text = makeRoleSlug(role);
+  if (/safety|security|medic/.test(text)) return "Safety";
+  if (/food|kitchen|bev|coffee/.test(text)) return "Food";
+  if (/art|zine|activity|craft|hunt/.test(text)) return "Activities";
+  if (/welcome|front|greeter|table/.test(text)) return "Front of House";
+  if (/cleanup|teardown|ops|setup/.test(text)) return "Ops";
+  if (/music|perform|program/.test(text)) return "Programming";
+  return "General";
+}
+
+function mergeItemBySource(items, nextItem) {
+  const sourceType = nextItem.sourceType || "form_submission";
+  const sourceId = nextItem.sourceId || "";
+  if (sourceId) {
+    const index = items.findIndex((item) => item.sourceType === sourceType && item.sourceId === sourceId);
+    if (index >= 0) {
+      const existing = items[index];
+      const merged = {
+        ...existing,
+        ...nextItem,
+        id: existing.id,
+        sourceType,
+        sourceId,
+        syncStatus: existing.syncStatus === "modified" ? "modified" : "synced",
+        linkedAt: existing.linkedAt || nextItem.linkedAt || nowIso(),
+      };
+      return [merged, items.filter((_, idx) => idx !== index)];
     }
-  });
-
-  return next.map((item) => ({ ...item }));
+  }
+  return [normalizeLinkedItem(nextItem, sourceType), items];
 }
 
-function mapPerformerSubmission(submission) {
-  const payload = submission?.payload || {};
-  return {
-    id: `prog_form_${submission.id}`,
-    sourceType: "form_submission",
-    sourceId: submission.id,
-    activity: payload.artist_name || submission.subject_name || "Performer",
+function applyCollectionMerge(items, incomingItems) {
+  let working = Array.isArray(items) ? [...items] : [];
+  for (const incoming of incomingItems) {
+    const [merged, rest] = mergeItemBySource(working, incoming);
+    working = [merged, ...rest];
+  }
+  return working;
+}
+
+function performerSubmissionToProgramming(submission) {
+  const payload = submission.payload || {};
+  const links = [cleanText(payload.links), cleanText(payload.location)].filter(Boolean).join(" · ");
+  return normalizeLinkedItem({
+    id: `prog_${submission.id}`,
+    activity: cleanText(payload.artist_name || submission.subject_name) || "Unnamed performer",
     category: "Performance",
-    location: payload.location || "",
+    location: "",
     time: "",
-    lead: submission.contact_name || "",
-    needs: payload.tech_needs || "",
+    lead: cleanText(payload.name || submission.contact_name),
+    needs: cleanText(payload.tech_needs),
     cost: "",
-    status: "Confirmed",
-    notes: [payload.genre, payload.links, payload.description, payload.notes].filter(Boolean).join(" • "),
-  };
-}
-
-function mapVendorSubmission(submission) {
-  const payload = submission?.payload || {};
-  return {
-    id: `sponsor_form_${submission.id}`,
+    status: "Planned",
+    notes: [cleanText(payload.description), links, cleanText(payload.notes)].filter(Boolean).join(" | "),
     sourceType: "form_submission",
     sourceId: submission.id,
-    name: payload.organization_name || submission.subject_name || submission.contact_name || "Vendor",
-    type: "Vendor",
-    contact: [submission.contact_name, submission.email, submission.phone].filter(Boolean).join(" • "),
-    status: "Pending",
-    notes: [payload.description, payload.needs, payload.website, payload.social_links, payload.notes].filter(Boolean).join(" • "),
-  };
+    linkedAt: submission.created_at || nowIso(),
+    updatedAt: submission.created_at || nowIso(),
+    syncStatus: "synced",
+  }, "form_submission");
 }
 
-function tryAssignVolunteerToOpenShift(volunteers, submission) {
-  const payload = submission?.payload || {};
-  const preferredRole = payload.preferred_role || submission.subject_name || "";
-  const backupRole = payload.backup_role || "";
-  const notes = [payload.availability, payload.notes].filter(Boolean).join(" • ");
-  const contact = [submission.email, submission.phone].filter(Boolean).join(" • ");
+function vendorSubmissionToSponsor(submission) {
+  const payload = submission.payload || {};
+  const notes = [
+    cleanText(payload.description),
+    cleanText(payload.needs),
+    cleanText(payload.website),
+    cleanText(payload.social_links),
+    cleanText(payload.notes),
+  ].filter(Boolean).join(" | ");
+  return normalizeLinkedItem({
+    id: `sponsor_${submission.id}`,
+    name: cleanText(payload.organization_name || submission.subject_name) || "Unnamed vendor",
+    type: "Vendor",
+    contact: [cleanText(payload.name || submission.contact_name), cleanText(payload.email || submission.email), cleanText(payload.phone || submission.phone)].filter(Boolean).join(" · "),
+    status: "Pending",
+    notes,
+    sourceType: "form_submission",
+    sourceId: submission.id,
+    linkedAt: submission.created_at || nowIso(),
+    updatedAt: submission.created_at || nowIso(),
+    syncStatus: "synced",
+  }, "form_submission");
+}
 
-  const matchIndex = volunteers.findIndex((item) => {
-    const open = !String(item.name || "").trim() || item.status === "Needs Assignment";
-    return open && (textIncludes(item.role, preferredRole) || textIncludes(item.role, backupRole));
-  });
+function volunteerSubmissionToVolunteer(submission, currentVolunteers) {
+  const payload = submission.payload || {};
+  const preferredRole = cleanText(payload.preferred_role || submission.subject_name) || "Volunteer";
+  const backupRole = cleanText(payload.backup_role);
+  const availability = cleanText(payload.availability);
+  const notes = [backupRole ? `Backup: ${backupRole}` : "", availability ? `Availability: ${availability}` : "", cleanText(payload.notes)].filter(Boolean).join(" | ");
+  const sourceType = "form_submission";
+  const sourceId = submission.id;
+  const linkedAt = submission.created_at || nowIso();
 
-  if (matchIndex >= 0) {
-    const next = volunteers.map((item, index) =>
-      index === matchIndex
-        ? {
-            ...item,
-            sourceType: "form_submission",
-            sourceId: submission.id,
-            name: submission.contact_name || item.name,
-            contact: contact || item.contact,
-            status: "Confirmed",
-            notes: [item.notes, notes].filter(Boolean).join(" • "),
-          }
-        : item
-    );
-    return { volunteers: next, matched: true };
+  const existingLinked = (currentVolunteers || []).find((item) => item.sourceType === sourceType && item.sourceId === sourceId);
+  if (existingLinked) {
+    return normalizeLinkedItem({
+      ...existingLinked,
+      name: cleanText(payload.name || submission.contact_name),
+      role: existingLinked.role || preferredRole,
+      area: existingLinked.area || chooseVolunteerArea(preferredRole),
+      contact: [cleanText(payload.email || submission.email), cleanText(payload.phone || submission.phone)].filter(Boolean).join(" · "),
+      notes,
+      sourceType,
+      sourceId,
+      linkedAt: existingLinked.linkedAt || linkedAt,
+      updatedAt: linkedAt,
+      syncStatus: existingLinked.syncStatus === "modified" ? "modified" : "synced",
+    }, sourceType);
   }
 
-  return {
-    volunteers: upsertBySource(volunteers, [
-      {
-        id: `vol_form_${submission.id}`,
-        sourceType: "form_submission",
-        sourceId: submission.id,
-        name: submission.contact_name || "",
-        role: preferredRole || "Volunteer",
-        area: "General",
-        shiftDate: "",
-        shiftStart: "",
-        shiftEnd: "",
-        contact,
-        status: "Confirmed",
-        checkedIn: false,
-        notes,
-      },
-    ]),
-    matched: false,
-  };
-}
-
-async function fetchSubmissions(type) {
-  const password = getPassword();
-  if (!password) throw new Error("Unlock admin first so sync can authenticate.");
-  const response = await fetch(`/api/forms/submissions?type=${encodeURIComponent(type)}`, {
-    headers: {
-      Accept: "application/json",
-      "x-applications-password": password,
-    },
+  const preferredSlug = makeRoleSlug(preferredRole);
+  const matchingOpenShift = (currentVolunteers || []).find((item) => {
+    if (item.name && cleanText(item.name)) return false;
+    if (item.sourceId) return false;
+    const roleSlug = makeRoleSlug(item.role);
+    return roleSlug && preferredSlug && (roleSlug.includes(preferredSlug) || preferredSlug.includes(roleSlug));
   });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data?.error || `Could not sync ${type} submissions.`);
-  return Array.isArray(data?.items) ? data.items : [];
+
+  if (matchingOpenShift) {
+    return normalizeLinkedItem({
+      ...matchingOpenShift,
+      name: cleanText(payload.name || submission.contact_name),
+      role: matchingOpenShift.role || preferredRole,
+      area: matchingOpenShift.area || chooseVolunteerArea(preferredRole),
+      contact: [cleanText(payload.email || submission.email), cleanText(payload.phone || submission.phone)].filter(Boolean).join(" · "),
+      status: "Confirmed",
+      notes: [matchingOpenShift.notes, notes].filter(Boolean).join(" | "),
+      sourceType,
+      sourceId,
+      linkedAt,
+      updatedAt: linkedAt,
+      syncStatus: "synced",
+    }, sourceType);
+  }
+
+  return normalizeLinkedItem({
+    id: `vol_${submission.id}`,
+    name: cleanText(payload.name || submission.contact_name),
+    role: preferredRole,
+    area: chooseVolunteerArea(preferredRole),
+    shiftDate: "",
+    shiftStart: "",
+    shiftEnd: "",
+    contact: [cleanText(payload.email || submission.email), cleanText(payload.phone || submission.phone)].filter(Boolean).join(" · "),
+    status: "Confirmed",
+    checkedIn: false,
+    notes,
+    sourceType,
+    sourceId,
+    linkedAt,
+    updatedAt: linkedAt,
+    syncStatus: "synced",
+  }, sourceType);
 }
 
 export function OpsStoreProvider({ children }) {
   const [state, setState] = React.useState(() => {
     const existing = loadOpsState();
-    return existing ? normalizeOpsState(existing) : createInitialOpsState();
+    return existing ? normalizeLinkedState(existing) : normalizeLinkedState(createInitialOpsState());
   });
   const [remoteStatus, setRemoteStatus] = React.useState("idle");
-  const [syncStatus, setSyncStatus] = React.useState({
-    vendors: "idle",
-    performers: "idle",
-    volunteers: "idle",
-  });
+  const [syncStatus, setSyncStatus] = React.useState({ performers: "idle", vendors: "idle", volunteers: "idle" });
 
   React.useEffect(() => {
     let isMounted = true;
@@ -165,10 +229,10 @@ export function OpsStoreProvider({ children }) {
         "x-applications-password": password,
       },
     })
-      .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+      .then(parseResponse)
       .then(({ ok, data }) => {
         if (!isMounted || !ok || !data?.state) return;
-        setState((current) => normalizeOpsState(data.state || current));
+        setState((current) => normalizeLinkedState(data.state || current));
         setRemoteStatus("loaded");
       })
       .catch(() => {
@@ -214,16 +278,24 @@ export function OpsStoreProvider({ children }) {
     const updateCollection = (collectionName, id, updater) => {
       setState((current) => ({
         ...current,
-        [collectionName]: current[collectionName].map((item) =>
-          item.id === id ? { ...item, ...updater(item) } : item
-        ),
+        [collectionName]: current[collectionName].map((item) => {
+          if (item.id !== id) return item;
+          const next = normalizeLinkedItem({ ...item, ...updater(item) }, item.sourceType || "local");
+          if (next.sourceId) next.syncStatus = "modified";
+          next.updatedAt = nowIso();
+          return next;
+        }),
       }));
     };
 
     const addItem = (collectionName, item) => {
+      const nextItem = normalizeLinkedItem({
+        ...item,
+        updatedAt: nowIso(),
+      }, item?.sourceType || "local");
       setState((current) => ({
         ...current,
-        [collectionName]: [item, ...current[collectionName]],
+        [collectionName]: [nextItem, ...current[collectionName]],
       }));
     };
 
@@ -238,61 +310,56 @@ export function OpsStoreProvider({ children }) {
       }));
     };
 
-    const syncPerformers = async () => {
-      setSyncStatus((current) => ({ ...current, performers: "syncing" }));
-      try {
-        const items = await fetchSubmissions("performer");
-        const mapped = items.map(mapPerformerSubmission).map((item) => ({
-          ...item,
-          category: item.category || inferProgrammingCategory(item),
-        }));
-        setState((current) => normalizeOpsState({
-          ...current,
-          programming: upsertBySource(current.programming, mapped),
-        }));
-        setSyncStatus((current) => ({ ...current, performers: "done" }));
-        return mapped.length;
-      } catch (error) {
-        setSyncStatus((current) => ({ ...current, performers: error?.message || "error" }));
-        throw error;
+    const syncFromSubmissions = async (type) => {
+      const password = getPassword();
+      if (!password) throw new Error("Unlock admin first.");
+      const syncKey = `${type}s`;
+      setSyncStatus((current) => ({ ...current, [syncKey]: "loading" }));
+      const response = await fetch(`/api/forms/submissions?type=${encodeURIComponent(type)}`, {
+        headers: {
+          Accept: "application/json",
+          "x-applications-password": password,
+        },
+      });
+      const { ok, data } = await parseResponse(response);
+      if (!ok) {
+        setSyncStatus((current) => ({ ...current, [syncKey]: "error" }));
+        throw new Error(data?.error || `Could not sync ${type} submissions.`);
       }
+      const items = Array.isArray(data?.items) ? data.items : [];
+      setState((current) => {
+        if (type === "performer") {
+          return {
+            ...current,
+            programming: applyCollectionMerge(current.programming, items.map(performerSubmissionToProgramming)),
+          };
+        }
+        if (type === "vendor") {
+          return {
+            ...current,
+            sponsors: applyCollectionMerge(current.sponsors, items.map(vendorSubmissionToSponsor)),
+          };
+        }
+        if (type === "volunteer") {
+          const mapped = items.map((submission) => volunteerSubmissionToVolunteer(submission, current.volunteers));
+          return {
+            ...current,
+            volunteers: applyCollectionMerge(current.volunteers, mapped),
+          };
+        }
+        return current;
+      });
+      setSyncStatus((current) => ({ ...current, [syncKey]: "saved" }));
+      return items.length;
     };
 
-    const syncVendors = async () => {
-      setSyncStatus((current) => ({ ...current, vendors: "syncing" }));
-      try {
-        const items = await fetchSubmissions("vendor");
-        const mapped = items.map(mapVendorSubmission);
-        setState((current) => normalizeOpsState({
-          ...current,
-          sponsors: upsertBySource(current.sponsors, mapped),
-        }));
-        setSyncStatus((current) => ({ ...current, vendors: "done" }));
-        return mapped.length;
-      } catch (error) {
-        setSyncStatus((current) => ({ ...current, vendors: error?.message || "error" }));
-        throw error;
-      }
-    };
-
-    const syncVolunteers = async () => {
-      setSyncStatus((current) => ({ ...current, volunteers: "syncing" }));
-      try {
-        const items = await fetchSubmissions("volunteer");
-        setState((current) => {
-          let volunteers = [...current.volunteers];
-          items.forEach((submission) => {
-            const result = tryAssignVolunteerToOpenShift(volunteers, submission);
-            volunteers = result.volunteers;
-          });
-          return normalizeOpsState({ ...current, volunteers });
-        });
-        setSyncStatus((current) => ({ ...current, volunteers: "done" }));
-        return items.length;
-      } catch (error) {
-        setSyncStatus((current) => ({ ...current, volunteers: error?.message || "error" }));
-        throw error;
-      }
+    const markRecordSynced = (collectionName, id) => {
+      setState((current) => ({
+        ...current,
+        [collectionName]: current[collectionName].map((item) =>
+          item.id === id ? normalizeLinkedItem({ ...item, syncStatus: "synced", updatedAt: nowIso() }, item.sourceType || "local") : item
+        ),
+      }));
     };
 
     return {
@@ -310,17 +377,18 @@ export function OpsStoreProvider({ children }) {
       addItem,
       updateItem,
       removeItem,
-      replaceState: (nextState) => setState(normalizeOpsState(nextState)),
+      replaceState: (nextState) => setState(normalizeLinkedState(nextState)),
       toggleVolunteerCheckIn: (id) =>
         setState((current) => ({
           ...current,
           volunteers: current.volunteers.map((item) =>
-            item.id === id ? { ...item, checkedIn: !item.checkedIn } : item
+            item.id === id ? { ...item, checkedIn: !item.checkedIn, updatedAt: nowIso(), syncStatus: item.sourceId ? "modified" : item.syncStatus } : item
           ),
         })),
-      syncPerformers,
-      syncVendors,
-      syncVolunteers,
+      syncPerformers: () => syncFromSubmissions("performer"),
+      syncVendors: () => syncFromSubmissions("vendor"),
+      syncVolunteers: () => syncFromSubmissions("volunteer"),
+      markRecordSynced,
       setState,
     };
   }, [state, remoteStatus, syncStatus]);

@@ -1,5 +1,4 @@
 import React from "react";
-import { RefreshCw } from "lucide-react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
@@ -13,6 +12,10 @@ const quickViews = ["All", "Open", "Today", "Checked In"];
 
 function statusSlug(value = "") {
   return value.toLowerCase().replace(/\s+/g, "-");
+}
+
+function sourceLabel(row) {
+  return row.sourceType === "form_submission" ? "Form" : "Local";
 }
 
 export default function VolunteersView() {
@@ -33,7 +36,7 @@ export default function VolunteersView() {
   const rows = store.volunteers
     .filter((item) => {
       const matchesArea = areaFilter === "All" || item.area === areaFilter;
-      const haystack = `${item.name} ${item.role} ${item.area} ${item.contact} ${item.notes}`.toLowerCase();
+      const haystack = `${item.name} ${item.role} ${item.area} ${item.contact} ${item.notes} ${item.syncStatus}`.toLowerCase();
       const matchesQuery = !query || haystack.includes(query.toLowerCase());
       let matchesQuick = true;
       if (quickView === "Open") matchesQuick = !item.name?.trim() || item.status === "Needs Assignment";
@@ -58,6 +61,15 @@ export default function VolunteersView() {
     setIsEditorOpen(false);
   };
 
+  const handleSync = async () => {
+    try {
+      const count = await store.syncVolunteers();
+      window.alert(`Synced ${count} volunteer submission${count === 1 ? "" : "s"}.`);
+    } catch (error) {
+      window.alert(error?.message || "Could not sync volunteers.");
+    }
+  };
+
   const openCount = store.volunteers.filter((item) => !item.name?.trim() || item.status === "Needs Assignment").length;
   const checkedInCount = store.volunteers.filter((item) => item.checkedIn).length;
 
@@ -69,7 +81,7 @@ export default function VolunteersView() {
         <div className="ops-stat-card"><div className="ops-stat-label">Checked in</div><div className="ops-stat-value">{checkedInCount}</div></div>
       </div>
 
-      <SectionCard title={store.volunteers.some((item) => item.id === editor.id) ? "Edit volunteer shift" : "Add volunteer shift"} subtitle="Shifts and people up top, not buried at the bottom.">
+      <SectionCard title={store.volunteers.some((item) => item.id === editor.id) ? "Edit volunteer shift" : "Add volunteer shift"} subtitle="Linked submissions stay linked. Miraculous, I know.">
         <RecordEditor
           editorRef={editorRef}
           title="Volunteer editor"
@@ -104,7 +116,7 @@ export default function VolunteersView() {
         />
       </SectionCard>
 
-      <SectionCard title="Volunteer board" subtitle="Day-of staffing without turning your brain into powder.">
+      <SectionCard title="Volunteer board" subtitle="Shifts, people, and sync state all in one place.">
         <div className="ops-tabs">
           {quickViews.map((item) => (
             <button key={item} type="button" className={`ops-tab ${quickView === item ? "is-active" : ""}`} onClick={() => setQuickView(item)}>
@@ -114,25 +126,14 @@ export default function VolunteersView() {
         </div>
 
         <div className="ops-toolbar">
-          <button
-            type="button"
-            className="ops-button ops-button-secondary ops-button-small"
-            onClick={async () => {
-              try {
-                const count = await store.syncVolunteers();
-                window.alert(`Synced ${count} volunteer submissions into the volunteer board.`);
-              } catch (error) {
-                window.alert(error?.message || "Could not sync volunteers.");
-              }
-            }}
-          >
-            <RefreshCw className="h-4 w-4" /> Sync volunteers
-          </button>
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search volunteers or roles" />
           <select value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)}>
             <option>All</option>
             {areas.map((item) => <option key={item}>{item}</option>)}
           </select>
+          <button type="button" className="ops-button ops-button-secondary" onClick={handleSync} disabled={store.syncStatus.volunteers === "loading"}>
+            {store.syncStatus.volunteers === "loading" ? "Syncing…" : store.syncStatus.volunteers === "saved" ? "Synced" : "Sync volunteers"}
+          </button>
         </div>
 
         <EditableTable
@@ -147,6 +148,8 @@ export default function VolunteersView() {
             { key: "shiftDate", label: "Shift", width: 220, render: (_, row) => formatDateTime(row.shiftDate, row.shiftStart) + (row.shiftEnd ? ` to ${row.shiftEnd}` : "") },
             { key: "contact", label: "Contact", width: 220 },
             { key: "status", label: "Status", render: (value, row) => <span className={`ops-pill status-${statusSlug(row.checkedIn ? "Checked In" : value)}`}>{row.checkedIn ? "Checked In" : value}</span> },
+            { key: "sourceType", label: "Source", render: (_, row) => sourceLabel(row) },
+            { key: "syncStatus", label: "Sync", render: (value) => value || "local" },
             { key: "notes", label: "Notes", width: 220 },
           ]}
           rowClassName={(row) => (!row.name?.trim() ? "is-overdue" : "")}
