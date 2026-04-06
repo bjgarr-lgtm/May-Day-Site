@@ -71,7 +71,7 @@ export default function DashboardView() {
       </div>
 
       <div className="ops-dashboard-grid ops-dashboard-grid-three">
-        <SectionCard title="Problems that need fixing" subtitle="Compact view so you can see the mess without scrolling to hell." actions={<div className="ops-inline-actions"><Link className="ops-button ops-button-small" to="../run-of-show">Open run of show</Link><Link className="ops-button ops-button-small ops-button-secondary" to="../day-of">Open day of view</Link></div>}>
+        <SectionCard title="Problems that need fixing" subtitle="Compact view so you can see the mess without scrolling to hell." actions={<Link className="ops-button ops-button-small" to="../run-of-show">Open run of show</Link>}>
           <IssueStack
             items={[
               ...programmingConflicts.slice(0, 4).map((item) => ({ kind: "conflict", data: item, key: item.id })),

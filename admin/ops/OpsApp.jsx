@@ -9,7 +9,6 @@ import ProgrammingView from "./views/ProgrammingView";
 import ResourcesView from "./views/ResourcesView";
 import VolunteersView from "./views/VolunteersView";
 import RunOfShowView from "./views/RunOfShowView";
-import DayOfView from "./views/DayOfView";
 import "./ops.css";
 
 export default function OpsApp() {
@@ -24,7 +23,6 @@ export default function OpsApp() {
         <Route path="resources" element={<ResourcesView />} />
         <Route path="volunteers" element={<VolunteersView />} />
         <Route path="run-of-show" element={<RunOfShowView />} />
-        <Route path="day-of" element={<DayOfView />} />
       </Route>
     </Routes>
   );

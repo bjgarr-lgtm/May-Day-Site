@@ -2,13 +2,13 @@
 import React from "react";
 import { exportCSV } from "../utils/exportCSV";
 
-export default function VolunteersView({ volunteers = [] }) {
+export default function ProgrammingView({ items = [] }) {
   return (
     <div>
-      <h2>Volunteers</h2>
+      <h2>Programming</h2>
 
       <div style={{ marginBottom: "10px" }}>
-        <button onClick={() => exportCSV(volunteers, "volunteers.csv")}>
+        <button onClick={() => exportCSV(items, "programming.csv")}>
           Export CSV
         </button>
         <button onClick={() => window.print()}>
@@ -16,9 +16,9 @@ export default function VolunteersView({ volunteers = [] }) {
         </button>
       </div>
 
-      {volunteers.map((v, i) => (
+      {items.map((item, i) => (
         <div key={i}>
-          {v.name} — {v.role || "No role"}
+          {item.name} — {item.time} @ {item.location}
         </div>
       ))}
     </div>
