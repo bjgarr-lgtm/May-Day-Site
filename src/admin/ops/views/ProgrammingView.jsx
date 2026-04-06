@@ -7,6 +7,15 @@ import { blankProgramming, inferProgrammingCategory } from "../seedData";
 
 const statusOptions = ["Planned", "Confirmed", "Needs Supplies", "At Risk", "Done"];
 const categoryOptions = ["General", "Performance", "Food", "Operations", "Activity"];
+const issueOptions = ["All", "Conflicts", "Resources", "Clean"];
+
+function slug(value = "") {
+  return value.toLowerCase().replace(/\s+/g, "-");
+}
+
+function IssuePill({ tone = "default", children }) {
+  return <span className={`ops-pill tone-${tone}`}>{children}</span>;
+}
 
 export default function ProgrammingView() {
   const store = useOpsStore();
@@ -32,10 +41,14 @@ export default function ProgrammingView() {
       const matchesCategory = categoryFilter === "All" || (item.category || inferProgrammingCategory(item)) === categoryFilter;
       const hasConflict = Boolean(store.programmingConflictsById?.[item.id]?.length);
       const hasResourceIssue = Boolean(store.resourceIssuesByProgrammingId?.[item.id]?.length);
-      const matchesIssue = issueFilter === "All" || (issueFilter === "Conflicts" && hasConflict) || (issueFilter === "Resource issues" && hasResourceIssue) || (issueFilter === "Clean" && !hasConflict && !hasResourceIssue);
+      const matchesIssue =
+        issueFilter === "All" ||
+        (issueFilter === "Conflicts" && hasConflict) ||
+        (issueFilter === "Resources" && hasResourceIssue) ||
+        (issueFilter === "Clean" && !hasConflict && !hasResourceIssue);
       return matchesQuery && matchesStatus && matchesCategory && matchesIssue;
     })
-    .sort((a, b) => `${a.time || ""}`.localeCompare(`${b.time || ""}`));
+    .sort((a, b) => `${a.date || ""} ${a.time || ""}`.localeCompare(`${b.date || ""} ${b.time || ""}`));
 
   const syncBudget = (programItem) => {
     const label = programItem.activity.trim();
@@ -69,7 +82,13 @@ export default function ProgrammingView() {
 
   return (
     <div className="ops-page">
-      <SectionCard title={store.programming.some((item) => item.id === editor.id) ? "Edit programming item" : "Add programming item"}>
+      <div className="ops-stat-grid ops-stat-grid-three">
+        <div className="ops-stat-card"><div className="ops-stat-label">Programming items</div><div className="ops-stat-value">{store.programming.length}</div></div>
+        <div className="ops-stat-card tone-danger"><div className="ops-stat-label">Conflicts</div><div className="ops-stat-value">{store.programmingConflicts.length}</div></div>
+        <div className="ops-stat-card tone-warning"><div className="ops-stat-label">Resource issues</div><div className="ops-stat-value">{store.resourceIssues.length}</div></div>
+      </div>
+
+      <SectionCard title={store.programming.some((item) => item.id === editor.id) ? "Edit programming item" : "Add programming item"} subtitle="Editor lives up top where it belongs.">
         <RecordEditor
           editorRef={editorRef}
           title={store.programming.some((item) => item.id === editor.id) ? "Programming editor" : "New programming entry"}
@@ -93,6 +112,7 @@ export default function ProgrammingView() {
             { name: "activity", label: "Activity", full: true },
             { name: "category", label: "Category", type: "select", options: categoryOptions },
             { name: "location", label: "Location" },
+            { name: "date", label: "Date", type: "date" },
             { name: "time", label: "Time" },
             { name: "lead", label: "Lead" },
             { name: "cost", label: "Cost", type: "number" },
@@ -103,7 +123,7 @@ export default function ProgrammingView() {
         />
       </SectionCard>
 
-      <SectionCard title="Programming" subtitle="Activities, rooms, leads, needs. Now with actual warning flags.">
+      <SectionCard title="Programming" subtitle="Now with actual issue surfacing instead of vibes and prayer.">
         <div className="ops-toolbar">
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search programming" />
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
@@ -115,18 +135,20 @@ export default function ProgrammingView() {
             {statusOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
           <select value={issueFilter} onChange={(e) => setIssueFilter(e.target.value)}>
-            <option>All</option>
-            <option>Conflicts</option>
-            <option>Resource issues</option>
-            <option>Clean</option>
+            {issueOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
         </div>
 
-        {store.programmingConflicts.length > 0 && (
-          <div className="ops-warning-banner">
-            <strong>{store.programmingConflicts.length}</strong> programming conflict{store.programmingConflicts.length === 1 ? "" : "s"} detected.
+        {(store.programmingConflicts.length || store.resourceIssues.length) ? (
+          <div className="ops-banner-list">
+            {store.programmingConflicts.slice(0, 3).map((item) => (
+              <div className="ops-alert-row ops-alert-danger" key={item.id}><strong>Conflict</strong><span>{item.summary}</span></div>
+            ))}
+            {store.resourceIssues.slice(0, 3).map((item) => (
+              <div className="ops-alert-row ops-alert-warning" key={item.id}><strong>Missing</strong><span>{item.summary}</span></div>
+            ))}
           </div>
-        )}
+        ) : null}
 
         <EditableTable
           tableKey="programming"
@@ -137,20 +159,26 @@ export default function ProgrammingView() {
             { key: "activity", label: "Activity", width: 220 },
             { key: "category", label: "Category", render: (value, row) => value || inferProgrammingCategory(row) },
             { key: "location", label: "Location" },
+            { key: "date", label: "Date" },
             { key: "time", label: "Time" },
             { key: "lead", label: "Lead" },
-            { key: "needs", label: "Needs", width: 220 },
             {
               key: "issues",
               label: "Issues",
-              width: 260,
+              width: 220,
               render: (_, row) => {
-                const problems = [];
-                if (store.programmingConflictsById?.[row.id]?.length) problems.push(`${store.programmingConflictsById[row.id].length} conflict`);
-                if (store.resourceIssuesByProgrammingId?.[row.id]?.length) problems.push(`${store.resourceIssuesByProgrammingId[row.id].length} resource issue`);
-                return problems.length ? <span className="ops-pill status-at-risk">{problems.join(" • ")}</span> : "—";
+                const conflicts = store.programmingConflictsById?.[row.id] || [];
+                const resourceIssues = store.resourceIssuesByProgrammingId?.[row.id] || [];
+                if (!conflicts.length && !resourceIssues.length) return <IssuePill tone="success">Clean</IssuePill>;
+                return (
+                  <div className="ops-inline-pills">
+                    {conflicts.length ? <IssuePill tone="danger">{conflicts.length} conflict{conflicts.length > 1 ? "s" : ""}</IssuePill> : null}
+                    {resourceIssues.length ? <IssuePill tone="warning">{resourceIssues.length} resource</IssuePill> : null}
+                  </div>
+                );
               },
             },
+            { key: "needs", label: "Needs", width: 220 },
             { key: "cost", label: "Cost", render: (value) => value ? `$${Number(value).toFixed(0)}` : "—" },
             {
               key: "status",
@@ -164,8 +192,4 @@ export default function ProgrammingView() {
       </SectionCard>
     </div>
   );
-}
-
-function slug(value = "") {
-  return value.toLowerCase().replace(/\s+/g, "-");
 }

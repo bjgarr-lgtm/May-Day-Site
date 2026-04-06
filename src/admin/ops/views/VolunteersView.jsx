@@ -4,17 +4,28 @@ import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
 import RecordEditor from "../components/RecordEditor";
 import { blankVolunteer } from "../seedData";
+import { formatDateTime, isToday } from "../utils/date";
 
-const statusOptions = ["Needs Assignment", "Assigned", "Confirmed", "Backup", "No Show"];
-const areaOptions = ["General", "Safety", "Front of House", "Route", "Art Center", "Kitchen", "Clean Up"];
+const volunteerStatuses = ["Needs Assignment", "Confirmed", "Tentative", "Checked In", "No Show"];
+const areas = ["General", "Ops", "Front of House", "Food", "Programming", "Activities", "Safety", "Cleanup"];
+const quickViews = ["All", "Open", "Today", "Checked In"];
+const issueOptions = ["All", "Conflicts", "Uncovered", "Clean"];
+
+function statusSlug(value = "") {
+  return value.toLowerCase().replace(/\s+/g, "-");
+}
+
+function IssuePill({ tone = "default", children }) {
+  return <span className={`ops-pill tone-${tone}`}>{children}</span>;
+}
 
 export default function VolunteersView() {
   const store = useOpsStore();
   const [editor, setEditor] = React.useState(blankVolunteer());
   const [isEditorOpen, setIsEditorOpen] = React.useState(false);
-  const [query, setQuery] = React.useState("");
+  const [quickView, setQuickView] = React.useState("All");
   const [areaFilter, setAreaFilter] = React.useState("All");
-  const [statusFilter, setStatusFilter] = React.useState("All");
+  const [query, setQuery] = React.useState("");
   const [issueFilter, setIssueFilter] = React.useState("All");
   const editorRef = React.useRef(null);
 
@@ -26,41 +37,55 @@ export default function VolunteersView() {
 
   const rows = store.volunteers
     .filter((item) => {
-      const haystack = `${item.name} ${item.role} ${item.area} ${item.contact} ${item.status} ${item.notes}`.toLowerCase();
-      const matchesQuery = !query || haystack.includes(query.toLowerCase());
       const matchesArea = areaFilter === "All" || item.area === areaFilter;
-      const matchesStatus = statusFilter === "All" || item.status === statusFilter;
+      const haystack = `${item.name} ${item.role} ${item.area} ${item.contact} ${item.notes}`.toLowerCase();
+      const matchesQuery = !query || haystack.includes(query.toLowerCase());
+      let matchesQuick = true;
+      if (quickView === "Open") matchesQuick = !item.name?.trim() || item.status === "Needs Assignment";
+      if (quickView === "Today") matchesQuick = isToday(item.shiftDate);
+      if (quickView === "Checked In") matchesQuick = item.checkedIn;
       const hasConflict = Boolean(store.volunteerConflictsById?.[item.id]?.length);
       const isUncovered = !item.name?.trim() || item.status === "Needs Assignment";
-      const matchesIssue = issueFilter === "All" || (issueFilter === "Conflicts" && hasConflict) || (issueFilter === "Uncovered" && isUncovered) || (issueFilter === "Clean" && !hasConflict && !isUncovered);
-      return matchesQuery && matchesArea && matchesStatus && matchesIssue;
+      const matchesIssue =
+        issueFilter === "All" ||
+        (issueFilter === "Conflicts" && hasConflict) ||
+        (issueFilter === "Uncovered" && isUncovered) ||
+        (issueFilter === "Clean" && !hasConflict && !isUncovered);
+      return matchesArea && matchesQuery && matchesQuick && matchesIssue;
     })
-    .sort((a, b) => `${a.shiftDate || ""} ${a.shiftStart || ""}`.localeCompare(`${b.shiftDate || ""} ${b.shiftStart || ""}`));
+    .sort((a, b) => new Date(`${a.shiftDate || ""} ${a.shiftStart || ""}`) - new Date(`${b.shiftDate || ""} ${b.shiftStart || ""}`));
 
   const handleSave = () => {
     if (!editor.role.trim()) {
-      window.alert("Role is required.");
+      window.alert("Volunteer role is required.");
       return;
     }
-    const exists = store.volunteers.some((item) => item.id === editor.id);
-    if (exists) store.updateItem("volunteers", editor.id, editor);
-    else store.addItem("volunteers", editor);
+    const next = {
+      ...editor,
+      status: editor.checkedIn ? "Checked In" : editor.status,
+    };
+    const exists = store.volunteers.some((item) => item.id === next.id);
+    exists ? store.updateItem("volunteers", next.id, next) : store.addItem("volunteers", next);
     setEditor(blankVolunteer());
     setIsEditorOpen(false);
   };
+
+  const openCount = store.uncoveredVolunteerShifts?.length || 0;
+  const checkedInCount = store.volunteers.filter((item) => item.checkedIn).length;
+  const conflictCount = store.volunteerConflicts?.length || 0;
 
   return (
     <div className="ops-page">
       <div className="ops-stat-grid ops-stat-grid-three">
         <div className="ops-stat-card"><div className="ops-stat-label">Volunteer shifts</div><div className="ops-stat-value">{store.volunteers.length}</div></div>
-        <div className="ops-stat-card"><div className="ops-stat-label">Uncovered shifts</div><div className="ops-stat-value">{store.uncoveredVolunteerShifts.length}</div></div>
-        <div className="ops-stat-card"><div className="ops-stat-label">Double-bookings</div><div className="ops-stat-value">{store.volunteerConflicts.length}</div></div>
+        <div className="ops-stat-card tone-warning"><div className="ops-stat-label">Open shifts</div><div className="ops-stat-value">{openCount}</div></div>
+        <div className="ops-stat-card tone-danger"><div className="ops-stat-label">Conflicts</div><div className="ops-stat-value">{conflictCount}</div></div>
       </div>
 
-      <SectionCard title={store.volunteers.some((item) => item.id === editor.id) ? "Edit volunteer shift" : "Add volunteer shift"}>
+      <SectionCard title={store.volunteers.some((item) => item.id === editor.id) ? "Edit volunteer shift" : "Add volunteer shift"} subtitle="Shifts and people up top, where your sanity lives.">
         <RecordEditor
           editorRef={editorRef}
-          title={store.volunteers.some((item) => item.id === editor.id) ? "Volunteer editor" : "New volunteer shift"}
+          title="Volunteer editor"
           value={editor}
           isOpen={isEditorOpen}
           onToggle={() => {
@@ -78,46 +103,44 @@ export default function VolunteersView() {
             setIsEditorOpen(false);
           }}
           fields={[
+            { name: "role", label: "Role" },
             { name: "name", label: "Volunteer" },
-            { name: "role", label: "Role", full: true },
-            { name: "area", label: "Area", type: "select", options: areaOptions },
+            { name: "area", label: "Area", type: "select", options: areas },
             { name: "shiftDate", label: "Date", type: "date" },
-            { name: "shiftStart", label: "Start", type: "time" },
-            { name: "shiftEnd", label: "End", type: "time" },
+            { name: "shiftStart", label: "Start" },
+            { name: "shiftEnd", label: "End" },
+            { name: "status", label: "Status", type: "select", options: volunteerStatuses },
             { name: "contact", label: "Contact", full: true },
-            { name: "status", label: "Status", type: "select", options: statusOptions },
-            { name: "checkedIn", label: "Checked in", type: "checkbox" },
             { name: "notes", label: "Notes", type: "textarea", full: true },
           ]}
         />
       </SectionCard>
 
-      <SectionCard title="Volunteer board" subtitle="Coverage, check-ins, role fit, and where the holes still are.">
+      <SectionCard title="Volunteer board" subtitle="Coverage, collisions, and who still needs to be found.">
         <div className="ops-toolbar">
-          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search volunteers" />
+          <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search volunteer board" />
+          <select value={quickView} onChange={(e) => setQuickView(e.target.value)}>
+            {quickViews.map((item) => <option key={item}>{item}</option>)}
+          </select>
           <select value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)}>
             <option>All</option>
-            {areaOptions.map((item) => <option key={item}>{item}</option>)}
-          </select>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option>All</option>
-            {statusOptions.map((item) => <option key={item}>{item}</option>)}
+            {areas.map((item) => <option key={item}>{item}</option>)}
           </select>
           <select value={issueFilter} onChange={(e) => setIssueFilter(e.target.value)}>
-            <option>All</option>
-            <option>Conflicts</option>
-            <option>Uncovered</option>
-            <option>Clean</option>
+            {issueOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
         </div>
 
-        {(store.uncoveredVolunteerShifts.length > 0 || store.volunteerConflicts.length > 0) && (
-          <div className="ops-warning-banner">
-            {store.uncoveredVolunteerShifts.length > 0 && <span>{store.uncoveredVolunteerShifts.length} uncovered shift{store.uncoveredVolunteerShifts.length === 1 ? "" : "s"}</span>}
-            {store.uncoveredVolunteerShifts.length > 0 && store.volunteerConflicts.length > 0 && <span> • </span>}
-            {store.volunteerConflicts.length > 0 && <span>{store.volunteerConflicts.length} volunteer conflict{store.volunteerConflicts.length === 1 ? "" : "s"}</span>}
+        {(store.uncoveredVolunteerShifts.length || store.volunteerConflicts.length) ? (
+          <div className="ops-banner-list">
+            {store.uncoveredVolunteerShifts.slice(0, 3).map((item) => (
+              <div className="ops-alert-row ops-alert-warning" key={`open-${item.id}`}><strong>Open shift</strong><span>{item.role} · {formatDateTime(item.shiftDate, item.shiftStart)}</span></div>
+            ))}
+            {store.volunteerConflicts.slice(0, 3).map((item) => (
+              <div className="ops-alert-row ops-alert-danger" key={item.id}><strong>Conflict</strong><span>{item.summary}</span></div>
+            ))}
           </div>
-        )}
+        ) : null}
 
         <EditableTable
           tableKey="volunteers"
@@ -125,8 +148,8 @@ export default function VolunteersView() {
           onEdit={openEditor}
           onDelete={(id) => store.removeItem("volunteers", id)}
           columns={[
-            { key: "name", label: "Volunteer", width: 180, render: (value) => value || "Unassigned" },
-            { key: "role", label: "Role", width: 220 },
+            { key: "role", label: "Role", width: 180 },
+            { key: "name", label: "Volunteer" },
             { key: "area", label: "Area" },
             { key: "shiftDate", label: "Date" },
             { key: "shiftStart", label: "Start" },
@@ -136,24 +159,28 @@ export default function VolunteersView() {
               label: "Issues",
               width: 220,
               render: (_, row) => {
-                const issues = [];
-                if (!row.name?.trim() || row.status === "Needs Assignment") issues.push("uncovered");
-                if (store.volunteerConflictsById?.[row.id]?.length) issues.push("double-booked");
-                return issues.length ? <span className="ops-pill status-at-risk">{issues.join(" • ")}</span> : "—";
+                const conflicts = store.volunteerConflictsById?.[row.id] || [];
+                const isUncovered = !row.name?.trim() || row.status === "Needs Assignment";
+                if (!conflicts.length && !isUncovered) return <IssuePill tone="success">Clean</IssuePill>;
+                return (
+                  <div className="ops-inline-pills">
+                    {conflicts.length ? <IssuePill tone="danger">{conflicts.length} conflict{conflicts.length > 1 ? "s" : ""}</IssuePill> : null}
+                    {isUncovered ? <IssuePill tone="warning">open</IssuePill> : null}
+                  </div>
+                );
               },
             },
-            { key: "contact", label: "Contact", width: 200 },
-            { key: "status", label: "Status", render: (value, row) => <span className={`ops-pill status-${statusSlug(row.checkedIn ? "Checked In" : value)}`}>{row.checkedIn ? "Checked In" : value}</span> },
+            {
+              key: "status",
+              label: "Status",
+              render: (value) => <span className={`ops-pill status-${statusSlug(value)}`}>{value}</span>,
+            },
+            { key: "contact", label: "Contact", width: 180 },
             { key: "notes", label: "Notes", width: 220 },
           ]}
-          rowClassName={(row) => (store.volunteerConflictsById?.[row.id]?.length ? "is-overdue" : "")}
-          emptyLabel="No volunteer shifts match the current filters."
+          emptyLabel="No volunteer shifts yet."
         />
       </SectionCard>
     </div>
   );
-}
-
-function statusSlug(value = "") {
-  return value.toLowerCase().replace(/\s+/g, "-");
 }
