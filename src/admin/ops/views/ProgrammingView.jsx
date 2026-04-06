@@ -8,33 +8,6 @@ import { blankProgramming, inferProgrammingCategory } from "../seedData";
 const statusOptions = ["Planned", "Confirmed", "Needs Supplies", "At Risk", "Done"];
 const categoryOptions = ["General", "Performance", "Food", "Operations", "Activity"];
 
-function syncLabel(status) {
-  if (status === "loading") return "Syncing…";
-  if (status === "saved") return "Synced";
-  if (status === "error") return "Retry sync";
-  return "Sync performers";
-}
-
-// === Zip 2 additions: trigger propagation on save ===
-
-// after saving programming state, ensure:
-setState((current) => ({
-  ...current,
-  timeline: propagateProgrammingToTimeline(current.programming, current.timeline),
-  budget: propagateProgrammingToBudget(current.programming, current.budget),
-}));
-
-
-function siteImportLabel(status) {
-  if (status === "loading") return "Importing…";
-  if (status === "saved") return "Imported";
-  return "Import website schedule";
-}
-
-function sourceLabel(row) {
-  return row.sourceType === "form_submission" ? "Form" : "Local";
-}
-
 export default function ProgrammingView() {
   const store = useOpsStore();
   const [editor, setEditor] = React.useState(blankProgramming());
@@ -42,7 +15,6 @@ export default function ProgrammingView() {
   const [query, setQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("All");
   const [categoryFilter, setCategoryFilter] = React.useState("All");
-  const [siteImportStatus, setSiteImportStatus] = React.useState("idle");
   const editorRef = React.useRef(null);
 
   const openEditor = React.useCallback((next) => {
@@ -51,38 +23,16 @@ export default function ProgrammingView() {
     requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }, []);
 
-  const websiteRows = store.programming.filter((item) => item.sourceType === "website_schedule");
-  const conflictCount = (store.programmingConflicts || []).length;
-
   const rows = store.programming
     .filter((item) => {
-      const haystack = `${item.activity} ${item.location} ${item.time} ${item.lead} ${item.needs} ${item.notes} ${item.category} ${item.syncStatus}`.toLowerCase();
+      const haystack = `${item.activity} ${item.location} ${item.date} ${item.time} ${item.lead} ${item.needs} ${item.notes} ${item.category}`.toLowerCase();
       const matchesQuery = !query || haystack.includes(query.toLowerCase());
       const matchesStatus = statusFilter === "All" || item.status === statusFilter;
       const matchesCategory = categoryFilter === "All" || (item.category || inferProgrammingCategory(item)) === categoryFilter;
       return matchesQuery && matchesStatus && matchesCategory;
     })
-    .sort((a, b) => `${a.time || ""}`.localeCompare(`${b.time || ""}`));
+    .sort((a, b) => `${a.date || ""} ${a.time || ""}`.localeCompare(`${b.date || ""} ${b.time || ""}`));
 
-  const syncBudget = (programItem) => {
-    const label = programItem.activity.trim();
-    if (!label || !programItem.cost) return;
-    const existing = store.budget.find((item) => item.sourceType === "programming" && item.sourceId === programItem.id);
-    const budgetRow = {
-      id: existing?.id || `budget_prog_${programItem.id}`,
-      item: label,
-      category: "Programming",
-      cost: programItem.cost,
-      paid: existing?.paid || false,
-      notes: existing?.notes || "",
-      sourceType: "programming",
-      sourceId: programItem.id,
-      syncStatus: programItem.syncStatus === "modified" ? "modified" : "synced",
-      linkedAt: existing?.linkedAt || new Date().toISOString(),
-    };
-    if (existing) store.updateItem("budget", existing.id, budgetRow);
-    else store.addItem("budget", budgetRow);
-  };
 
   const handleSave = () => {
     if (!editor.activity.trim()) {
@@ -93,30 +43,8 @@ export default function ProgrammingView() {
     const exists = store.programming.some((item) => item.id === next.id);
     if (exists) store.updateItem("programming", next.id, next);
     else store.addItem("programming", next);
-    syncBudget(next);
     setEditor(blankProgramming());
     setIsEditorOpen(false);
-  };
-
-  const handleSync = async () => {
-    try {
-      const count = await store.syncPerformers();
-      window.alert(`Synced ${count} performer submission${count === 1 ? "" : "s"}.`);
-    } catch (error) {
-      window.alert(error?.message || "Could not sync performers.");
-    }
-  };
-
-  const handleWebsiteImport = async () => {
-    try {
-      setSiteImportStatus("loading");
-      const counts = await store.importWebsiteSchedule();
-      setSiteImportStatus("saved");
-      window.alert(`Imported ${counts.programming} programming item${counts.programming === 1 ? "" : "s"} and ${counts.timeline} timeline item${counts.timeline === 1 ? "" : "s"} from the website schedule.`);
-    } catch (error) {
-      setSiteImportStatus("error");
-      window.alert(error?.message || "Could not import the website schedule.");
-    }
   };
 
   return (
@@ -145,6 +73,7 @@ export default function ProgrammingView() {
             { name: "activity", label: "Activity", full: true },
             { name: "category", label: "Category", type: "select", options: categoryOptions },
             { name: "location", label: "Location" },
+            { name: "date", label: "Date", type: "date" },
             { name: "time", label: "Time" },
             { name: "lead", label: "Lead" },
             { name: "cost", label: "Cost", type: "number" },
@@ -155,9 +84,9 @@ export default function ProgrammingView() {
         />
       </SectionCard>
 
-      <SectionCard title="Programming" subtitle="Activities, rooms, leads, needs, and a real source link instead of duplicated folklore.">
+      <SectionCard title="Programming" subtitle="Activities drive budget and timeline now, like a real system instead of six disconnected lists.">
         <div className="ops-toolbar">
-          <div className="ops-toolbar-meta">{websiteRows.length} website-sourced item{websiteRows.length === 1 ? "" : "s"} · {conflictCount} conflict{conflictCount === 1 ? "" : "s"}</div>
+          <div className="ops-toolbar-meta">Saving programming now updates linked timeline and budget rows automatically.</div>
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search programming" />
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
             <option>All</option>
@@ -167,12 +96,6 @@ export default function ProgrammingView() {
             <option>All</option>
             {statusOptions.map((item) => <option key={item}>{item}</option>)}
           </select>
-          <button type="button" className="ops-button ops-button-secondary" onClick={handleSync} disabled={store.syncStatus.performers === "loading"}>
-            {syncLabel(store.syncStatus.performers)}
-          </button>
-          <button type="button" className="ops-button" onClick={handleWebsiteImport} disabled={siteImportStatus === "loading"}>
-            {siteImportLabel(siteImportStatus)}
-          </button>
         </div>
         <EditableTable
           tableKey="programming"
@@ -183,23 +106,27 @@ export default function ProgrammingView() {
             { key: "activity", label: "Activity", width: 220 },
             { key: "category", label: "Category", render: (value, row) => value || inferProgrammingCategory(row) },
             { key: "location", label: "Location" },
+            { key: "date", label: "Date" },
             { key: "time", label: "Time" },
             { key: "lead", label: "Lead" },
             { key: "needs", label: "Needs", width: 220 },
             { key: "cost", label: "Cost", render: (value) => value ? `$${Number(value).toFixed(0)}` : "—" },
-            { key: "status", label: "Status" },
-            { key: "issues", label: "Issues", width: 220, render: (_, row) => {
-              const issues = (store.programmingConflicts || []).filter((item) => item.leftId === row.id || item.rightId === row.id).map((item) => item.sameLocation ? "location conflict" : "lead conflict");
-              const resource = (store.resourceIssues || []).filter((item) => item.programmingId === row.id).map((item) => item.need);
-              const labels = Array.from(new Set([...issues, ...resource.map((item) => `needs ${item}`)]));
-              return labels.length ? labels.join(", ") : "—";
-            } },
-            { key: "sourceType", label: "Source", render: (_, row) => sourceLabel(row) },
-            { key: "syncStatus", label: "Sync", render: (value) => value || "local" },
+            {
+              key: "status",
+              label: "Status",
+              render: (value) => <span className={`ops-pill status-${slug(value)}`}>{value}</span>,
+            },
+            { key: "notes", label: "Notes", width: 220 },
+            { key: "linkedTimelineId", label: "Timeline link", render: (_, row) => row.linkedTimelineId || `timeline_prog_${row.id}` },
+            { key: "linkedBudgetId", label: "Budget link", render: (_, row) => (row.cost ? (row.linkedBudgetId || `budget_prog_${row.id}`) : "—") },
           ]}
-          emptyLabel="No programming matches the current filters."
+          emptyLabel="No programming items yet."
         />
       </SectionCard>
     </div>
   );
+}
+
+function slug(value = "") {
+  return value.toLowerCase().replace(/\s+/g, "-");
 }

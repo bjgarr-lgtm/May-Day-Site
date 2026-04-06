@@ -43,6 +43,7 @@ export function blankProgramming() {
     activity: "",
     category: "General",
     location: "",
+    date: "",
     time: "",
     lead: "",
     needs: "",
