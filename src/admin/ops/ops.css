@@ -1,7 +1,45 @@
 
+/* === RESTORE: basic layout sanity === */
+
+.ops-layout {
+  display: flex;
+  height: 100%;
+}
+
+.ops-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.ops-main {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+/* sidebar items */
+.ops-sidebar a {
+  padding: 10px 14px;
+  display: block;
+  text-decoration: none;
+}
+
+/* === SAFE COLLAPSE (non-breaking) === */
+
 .ops-sidebar.collapsed {
   width: 60px;
 }
-.ops-sidebar.collapsed .label {
+
+.ops-sidebar.collapsed a {
+  text-align: center;
+  padding: 10px 6px;
+}
+
+.ops-sidebar.collapsed a span {
   display: none;
 }
+
+/* DO NOT nuke global labels anymore */
