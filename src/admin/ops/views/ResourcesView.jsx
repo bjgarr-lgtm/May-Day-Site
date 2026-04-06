@@ -1,4 +1,5 @@
 import React from "react";
+import { RefreshCw } from "lucide-react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
@@ -135,6 +136,22 @@ export default function ResourcesView() {
         </div>
 
         <div className="ops-toolbar">
+          {tab === "Sponsors" && (
+            <button
+              type="button"
+              className="ops-button ops-button-secondary ops-button-small"
+              onClick={async () => {
+                try {
+                  const count = await store.syncVendors();
+                  window.alert(`Synced ${count} vendor submissions into sponsors and vendors.`);
+                } catch (error) {
+                  window.alert(error?.message || "Could not sync vendors.");
+                }
+              }}
+            >
+              <RefreshCw className="h-4 w-4" /> Sync vendors
+            </button>
+          )}
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${tab.toLowerCase()}`} />
         </div>
 

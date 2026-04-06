@@ -1,4 +1,5 @@
 import React from "react";
+import { RefreshCw } from "lucide-react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
@@ -113,6 +114,20 @@ export default function VolunteersView() {
         </div>
 
         <div className="ops-toolbar">
+          <button
+            type="button"
+            className="ops-button ops-button-secondary ops-button-small"
+            onClick={async () => {
+              try {
+                const count = await store.syncVolunteers();
+                window.alert(`Synced ${count} volunteer submissions into the volunteer board.`);
+              } catch (error) {
+                window.alert(error?.message || "Could not sync volunteers.");
+              }
+            }}
+          >
+            <RefreshCw className="h-4 w-4" /> Sync volunteers
+          </button>
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search volunteers or roles" />
           <select value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)}>
             <option>All</option>

@@ -1,4 +1,5 @@
 import React from "react";
+import { RefreshCw } from "lucide-react";
 import { useOpsStore } from "../hooks/useOpsStore";
 import SectionCard from "../components/SectionCard";
 import EditableTable from "../components/EditableTable";
@@ -101,6 +102,20 @@ export default function ProgrammingView() {
 
       <SectionCard title="Programming" subtitle="Activities, rooms, leads, needs. Not vibes.">
         <div className="ops-toolbar">
+          <button
+            type="button"
+            className="ops-button ops-button-secondary ops-button-small"
+            onClick={async () => {
+              try {
+                const count = await store.syncPerformers();
+                window.alert(`Synced ${count} performer submissions into programming.`);
+              } catch (error) {
+                window.alert(error?.message || "Could not sync performers.");
+              }
+            }}
+          >
+            <RefreshCw className="h-4 w-4" /> Sync performers
+          </button>
           <input className="ops-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search programming" />
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
             <option>All</option>
