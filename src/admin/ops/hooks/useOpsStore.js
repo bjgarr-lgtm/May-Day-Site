@@ -1,160 +1,377 @@
+import React from "react";
+import { createInitialOpsState, normalizeOpsState } from "../seedData";
+import { loadOpsState, saveOpsState } from "../utils/storage";
+import { isOverdue, isWithinDays } from "../utils/date";
 
+const OpsStoreContext = React.createContext(null);
+const PASSWORD_STORAGE_KEY = "maydayApplicationsPassword";
 
-// ===== Zip A: Intelligence Selectors (non-destructive append) =====
-
-// Normalize time to minutes from HH:MM or ISO
-function __toMinutes(t) {
-  if (!t) return null;
+function getPassword() {
   try {
-    if (typeof t === 'number') return t;
-    if (typeof t === 'string') {
-      // HH:MM
-      const m = t.match(/^(\d{1,2}):(\d{2})$/);
-      if (m) return parseInt(m[1],10)*60 + parseInt(m[2],10);
-      // ISO
-      const d = new Date(t);
-      if (!isNaN(d.getTime())) return d.getHours()*60 + d.getMinutes();
-    }
-  } catch(e) {}
-  return null;
+    return sessionStorage.getItem(PASSWORD_STORAGE_KEY) || "";
+  } catch {
+    return "";
+  }
 }
 
-export function selectProgrammingConflicts(state) {
-  const items = state?.programming || state?.programmingItems || [];
-  const out = [];
-  for (let i = 0; i < items.length; i++) {
-    for (let j = i + 1; j < items.length; j++) {
-      const a = items[i], b = items[j];
-      const aStart = __toMinutes(a.start || a.timeStart || a.time);
-      const aEnd   = __toMinutes(a.end   || a.timeEnd   || a.time);
-      const bStart = __toMinutes(b.start || b.timeStart || b.time);
-      const bEnd   = __toMinutes(b.end   || b.timeEnd   || b.time);
+function normalizeText(value) {
+  return String(value || "").trim().toLowerCase();
+}
 
-      const overlap = (aStart != null && aEnd != null && bStart != null && bEnd != null)
-        ? (aStart < bEnd && bStart < aEnd)
-        : (a.time && b.time && a.time === b.time);
+function slugify(value) {
+  return normalizeText(value).replace(/[^a-z0-9]+/g, " ").trim();
+}
 
-      const sameLocation = (a.location && b.location && a.location === b.location);
-      const sameLead = (a.lead && b.lead && a.lead === b.lead);
+function parseClockToMinutes(value) {
+  if (!value) return null;
+  const match = String(value).trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
+  if (!match) return null;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2] || 0);
+  const suffix = (match[3] || "").toLowerCase();
+  if (suffix === "pm" && hours !== 12) hours += 12;
+  if (suffix === "am" && hours === 12) hours = 0;
+  if (hours > 23 || minutes > 59) return null;
+  return (hours * 60) + minutes;
+}
 
-      if (overlap && (sameLocation || sameLead)) {
-        out.push({ a, b, overlap, sameLocation, sameLead });
-      }
+function parseRangeText(value) {
+  const text = String(value || "").trim();
+  if (!text) return { start: null, end: null, label: "" };
+
+  const explicitRange = text.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+  if (explicitRange) {
+    const start = parseClockToMinutes(explicitRange[1]);
+    const end = parseClockToMinutes(explicitRange[2]);
+    if (start != null && end != null) {
+      return { start, end: end <= start ? end + (12 * 60) : end, label: text };
     }
   }
-  return out;
+
+  const single = text.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+  if (single) {
+    const start = parseClockToMinutes(single[1]);
+    if (start != null) {
+      return { start, end: start + 60, label: text };
+    }
+  }
+
+  return { start: null, end: null, label: text };
 }
 
-export function selectUncoveredShifts(state) {
-  const shifts = state?.volunteerShifts || state?.shifts || [];
-  return shifts.filter(s => !s.assigned && !s.volunteer);
+function rangesOverlap(a, b) {
+  if (a.start == null || a.end == null || b.start == null || b.end == null) return false;
+  return a.start < b.end && b.start < a.end;
 }
 
-export function selectOverdueTasks(state) {
-  const tasks = state?.tasks || [];
-  const now = Date.now();
-  return tasks.filter(t => {
-    if (!t.due) return false;
-    const d = new Date(t.due).getTime();
-    return !isNaN(d) && d < now && !t.completed;
-  });
+function sameDay(a, b) {
+  const left = normalizeText(a);
+  const right = normalizeText(b);
+  if (!left || !right) return true;
+  return left === right;
 }
 
-export function selectDueSoonTasks(state, days=3) {
-  const tasks = state?.tasks || [];
-  const now = Date.now();
-  const limit = now + days*24*60*60*1000;
-  return tasks.filter(t => {
-    if (!t.due) return false;
-    const d = new Date(t.due).getTime();
-    return !isNaN(d) && d >= now && d <= limit && !t.completed;
-  });
+function splitList(value) {
+  return String(value || "")
+    .split(/\n|,|;|\//)
+    .map((part) => part.trim())
+    .filter(Boolean);
 }
 
-export function selectResourceIssues(state) {
-  const items = state?.programming || state?.programmingItems || [];
-  const resources = state?.resources || [];
+function parseNeedEntry(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  const qtyMatch = raw.match(/^(\d+)\s+(.+)$/);
+  if (qtyMatch) {
+    return { label: qtyMatch[2].trim(), quantity: Number(qtyMatch[1]) || 1, raw };
+  }
+  return { label: raw, quantity: 1, raw };
+}
+
+function parseQuantity(value) {
+  if (value == null || value === "") return 0;
+  if (typeof value === "number") return value;
+  const match = String(value).match(/\d+/);
+  return match ? Number(match[0]) : 0;
+}
+
+function computeProgrammingConflicts(programming) {
+  const conflicts = [];
+  const byItem = {};
+
+  for (let i = 0; i < programming.length; i += 1) {
+    for (let j = i + 1; j < programming.length; j += 1) {
+      const left = programming[i];
+      const right = programming[j];
+      const leftRange = parseRangeText(left.time);
+      const rightRange = parseRangeText(right.time);
+      const sameSlot = rangesOverlap(leftRange, rightRange) || (normalizeText(left.time) && normalizeText(left.time) === normalizeText(right.time));
+      if (!sameSlot) continue;
+      if (!sameDay(left.date, right.date)) continue;
+
+      const reasons = [];
+      if (slugify(left.location) && slugify(left.location) === slugify(right.location)) reasons.push("same location");
+      if (slugify(left.lead) && slugify(left.lead) === slugify(right.lead)) reasons.push("same lead");
+      if (!reasons.length && sameSlot) reasons.push("overlapping time");
+      if (!reasons.length) continue;
+
+      const record = {
+        id: `prog_conflict_${left.id}_${right.id}`,
+        leftId: left.id,
+        rightId: right.id,
+        leftLabel: left.activity,
+        rightLabel: right.activity,
+        date: left.date || right.date || "",
+        time: left.time || right.time || "",
+        reasons,
+        summary: `${left.activity} conflicts with ${right.activity} (${reasons.join(", ")})`,
+      };
+      conflicts.push(record);
+      byItem[left.id] = [...(byItem[left.id] || []), record];
+      byItem[right.id] = [...(byItem[right.id] || []), record];
+    }
+  }
+
+  return { conflicts, byItem };
+}
+
+function computeVolunteerConflicts(volunteers) {
+  const conflicts = [];
+  const byItem = {};
+
+  for (let i = 0; i < volunteers.length; i += 1) {
+    for (let j = i + 1; j < volunteers.length; j += 1) {
+      const left = volunteers[i];
+      const right = volunteers[j];
+      if (!slugify(left.name) || slugify(left.name) !== slugify(right.name)) continue;
+      if (!sameDay(left.shiftDate, right.shiftDate)) continue;
+      const leftRange = { start: parseClockToMinutes(left.shiftStart), end: parseClockToMinutes(left.shiftEnd || left.shiftStart) };
+      const rightRange = { start: parseClockToMinutes(right.shiftStart), end: parseClockToMinutes(right.shiftEnd || right.shiftStart) };
+      if (leftRange.start != null && leftRange.end != null && leftRange.end <= leftRange.start) leftRange.end += 60;
+      if (rightRange.start != null && rightRange.end != null && rightRange.end <= rightRange.start) rightRange.end += 60;
+      if (!rangesOverlap(leftRange, rightRange)) continue;
+
+      const record = {
+        id: `vol_conflict_${left.id}_${right.id}`,
+        leftId: left.id,
+        rightId: right.id,
+        volunteer: left.name,
+        summary: `${left.name} is double-booked for ${left.role} and ${right.role}`,
+      };
+      conflicts.push(record);
+      byItem[left.id] = [...(byItem[left.id] || []), record];
+      byItem[right.id] = [...(byItem[right.id] || []), record];
+    }
+  }
+
+  return { conflicts, byItem };
+}
+
+function computeResourceIssues(programming, inventory) {
+  const inventoryPool = inventory.map((item) => ({
+    id: item.id,
+    label: item.item,
+    slug: slugify(item.item),
+    quantity: Math.max(1, parseQuantity(item.quantity) || 1),
+  }));
+
   const issues = [];
-  items.forEach(p => {
-    const needs = Array.isArray(p.needs) ? p.needs : (typeof p.needs === 'string' ? p.needs.split(',').map(s=>s.trim()).filter(Boolean) : []);
-    needs.forEach(n => {
-      const r = resources.find(x => (x.name||'').toLowerCase() === n.toLowerCase());
-      if (!r) {
-        issues.push({ program: p, need: n, type: 'missing' });
-      } else if (r.quantity != null && p.needQty != null && r.quantity < p.needQty) {
-        issues.push({ program: p, need: n, type: 'insufficient' });
+  const byProgramming = {};
+
+  programming.forEach((item) => {
+    const needs = splitList(item.needs).map(parseNeedEntry).filter(Boolean);
+    if (!needs.length) return;
+
+    const itemIssues = [];
+    needs.forEach((need) => {
+      const wanted = slugify(need.label);
+      const match = inventoryPool.find((resource) => resource.slug.includes(wanted) || wanted.includes(resource.slug));
+      if (!match) {
+        itemIssues.push({ type: "missing", need: need.raw, required: need.quantity, available: 0 });
+        return;
+      }
+      if (match.quantity < need.quantity) {
+        itemIssues.push({ type: "short", need: need.raw, required: need.quantity, available: match.quantity, resourceId: match.id });
       }
     });
+
+    if (itemIssues.length) {
+      byProgramming[item.id] = itemIssues;
+      issues.push({
+        id: `resource_issue_${item.id}`,
+        programmingId: item.id,
+        activity: item.activity,
+        issues: itemIssues,
+        summary: `${item.activity} is missing ${itemIssues.map((issue) => issue.need).join(", ")}`,
+      });
+    }
   });
-  return issues;
+
+  return { issues, byProgramming };
 }
 
-export function selectBlockedTasks(state) {
-  const tasks = state?.tasks || [];
-  const byId = Object.fromEntries(tasks.map(t => [t.id, t]));
-  return tasks.filter(t => {
-    if (!t.dependencies || !t.dependencies.length) return false;
-    return t.dependencies.some(depId => {
-      const dep = byId[depId];
-      return !dep || !dep.completed;
-    });
-  });
+function computeTaskDependencies(tasks) {
+  const incompleteTitles = new Set(tasks.filter((task) => task.status !== "Done").map((task) => slugify(task.title)));
+  return tasks.filter((task) => {
+    const deps = splitList(task.dependencies || task.notes).filter((value) => /depend/i.test(task.notes || "") || task.dependencies);
+    if (!deps.length) return false;
+    return deps.some((dep) => incompleteTitles.has(slugify(dep)));
+  }).map((task) => ({
+    ...task,
+    blockedBy: splitList(task.dependencies || "").filter(Boolean),
+  }));
 }
 
-export function selectReadiness(state) {
-  const conflicts = selectProgrammingConflicts(state).length;
-  const uncovered = selectUncoveredShifts(state).length;
-  const overdue   = selectOverdueTasks(state).length;
-  const resources = selectResourceIssues(state).length;
-  const blocked   = selectBlockedTasks(state).length;
-
-  const weights = {
-    conflicts: 3,
-    uncovered: 3,
-    overdue: 2,
-    resources: 2,
-    blocked: 2,
-  };
-
-  const maxPenalty = 100;
-  const penalty = Math.min(maxPenalty,
-    conflicts*weights.conflicts +
-    uncovered*weights.uncovered +
-    overdue*weights.overdue +
-    resources*weights.resources +
-    blocked*weights.blocked
-  );
-
-  const score = Math.max(0, 100 - penalty);
+function computeIntelligence(state) {
+  const overdueTasks = state.tasks.filter((task) => task.status !== "Done" && isOverdue(task.deadline));
+  const dueSoonTasks = state.tasks.filter((task) => task.status !== "Done" && isWithinDays(task.deadline, 3));
+  const blockedTasks = computeTaskDependencies(state.tasks);
+  const uncoveredVolunteerShifts = state.volunteers.filter((item) => !normalizeText(item.name) || item.status === "Needs Assignment");
+  const programmingConflicts = computeProgrammingConflicts(state.programming);
+  const volunteerConflicts = computeVolunteerConflicts(state.volunteers);
+  const resourceIssues = computeResourceIssues(state.programming, state.inventory);
 
   return {
-    score,
-    breakdown: { conflicts, uncovered, overdue, resources, blocked }
+    overdueTasks,
+    dueSoonTasks,
+    blockedTasks,
+    uncoveredVolunteerShifts,
+    programmingConflicts: programmingConflicts.conflicts,
+    programmingConflictsById: programmingConflicts.byItem,
+    volunteerConflicts: volunteerConflicts.conflicts,
+    volunteerConflictsById: volunteerConflicts.byItem,
+    resourceIssues: resourceIssues.issues,
+    resourceIssuesByProgrammingId: resourceIssues.byProgramming,
   };
 }
 
-// Suggest simple resolutions for each conflict
-export function suggestConflictResolutions(state) {
-  const conflicts = selectProgrammingConflicts(state);
-  const items = state?.programming || state?.programmingItems || [];
-  const locations = Array.from(new Set(items.map(i => i.location).filter(Boolean)));
-
-  return conflicts.map(c => {
-    const suggestions = [];
-    // try different location
-    if (c.a.location && locations.length > 1) {
-      const alt = locations.find(l => l !== c.a.location);
-      if (alt) suggestions.push({ type: 'move_location', itemId: c.a.id, to: alt, note: 'Move to alternate location' });
-    }
-    // try shift time by 30 minutes
-    const aStart = __toMinutes(c.a.start || c.a.time);
-    const aEnd   = __toMinutes(c.a.end   || c.a.time);
-    if (aStart != null && aEnd != null) {
-      const newStart = aStart + 30;
-      const newEnd   = aEnd + 30;
-      const hh = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
-      suggestions.push({ type: 'move_time', itemId: c.a.id, to: { start: hh(newStart), end: hh(newEnd) }, note: 'Shift by +30m' });
-    }
-    return { conflict: c, suggestions };
+export function OpsStoreProvider({ children }) {
+  const [state, setState] = React.useState(() => {
+    const existing = loadOpsState();
+    return existing ? normalizeOpsState(existing) : createInitialOpsState();
   });
+  const [remoteStatus, setRemoteStatus] = React.useState("idle");
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const password = getPassword();
+    if (!password) return undefined;
+
+    fetch("/api/ops/state", {
+      headers: {
+        Accept: "application/json",
+        "x-applications-password": password,
+      },
+    })
+      .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+      .then(({ ok, data }) => {
+        if (!isMounted || !ok || !data?.state) return;
+        setState((current) => normalizeOpsState(data.state || current));
+        setRemoteStatus("loaded");
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setRemoteStatus("offline");
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    saveOpsState(state);
+  }, [state]);
+
+  React.useEffect(() => {
+    const password = getPassword();
+    if (!password) return undefined;
+
+    setRemoteStatus("saving");
+    const timeout = window.setTimeout(async () => {
+      try {
+        const response = await fetch("/api/ops/state", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-applications-password": password,
+          },
+          body: JSON.stringify({ state }),
+        });
+        if (!response.ok) throw new Error("save failed");
+        setRemoteStatus("saved");
+      } catch {
+        setRemoteStatus("offline");
+      }
+    }, 500);
+
+    return () => window.clearTimeout(timeout);
+  }, [state]);
+
+  const intelligence = React.useMemo(() => computeIntelligence(state), [state]);
+
+  const api = React.useMemo(() => {
+    const updateCollection = (collectionName, id, updater) => {
+      setState((current) => ({
+        ...current,
+        [collectionName]: current[collectionName].map((item) =>
+          item.id === id ? { ...item, ...updater(item) } : item
+        ),
+      }));
+    };
+
+    const addItem = (collectionName, item) => {
+      setState((current) => ({
+        ...current,
+        [collectionName]: [item, ...current[collectionName]],
+      }));
+    };
+
+    const updateItem = (collectionName, id, updates) => {
+      updateCollection(collectionName, id, () => updates);
+    };
+
+    const removeItem = (collectionName, id) => {
+      setState((current) => ({
+        ...current,
+        [collectionName]: current[collectionName].filter((item) => item.id !== id),
+      }));
+    };
+
+    return {
+      state,
+      remoteStatus,
+      tasks: state.tasks,
+      timeline: state.timeline,
+      programming: state.programming,
+      inventory: state.inventory,
+      sponsors: state.sponsors,
+      budget: state.budget,
+      volunteers: state.volunteers,
+      runOfShow: state.runOfShow,
+      ...intelligence,
+      addItem,
+      updateItem,
+      removeItem,
+      replaceState: (nextState) => setState(normalizeOpsState(nextState)),
+      toggleVolunteerCheckIn: (id) =>
+        setState((current) => ({
+          ...current,
+          volunteers: current.volunteers.map((item) =>
+            item.id === id ? { ...item, checkedIn: !item.checkedIn } : item
+          ),
+        })),
+      setState,
+    };
+  }, [state, remoteStatus, intelligence]);
+
+  return React.createElement(OpsStoreContext.Provider, { value: api }, children);
+}
+
+export function useOpsStore() {
+  const context = React.useContext(OpsStoreContext);
+  if (!context) {
+    throw new Error("useOpsStore must be used inside OpsStoreProvider");
+  }
+  return context;
 }
