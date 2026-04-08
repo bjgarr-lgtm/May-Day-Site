@@ -28,6 +28,99 @@ async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+function cleanCaption(value) {
+  if (!value || typeof value !== 'string') return ''
+
+  let text = value.replace(/\s+/g, ' ').trim()
+  if (!text) return ''
+
+  const quotedMatch = text.match(/["“](.*?)["”](?!.*["“].*["”])/)
+  if (quotedMatch?.[1]) {
+    const quoted = quotedMatch[1].trim()
+    if (quoted) text = quoted
+  }
+
+  text = text
+    .replace(/^Photo by .*?\.\s*/i, '')
+    .replace(/^May be an image of .*?\.\s*/i, '')
+    .replace(/^No photo description available\.\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  return text
+}
+
+async function scrapePostDetail(context, post) {
+  const detailPage = await context.newPage()
+
+  try {
+    await detailPage.goto(post.permalink, { waitUntil: 'domcontentloaded', timeout: 60000 })
+    await sleep(2500)
+
+    const detail = await detailPage.evaluate(() => {
+      const readMeta = (selector) => {
+        const el = document.querySelector(selector)
+        return el?.getAttribute('content') || ''
+      }
+
+      const ldJsonRaw = Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
+        .map((node) => node.textContent || '')
+        .find(Boolean) || ''
+
+      let ldJsonCaption = ''
+      if (ldJsonRaw) {
+        try {
+          const parsed = JSON.parse(ldJsonRaw)
+          ldJsonCaption = parsed?.caption || parsed?.articleBody || ''
+        } catch {}
+      }
+
+      const articleText = Array.from(document.querySelectorAll('article h1, article span, article div[dir="auto"]'))
+        .map((node) => (node.textContent || '').trim())
+        .filter(Boolean)
+        .sort((a, b) => b.length - a.length)[0] || ''
+
+      return {
+        ogDescription: readMeta('meta[property="og:description"]'),
+        metaDescription: readMeta('meta[name="description"]'),
+        ldJsonCaption,
+        articleText,
+      }
+    })
+
+    const caption = [
+      detail.articleText,
+      detail.ldJsonCaption,
+      detail.ogDescription,
+      detail.metaDescription,
+      post.caption,
+    ].map(cleanCaption).find(Boolean) || ''
+
+    return {
+      ...post,
+      caption,
+    }
+  } catch (error) {
+    console.warn(`[${stamp()}] detail scrape failed for ${post.permalink}: ${error.message}`)
+    return {
+      ...post,
+      caption: cleanCaption(post.caption),
+    }
+  } finally {
+    await detailPage.close().catch(() => {})
+  }
+}
+
+async function enrichPosts(context, posts) {
+  const enriched = []
+
+  for (const post of posts) {
+    enriched.push(await scrapePostDetail(context, post))
+  }
+
+  return enriched
+}
+
 async function collectPostsFromPage(page, url, source, username) {
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 })
   await sleep(5000)
@@ -82,16 +175,16 @@ async function collectPostsFromPage(page, url, source, username) {
         anchor.querySelector('img') ||
         anchor.closest('article')?.querySelector('img')
 
-      const caption =
-        img?.getAttribute('alt') ||
+      const teaser =
         anchor.getAttribute('aria-label') ||
+        img?.getAttribute('alt') ||
         ''
 
       const mediaUrl = img?.getAttribute('src') || ''
 
       results.push({
         permalink,
-        caption,
+        caption: teaser,
         media_url: mediaUrl,
         timestamp: new Date().toISOString(),
         username,
@@ -107,14 +200,14 @@ async function collectPostsFromPage(page, url, source, username) {
   return posts
 }
 
-async function collectWithRetry(page, url, source, username) {
+async function collectWithRetry(page, context, url, source, username) {
   let posts = await collectPostsFromPage(page, url, source, username)
-  if (posts.length) return posts
+  if (posts.length) return enrichPosts(context, posts)
 
   console.log(`[${stamp()}] no posts found on first pass for ${source}, retrying`)
   await sleep(4000)
   posts = await collectPostsFromPage(page, url, source, username)
-  return posts
+  return enrichPosts(context, posts)
 }
 
 async function pushFeed(items) {
@@ -141,8 +234,8 @@ async function pushFeed(items) {
 async function runOnce(context) {
   const page = context.pages()[0] || await context.newPage()
 
-  const official = await collectWithRetry(page, profileUrl, 'official', OFFICIAL_PROFILE)
-  const hashtag = await collectWithRetry(page, hashtagUrl, 'hashtag', `#${HASHTAG}`)
+  const official = await collectWithRetry(page, context, profileUrl, 'official', OFFICIAL_PROFILE)
+  const hashtag = await collectWithRetry(page, context, hashtagUrl, 'hashtag', `#${HASHTAG}`)
   const merged = [...official, ...hashtag]
 
   console.log(
