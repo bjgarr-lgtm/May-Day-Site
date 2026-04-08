@@ -6,6 +6,14 @@ const HASHTAG = 'MayDayOnTheHarbor'
 const HASHTAG_URL = `https://www.instagram.com/explore/tags/${HASHTAG.toLowerCase()}/`
 const LOCAL_FEED_CACHE_KEY = 'mayday_live_feed_cache_v1'
 
+const ALT_TEXT_PATTERNS = [
+  /^photo by\s/i,
+  /^may be an image of\s/i,
+  /^no photo description available\.?$/i,
+  /^image may contain\s/i,
+  /^possibly an image of\s/i,
+]
+
 const FALLBACK_ITEMS = [
   {
     id: 'official-instagram',
@@ -72,8 +80,75 @@ function formatTime(value) {
   })
 }
 
+function cleanText(value) {
+  if (typeof value !== 'string') return ''
+  return value.replace(/\s+/g, ' ').trim()
+}
+
+function isLikelyAltText(value) {
+  const text = cleanText(value)
+  if (!text) return false
+  return ALT_TEXT_PATTERNS.some((pattern) => pattern.test(text))
+}
+
+function getNestedCaptionText(item) {
+  const nestedEdges =
+    item?.edge_media_to_caption?.edges ||
+    item?.node?.edge_media_to_caption?.edges ||
+    item?.graphql?.shortcode_media?.edge_media_to_caption?.edges ||
+    []
+
+  const firstEdgeText = nestedEdges?.[0]?.node?.text
+  if (typeof firstEdgeText === 'string' && firstEdgeText.trim()) return firstEdgeText
+
+  const nestedCaptionObjects = [
+    item?.caption,
+    item?.node?.caption,
+    item?.graphql?.shortcode_media?.caption,
+  ]
+
+  for (const candidate of nestedCaptionObjects) {
+    if (typeof candidate === 'string' && candidate.trim()) return candidate
+    if (typeof candidate?.text === 'string' && candidate.text.trim()) return candidate.text
+  }
+
+  return ''
+}
+
+function getDisplayCaption(item) {
+  const captionCandidates = [
+    item?.display_caption,
+    item?.post_caption,
+    item?.original_caption,
+    item?.caption_text,
+    item?.media_caption,
+    item?.legacy_caption,
+    item?.raw_caption,
+    item?.text,
+    item?.message,
+    item?.title,
+    getNestedCaptionText(item),
+    typeof item?.caption === 'string' ? item.caption : '',
+    item?.caption?.text,
+  ]
+    .map(cleanText)
+    .filter(Boolean)
+
+  const preferred = captionCandidates.find((value) => !isLikelyAltText(value))
+  if (preferred) return preferred
+
+  return 'Open on Instagram.'
+}
+
+function getImageAlt(item) {
+  const caption = getDisplayCaption(item)
+  if (caption && caption !== 'Open on Instagram.') return caption
+  return item?.username ? `Instagram post by ${item.username}` : 'Instagram post'
+}
+
 function FeedCard({ item }) {
   const isHashtag = item.source === 'hashtag'
+  const displayCaption = getDisplayCaption(item)
 
   return (
     <a
@@ -96,7 +171,7 @@ function FeedCard({ item }) {
         <div className="aspect-[16/10] w-full overflow-hidden bg-[#102018]">
           <img
             src={item.media_url}
-            alt={item.caption || 'Instagram post'}
+            alt={getImageAlt(item)}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
             loading="lazy"
           />
@@ -120,7 +195,7 @@ function FeedCard({ item }) {
           <p className="shrink-0 text-[11px] uppercase tracking-[0.12em] text-[#f7f1e8]/55">{formatTime(item.timestamp)}</p>
         </div>
         <p className="line-clamp-4 text-sm leading-6 text-[#f7f1e8]/82">
-          {item.caption || 'Open on Instagram.'}
+          {displayCaption}
         </p>
       </div>
     </a>
