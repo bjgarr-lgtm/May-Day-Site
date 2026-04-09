@@ -17,11 +17,9 @@ export function OpsStoreProvider({ children }) {
   const [state, setState] = React.useState(() => {
     const existing = loadOpsState();
     const base = existing ? normalizeOpsState(existing) : createInitialOpsState();
-
-    // ✅ ensure vendors always exists (this fixes your crash indirectly)
     return {
       ...base,
-      vendors: base.vendors || [],
+      vendors: Array.isArray(base.vendors) ? base.vendors : [],
     };
   });
 
@@ -30,7 +28,7 @@ export function OpsStoreProvider({ children }) {
   React.useEffect(() => {
     let isMounted = true;
     const password = getPassword();
-    if (!password) return;
+    if (!password) return undefined;
 
     fetch("/api/ops/state", {
       headers: {
@@ -38,17 +36,14 @@ export function OpsStoreProvider({ children }) {
         "x-applications-password": password,
       },
     })
-      .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+      .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
       .then(({ ok, data }) => {
         if (!isMounted || !ok || !data?.state) return;
-
         const normalized = normalizeOpsState(data.state);
-
         setState({
           ...normalized,
-          vendors: normalized.vendors || [],
+          vendors: Array.isArray(normalized.vendors) ? normalized.vendors : [],
         });
-
         setRemoteStatus("loaded");
       })
       .catch(() => {
@@ -67,13 +62,13 @@ export function OpsStoreProvider({ children }) {
 
   React.useEffect(() => {
     const password = getPassword();
-    if (!password) return;
+    if (!password) return undefined;
 
     setRemoteStatus("saving");
 
-    const timeout = setTimeout(async () => {
+    const timeout = window.setTimeout(async () => {
       try {
-        const res = await fetch("/api/ops/state", {
+        const response = await fetch("/api/ops/state", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -81,39 +76,37 @@ export function OpsStoreProvider({ children }) {
           },
           body: JSON.stringify({ state }),
         });
-
-        if (!res.ok) throw new Error();
-
+        if (!response.ok) throw new Error("save failed");
         setRemoteStatus("saved");
       } catch {
         setRemoteStatus("offline");
       }
     }, 500);
 
-    return () => clearTimeout(timeout);
+    return () => window.clearTimeout(timeout);
   }, [state]);
 
   const api = React.useMemo(() => {
-    const addItem = (collection, item) => {
+    const addItem = (collectionName, item) => {
       setState((current) => ({
         ...current,
-        [collection]: [item, ...(current[collection] || [])],
+        [collectionName]: [item, ...(current[collectionName] || [])],
       }));
     };
 
-    const updateItem = (collection, id, updates) => {
+    const updateItem = (collectionName, id, updates) => {
       setState((current) => ({
         ...current,
-        [collection]: current[collection].map((i) =>
-          i.id === id ? { ...i, ...updates } : i
+        [collectionName]: (current[collectionName] || []).map((item) =>
+          item.id === id ? { ...item, ...updates } : item
         ),
       }));
     };
 
-    const removeItem = (collection, id) => {
+    const removeItem = (collectionName, id) => {
       setState((current) => ({
         ...current,
-        [collection]: current[collection].filter((i) => i.id !== id),
+        [collectionName]: (current[collectionName] || []).filter((item) => item.id !== id),
       }));
     };
 
@@ -127,11 +120,7 @@ export function OpsStoreProvider({ children }) {
     };
   }, [state, remoteStatus]);
 
-  return (
-    <OpsStoreContext.Provider value={api}>
-      {children}
-    </OpsStoreContext.Provider>
-  );
+  return React.createElement(OpsStoreContext.Provider, { value: api }, children);
 }
 
 export function useOpsStore() {
