@@ -1,9 +1,121 @@
 import React from "react";
 import { createInitialOpsState, normalizeOpsState } from "../seedData";
 import { loadOpsState, saveOpsState } from "../utils/storage";
+import { seaportVendorSeed } from "../data/seaportVendorSeed";
 
 const OpsStoreContext = React.createContext(null);
 const PASSWORD_STORAGE_KEY = "maydayApplicationsPassword";
+
+function cleanText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeProgrammingItem(item) {
+  return {
+    ...item,
+    activity: cleanText(item.activity),
+    category: cleanText(item.category) || "General",
+    location: cleanText(item.location),
+    date: cleanText(item.date),
+    time: cleanText(item.time),
+    lead: cleanText(item.lead),
+    needs: cleanText(item.needs),
+    cost: item.cost === 0 ? 0 : item.cost || "",
+    status: cleanText(item.status) || "Planned",
+    notes: cleanText(item.notes),
+  };
+}
+
+function buildTimelineRowFromProgramming(programItem) {
+  const timelineId = programItem.linkedTimelineId || `timeline_prog_${programItem.id}`;
+  return {
+    id: timelineId,
+    date: programItem.date || "",
+    time: programItem.time || "",
+    activity: programItem.activity || "",
+    location: programItem.location || "",
+    lead: programItem.lead || "",
+    dependencies: "",
+    notes: programItem.notes || "",
+    sourceType: "programming",
+    sourceId: programItem.id,
+    linkedProgrammingId: programItem.id,
+  };
+}
+
+function buildBudgetRowFromProgramming(programItem, existing) {
+  const budgetId = existing?.id || programItem.linkedBudgetId || `budget_prog_${programItem.id}`;
+  return {
+    id: budgetId,
+    item: programItem.activity || "",
+    category: "Programming",
+    cost: programItem.cost,
+    paid: existing?.paid || false,
+    notes: existing?.notes || "",
+    sourceType: "programming",
+    sourceId: programItem.id,
+    linkedProgrammingId: programItem.id,
+  };
+}
+
+function removeLinkedRows(current, programId) {
+  return {
+    ...current,
+    timeline: current.timeline.filter((item) => item.linkedProgrammingId !== programId && item.sourceId !== programId),
+    budget: current.budget.filter((item) => item.linkedProgrammingId !== programId && item.sourceId !== programId),
+  };
+}
+
+function applyProgrammingPropagation(current, programItem) {
+  const nextProgram = normalizeProgrammingItem(programItem);
+  const timelineRow = buildTimelineRowFromProgramming(nextProgram);
+  const existingBudget = current.budget.find((item) => item.linkedProgrammingId === nextProgram.id || item.sourceId === nextProgram.id);
+  const budgetRow = nextProgram.cost ? buildBudgetRowFromProgramming(nextProgram, existingBudget) : null;
+
+  const nextTimeline = nextProgram.date || nextProgram.time
+    ? [
+        timelineRow,
+        ...current.timeline.filter((item) => item.id !== timelineRow.id && item.linkedProgrammingId !== nextProgram.id && item.sourceId !== nextProgram.id),
+      ]
+    : current.timeline.filter((item) => item.linkedProgrammingId !== nextProgram.id && item.sourceId !== nextProgram.id);
+
+  const nextBudget = budgetRow
+    ? [
+        budgetRow,
+        ...current.budget.filter((item) => item.id !== budgetRow.id && item.linkedProgrammingId !== nextProgram.id && item.sourceId !== nextProgram.id),
+      ]
+    : current.budget.filter((item) => item.linkedProgrammingId !== nextProgram.id && item.sourceId !== nextProgram.id);
+
+  return {
+    ...current,
+    timeline: nextTimeline,
+    budget: nextBudget,
+  };
+}
+
+function normalizeName(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function mergeVendors(vendors) {
+  const existing = Array.isArray(vendors) ? vendors : [];
+  const seen = new Set(existing.map((item) => `${item.id || ""}::${normalizeName(item.name)}`));
+  const extras = seaportVendorSeed.filter((item) => {
+    const key = `${item.id || ""}::${normalizeName(item.name)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return [...existing, ...extras];
+}
+
+function hydrateState(input) {
+  const normalized = input ? normalizeOpsState(input) : createInitialOpsState();
+  return {
+    ...normalized,
+    vendors: mergeVendors(input?.vendors || normalized?.vendors || []),
+  };
+}
 
 function getPassword() {
   try {
@@ -16,13 +128,8 @@ function getPassword() {
 export function OpsStoreProvider({ children }) {
   const [state, setState] = React.useState(() => {
     const existing = loadOpsState();
-    const base = existing ? normalizeOpsState(existing) : createInitialOpsState();
-    return {
-      ...base,
-      vendors: Array.isArray(base?.vendors) ? base.vendors : [],
-    };
+    return hydrateState(existing);
   });
-
   const [remoteStatus, setRemoteStatus] = React.useState("idle");
 
   React.useEffect(() => {
@@ -39,11 +146,7 @@ export function OpsStoreProvider({ children }) {
       .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
       .then(({ ok, data }) => {
         if (!isMounted || !ok || !data?.state) return;
-        const normalized = normalizeOpsState(data.state);
-        setState({
-          ...normalized,
-          vendors: Array.isArray(normalized?.vendors) ? normalized.vendors : [],
-        });
+        setState(hydrateState(data.state));
         setRemoteStatus("loaded");
       })
       .catch(() => {
@@ -65,7 +168,6 @@ export function OpsStoreProvider({ children }) {
     if (!password) return undefined;
 
     setRemoteStatus("saving");
-
     const timeout = window.setTimeout(async () => {
       try {
         const response = await fetch("/api/ops/state", {
@@ -87,51 +189,88 @@ export function OpsStoreProvider({ children }) {
   }, [state]);
 
   const api = React.useMemo(() => {
-    const addItem = (collectionName, item) => {
+    const updateCollection = (collectionName, id, updater) => {
       setState((current) => ({
         ...current,
-        [collectionName]: [item, ...(current[collectionName] || [])],
-      }));
-    };
-
-    const updateItem = (collectionName, id, updates) => {
-      setState((current) => ({
-        ...current,
-        [collectionName]: (current[collectionName] || []).map((item) =>
-          item.id === id ? { ...item, ...updates } : item
+        [collectionName]: current[collectionName].map((item) =>
+          item.id === id ? { ...item, ...updater(item) } : item
         ),
       }));
     };
 
-    const removeItem = (collectionName, id) => {
+    const addItem = (collectionName, item) => {
+      if (collectionName === "programming") {
+        const nextProgram = normalizeProgrammingItem(item);
+        setState((current) => applyProgrammingPropagation({
+          ...current,
+          programming: [nextProgram, ...current.programming],
+        }, nextProgram));
+        return;
+      }
+
       setState((current) => ({
         ...current,
-        [collectionName]: (current[collectionName] || []).filter((item) => item.id !== id),
+        [collectionName]: [item, ...current[collectionName]],
+      }));
+    };
+
+    const updateItem = (collectionName, id, updates) => {
+      if (collectionName === "programming") {
+        setState((current) => {
+          const merged = normalizeProgrammingItem({ ...current.programming.find((item) => item.id === id), ...updates });
+          const nextState = {
+            ...current,
+            programming: current.programming.map((item) => (item.id === id ? merged : item)),
+          };
+          return applyProgrammingPropagation(nextState, merged);
+        });
+        return;
+      }
+
+      updateCollection(collectionName, id, () => updates);
+    };
+
+    const removeItem = (collectionName, id) => {
+      if (collectionName === "programming") {
+        setState((current) => {
+          const stripped = {
+            ...current,
+            programming: current.programming.filter((item) => item.id !== id),
+          };
+          return removeLinkedRows(stripped, id);
+        });
+        return;
+      }
+
+      setState((current) => ({
+        ...current,
+        [collectionName]: current[collectionName].filter((item) => item.id !== id),
       }));
     };
 
     return {
       state,
       remoteStatus,
-      tasks: state.tasks || [],
-      timeline: state.timeline || [],
-      programming: state.programming || [],
-      inventory: state.inventory || [],
-      sponsors: state.sponsors || [],
-      vendors: state.vendors || [],
-      budget: state.budget || [],
-      volunteers: state.volunteers || [],
-      runOfShow: state.runOfShow || [],
+      tasks: state.tasks,
+      timeline: state.timeline,
+      programming: state.programming,
+      inventory: state.inventory,
+      sponsors: state.sponsors,
+      vendors: state.vendors,
+      budget: state.budget,
+      volunteers: state.volunteers,
+      runOfShow: state.runOfShow,
       addItem,
       updateItem,
       removeItem,
-      replaceState: (nextState) => {
-        const normalized = normalizeOpsState(nextState);
-        setState({
-          ...normalized,
-          vendors: Array.isArray(normalized?.vendors) ? normalized.vendors : [],
-        });
-      },
+      replaceState: (nextState) => setState(hydrateState(nextState)),
+      toggleVolunteerCheckIn: (id) =>
+        setState((current) => ({
+          ...current,
+          volunteers: current.volunteers.map((item) =>
+            item.id === id ? { ...item, checkedIn: !item.checkedIn } : item
+          ),
+        })),
       setState,
     };
   }, [state, remoteStatus]);

@@ -1,4 +1,5 @@
 import React from "react";
+import * as XLSX from "xlsx";
 
 function readLocal(key, fallback) {
   try {
@@ -36,6 +37,7 @@ export default function EditableTable({
   emptyLabel = "Nothing here yet.",
   rowClassName,
   pageSize = 10,
+  importConfig = null,
 }) {
   const widthsKey = `opsTableWidths:${tableKey}`;
   const hiddenKey = `opsTableHidden:${tableKey}`;
@@ -43,8 +45,10 @@ export default function EditableTable({
   const [hiddenKeys, setHiddenKeys] = React.useState(() => readLocal(hiddenKey, []));
   const [managerOpen, setManagerOpen] = React.useState(false);
   const [page, setPage] = React.useState(1);
+  const [isImporting, setIsImporting] = React.useState(false);
   const resizeRef = React.useRef(null);
   const managerRef = React.useRef(null);
+  const importRef = React.useRef(null);
 
   React.useEffect(() => writeLocal(widthsKey, widths), [widths, widthsKey]);
   React.useEffect(() => writeLocal(hiddenKey, hiddenKeys), [hiddenKey, hiddenKeys]);
@@ -66,6 +70,7 @@ export default function EditableTable({
   }, [managerOpen]);
 
   const visibleColumns = columns.filter((column) => !hiddenKeys.includes(column.key));
+  const hasActions = typeof onEdit === "function" || typeof onDelete === "function";
 
   const startResize = (columnKey, event) => {
     event.preventDefault();
@@ -100,8 +105,54 @@ export default function EditableTable({
     setWidths({});
   };
 
+  const openImportPicker = () => {
+    if (!importConfig) return;
+    importRef.current?.click();
+  };
+
+  const handleImport = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !importConfig?.onRows) return;
+
+    try {
+      setIsImporting(true);
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const importedRows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      if (!importedRows.length) {
+        window.alert("That spreadsheet looked empty.");
+        return;
+      }
+      await importConfig.onRows(importedRows, file.name);
+    } catch (error) {
+      window.alert(error?.message || "Could not import spreadsheet.");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   if (!rows.length) {
-    return <div className="ops-empty">{emptyLabel}</div>;
+    return (
+      <div className="ops-table-shell">
+        <div className="ops-table-controls">
+          <div className="ops-table-controls-note">Resize, hide, and restore columns without losing the whole damn table.</div>
+          <div className="ops-table-controls-actions">
+            {importConfig ? (
+              <>
+                <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: "none" }} onChange={handleImport} />
+                <button type="button" className="ops-button ops-button-secondary ops-button-small" onClick={openImportPicker} disabled={isImporting}>
+                  {isImporting ? "Importing…" : importConfig.buttonLabel || "Import spreadsheet"}
+                </button>
+              </>
+            ) : null}
+          </div>
+        </div>
+        <div className="ops-empty">{emptyLabel}</div>
+      </div>
+    );
   }
 
   const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
@@ -111,25 +162,35 @@ export default function EditableTable({
   return (
     <div className="ops-table-shell">
       <div className="ops-table-controls">
-        <div className="ops-table-controls-note">Resize, hide, and restore columns without losing the whole damn table.</div>
-        <div className="ops-column-manager-wrap" ref={managerRef}>
-          <button type="button" className="ops-button ops-button-secondary ops-button-small" onClick={() => setManagerOpen((current) => !current)}>
-            Columns
-          </button>
-          {managerOpen ? (
-            <div className="ops-column-manager">
-              {columns.map((column) => {
-                const checked = !hiddenKeys.includes(column.key);
-                return (
-                  <label key={column.key} className="ops-column-option">
-                    <input type="checkbox" checked={checked} onChange={() => toggleColumn(column.key)} />
-                    <span>{column.label}</span>
-                  </label>
-                );
-              })}
-              <button type="button" className="ops-button ops-button-small" onClick={restoreColumns}>Restore all</button>
-            </div>
+        <div className="ops-table-controls-note">Resize, hide, restore, and import without detonating the table.</div>
+        <div className="ops-table-controls-actions">
+          {importConfig ? (
+            <>
+              <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: "none" }} onChange={handleImport} />
+              <button type="button" className="ops-button ops-button-secondary ops-button-small" onClick={openImportPicker} disabled={isImporting}>
+                {isImporting ? "Importing…" : importConfig.buttonLabel || "Import spreadsheet"}
+              </button>
+            </>
           ) : null}
+          <div className="ops-column-manager-wrap" ref={managerRef}>
+            <button type="button" className="ops-button ops-button-secondary ops-button-small" onClick={() => setManagerOpen((current) => !current)}>
+              Columns
+            </button>
+            {managerOpen ? (
+              <div className="ops-column-manager">
+                {columns.map((column) => {
+                  const checked = !hiddenKeys.includes(column.key);
+                  return (
+                    <label key={column.key} className="ops-column-option">
+                      <input type="checkbox" checked={checked} onChange={() => toggleColumn(column.key)} />
+                      <span>{column.label}</span>
+                    </label>
+                  );
+                })}
+                <button type="button" className="ops-button ops-button-small" onClick={restoreColumns}>Restore all</button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
       <div className="ops-table-wrap">
@@ -144,9 +205,11 @@ export default function EditableTable({
                   </div>
                 </th>
               ))}
-              <th className="ops-actions-col" style={{ width: 120 }}>
-                <div className="ops-th-inner"><span>Actions</span></div>
-              </th>
+              {hasActions ? (
+                <th className="ops-actions-col" style={{ width: 120 }}>
+                  <div className="ops-th-inner"><span>Actions</span></div>
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -160,18 +223,20 @@ export default function EditableTable({
                     </td>
                   );
                 })}
-                <td className="ops-row-actions">
-                  <button type="button" className="ops-button ops-button-small" onClick={() => onEdit(row)}>
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="ops-button ops-button-small ops-button-danger"
-                    onClick={() => onDelete(row.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
+                {hasActions ? (
+                  <td className="ops-row-actions">
+                    {typeof onEdit === "function" ? (
+                      <button type="button" className="ops-button ops-button-small" onClick={() => onEdit(row)}>
+                        Edit
+                      </button>
+                    ) : null}
+                    {typeof onDelete === "function" ? (
+                      <button type="button" className="ops-button ops-button-small ops-button-danger" onClick={() => onDelete(row.id)}>
+                        Delete
+                      </button>
+                    ) : null}
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>
