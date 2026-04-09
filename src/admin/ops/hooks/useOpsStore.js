@@ -19,7 +19,7 @@ export function OpsStoreProvider({ children }) {
     const base = existing ? normalizeOpsState(existing) : createInitialOpsState();
     return {
       ...base,
-      vendors: Array.isArray(base.vendors) ? base.vendors : [],
+      vendors: Array.isArray(base?.vendors) ? base.vendors : [],
     };
   });
 
@@ -42,7 +42,7 @@ export function OpsStoreProvider({ children }) {
         const normalized = normalizeOpsState(data.state);
         setState({
           ...normalized,
-          vendors: Array.isArray(normalized.vendors) ? normalized.vendors : [],
+          vendors: Array.isArray(normalized?.vendors) ? normalized.vendors : [],
         });
         setRemoteStatus("loaded");
       })
@@ -111,11 +111,27 @@ export function OpsStoreProvider({ children }) {
     };
 
     return {
-      ...state,
+      state,
       remoteStatus,
+      tasks: state.tasks || [],
+      timeline: state.timeline || [],
+      programming: state.programming || [],
+      inventory: state.inventory || [],
+      sponsors: state.sponsors || [],
+      vendors: state.vendors || [],
+      budget: state.budget || [],
+      volunteers: state.volunteers || [],
+      runOfShow: state.runOfShow || [],
       addItem,
       updateItem,
       removeItem,
+      replaceState: (nextState) => {
+        const normalized = normalizeOpsState(nextState);
+        setState({
+          ...normalized,
+          vendors: Array.isArray(normalized?.vendors) ? normalized.vendors : [],
+        });
+      },
       setState,
     };
   }, [state, remoteStatus]);
@@ -124,7 +140,9 @@ export function OpsStoreProvider({ children }) {
 }
 
 export function useOpsStore() {
-  const ctx = React.useContext(OpsStoreContext);
-  if (!ctx) throw new Error("useOpsStore must be used inside provider");
-  return ctx;
+  const context = React.useContext(OpsStoreContext);
+  if (!context) {
+    throw new Error("useOpsStore must be used inside OpsStoreProvider");
+  }
+  return context;
 }
